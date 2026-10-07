@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../dependencias.dart';
 import '../dominio/profesional.dart';
 import 'formulario_profesional.dart';
+import 'tema.dart';
 
 /// P5 · Profesionales.
 class PantallaProfesionales extends StatelessWidget {
@@ -37,18 +38,30 @@ class PantallaProfesionales extends StatelessWidget {
           }
           final profesionales = snapshot.data!;
           if (profesionales.isEmpty) {
-            return const Center(
-              child: Text('No hay profesionales todavía.\nTocá + para agregar uno.'),
+            return const EstadoVacio(
+              icono: Icons.people_outline,
+              mensaje: 'No hay profesionales todavía.\nTocá + para agregar uno.',
             );
           }
           return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 96),
             itemCount: profesionales.length,
             itemBuilder: (context, indice) {
               final p = profesionales[indice];
-              return ListTile(
-                title: Text(p.nombre),
-                subtitle: Text(p.especialidad),
-                onTap: () => _abrirFormulario(context, p),
+              return Card(
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    child: Icon(
+                      Icons.person,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  title: Text(p.nombre),
+                  subtitle: Text(p.especialidad),
+                  onTap: () => _abrirFormulario(context, p),
+                ),
               );
             },
           );

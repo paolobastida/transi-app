@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../dependencias.dart';
 import '../dominio/tratamiento.dart';
 import 'formulario_tratamiento.dart';
+import 'tema.dart';
 
 /// P4 · Tratamientos (activos / finalizados / todos).
 class PantallaTratamientos extends StatefulWidget {
@@ -59,21 +60,34 @@ class _PantallaTratamientosState extends State<PantallaTratamientos> {
                 }
                 final tratamientos = snapshot.data!;
                 if (tratamientos.isEmpty) {
-                  return const Center(
-                    child: Text('No hay tratamientos todavía.\nTocá + para agregar uno.'),
+                  return const EstadoVacio(
+                    icono: Icons.medication_outlined,
+                    mensaje: 'No hay tratamientos todavía.\nTocá + para agregar uno.',
                   );
                 }
                 return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 96),
                   itemCount: tratamientos.length,
                   itemBuilder: (context, indice) {
                     final t = tratamientos[indice];
-                    return ListTile(
-                      title: Text(t.nombre),
-                      subtitle: Text('${t.dosis} · ${t.frecuencia} · desde ${_fecha(t.fechaInicio)}'),
-                      trailing: Chip(
-                        label: Text(t.finalizado ? 'Finalizado' : 'Activo'),
+                    return Card(
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          child: Icon(
+                            Icons.medication,
+                            color: Theme.of(context).colorScheme.onSecondaryContainer,
+                          ),
+                        ),
+                        title: Text(t.nombre),
+                        subtitle: Text(
+                            '${t.dosis} · ${t.frecuencia} · desde ${_fecha(t.fechaInicio)}'),
+                        trailing: Chip(
+                          label: Text(t.finalizado ? 'Finalizado' : 'Activo'),
+                        ),
+                        onTap: () => _abrirFormulario(t),
                       ),
-                      onTap: () => _abrirFormulario(t),
                     );
                   },
                 );

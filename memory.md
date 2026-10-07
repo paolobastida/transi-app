@@ -530,6 +530,11 @@ firmar el APK, siguiendo `docs/despliegue.md`.
 - **Idioma del código:** nombres de dominio, paquetes y comentarios en
   **español** (el glosario de `domain.md` es el lenguaje ubicuo). Los términos
   técnicos estándar (HTTP, JWT, SQL) quedan como se conocen.
+- **Identidad visual:** la paleta y el tema viven en
+  `app/lib/presentacion/tema.dart` y representan la **bandera transgénero**
+  (celeste `#5BCEFA`, rosa `#F5A9B8`, blanco). La franja `FranjaTrans` y el
+  degradé `degradadoBandera()` son los elementos de marca. Si cambia el color,
+  cambia solo ese archivo.
 - **Regla del día a día:** *código simple y obvio > arquitectura que nadie
   entiende*. Al dudar, simple; si duele después, se extrae el puerto entonces.
 - **No hacer** (de `architecture.md` §6): nada de ORM mágico, contenedor de

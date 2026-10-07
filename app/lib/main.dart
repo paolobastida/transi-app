@@ -12,6 +12,7 @@ import 'dependencias.dart';
 import 'dominio/usuario.dart';
 import 'presentacion/pantalla_inicio.dart';
 import 'presentacion/pantalla_login.dart';
+import 'presentacion/tema.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,9 +44,7 @@ class TransiApp extends StatelessWidget {
       dependencias: dependencias,
       child: MaterialApp(
         title: 'Transi',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        ),
+        theme: temaTransi(),
         home: const PantallaArranque(),
       ),
     );

@@ -4,6 +4,7 @@ import '../dependencias.dart';
 import '../dominio/evento_timeline.dart';
 import 'formulario_tratamiento.dart';
 import 'pantalla_detalle_cambio.dart';
+import 'tema.dart';
 
 /// P3 · Línea de tiempo: tratamientos y cambios unidos, por fecha, con filtro.
 class PantallaLineaDeTiempo extends StatefulWidget {
@@ -99,23 +100,34 @@ class _PantallaLineaDeTiempoState extends State<PantallaLineaDeTiempo> {
               }
               final eventos = snapshot.data!;
               if (eventos.isEmpty) {
-                return const Center(
-                  child: Text('Todavía no hay nada en tu línea de tiempo.'),
+                return const EstadoVacio(
+                  icono: Icons.timeline,
+                  mensaje: 'Todavía no hay nada en tu línea de tiempo.',
                 );
               }
               return ListView.builder(
+                padding: const EdgeInsets.only(bottom: 96),
                 itemCount: eventos.length,
                 itemBuilder: (context, indice) {
                   final evento = eventos[indice];
-                  return ListTile(
-                    leading: Icon(
-                      evento.tipo == TipoEvento.tratamiento
-                          ? Icons.medication
-                          : Icons.timeline,
+                  final esTratamiento = evento.tipo == TipoEvento.tratamiento;
+                  return Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: esTratamiento
+                            ? Theme.of(context).colorScheme.secondaryContainer
+                            : ColoresTrans.celeste.withValues(alpha: 0.25),
+                        child: Icon(
+                          esTratamiento ? Icons.medication : Icons.timeline,
+                          color: esTratamiento
+                              ? Theme.of(context).colorScheme.onSecondaryContainer
+                              : ColoresTrans.celesteFuerte,
+                        ),
+                      ),
+                      title: Text(evento.titulo),
+                      subtitle: Text('${_fechaTexto(evento.fecha)} · ${evento.detalle}'),
+                      onTap: () => _abrir(evento),
                     ),
-                    title: Text(evento.titulo),
-                    subtitle: Text('${_fechaTexto(evento.fecha)} · ${evento.detalle}'),
-                    onTap: () => _abrir(evento),
                   );
                 },
               );

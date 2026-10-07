@@ -8,6 +8,7 @@ import 'pantalla_linea_de_tiempo.dart';
 import 'pantalla_login.dart';
 import 'pantalla_profesionales.dart';
 import 'pantalla_tratamientos.dart';
+import 'tema.dart';
 
 /// Contenedor principal con barra de navegación y el botón "Registrar cambio".
 class PantallaInicio extends StatefulWidget {
@@ -53,6 +54,10 @@ class _PantallaInicioState extends State<PantallaInicio> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transi'),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(4),
+          child: FranjaTrans(alto: 4),
+        ),
         actions: [
           IconButton(
             tooltip: 'Cuenta y respaldo',
