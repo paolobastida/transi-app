@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'datos/api_client.dart';
 import 'datos/autenticacion.dart';
 import 'datos/base_local.dart';
 import 'datos/cambio_repositorio.dart';
 import 'datos/linea_de_tiempo.dart';
 import 'datos/profesional_repositorio.dart';
+import 'datos/respaldo.dart';
 import 'datos/tratamiento_repositorio.dart';
 import 'dependencias.dart';
 import 'dominio/usuario.dart';
@@ -24,6 +26,7 @@ void main() {
     tratamientos: tratamientos,
     cambios: cambios,
     lineaDeTiempo: LineaDeTiempo(cambios: cambios, tratamientos: tratamientos),
+    respaldo: RespaldoServicio(base, RespaldoApi(ApiClient())),
   );
 
   runApp(TransiApp(dependencias: dependencias));

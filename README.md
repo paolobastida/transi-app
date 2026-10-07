@@ -81,7 +81,19 @@ Este repositorio tiene dos partes:
 - **Filtro por rango de fechas** (desde / hasta).
 - No es una tabla: es una **consulta de lectura** que junta las dos listas.
 
-**Siguiente:** Fase 9 — Respaldos desde la app (cola outbox) y pantalla P10.
+**Fase 9 · Respaldos desde la app — completada (P10):**
+
+- Pantalla **P10 Cuenta y respaldo**: email, último respaldo, cuántos registros
+  quedan pendientes, y botones **Respaldar ahora** y **Restaurar**.
+- El respaldo es un **snapshot completo** de los datos locales (incluidos los
+  archivos, en base64) que se sube con `PUT /respaldos`.
+- Restaurar reemplaza los datos del dispositivo con el último respaldo.
+- Cada cambio local marca el registro como *pendiente*; respaldar los marca como
+  *respaldados*.
+- **Prueba madre** (test con servidor falso): respaldar → restaurar en otra base
+  → todo idéntico.
+
+**Siguiente:** Fase 10 — Pulido y despliegue (Dockerfile, VPS con HTTPS, APK).
 
 ### API disponible
 

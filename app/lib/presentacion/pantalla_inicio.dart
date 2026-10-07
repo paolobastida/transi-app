@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../dependencias.dart';
 import '../dominio/usuario.dart';
 import 'formulario_cambio.dart';
+import 'pantalla_cuenta.dart';
 import 'pantalla_linea_de_tiempo.dart';
 import 'pantalla_login.dart';
 import 'pantalla_profesionales.dart';
@@ -53,6 +54,18 @@ class _PantallaInicioState extends State<PantallaInicio> {
       appBar: AppBar(
         title: const Text('Transi'),
         actions: [
+          IconButton(
+            tooltip: 'Cuenta y respaldo',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => PantallaCuenta(
+                  usuarioId: widget.usuario.id,
+                  email: widget.usuario.email,
+                ),
+              ),
+            ),
+            icon: const Icon(Icons.cloud),
+          ),
           IconButton(
             tooltip: 'Cerrar sesión (${widget.usuario.email})',
             onPressed: _salir,

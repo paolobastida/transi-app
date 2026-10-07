@@ -284,6 +284,21 @@ commit.
   `combineLatest`, sin dependencias extra).
 - **Verificación:** tests de que une, ordena y filtra correctamente.
 
+### Fase 9 — Respaldos desde la app (P10)
+
+- Pantalla **P10 Cuenta y respaldo**: email, último respaldo, pendientes, y
+  botones de **respaldar** y **restaurar**.
+- El respaldo es un **snapshot completo** (JSON) de los datos locales, con los
+  archivos en **base64**, que se sube con `PUT /respaldos` y se baja con
+  `GET /respaldos/ultimo`.
+- Se agregó la columna `pendiente` a las tablas locales (se marca al escribir, se
+  limpia al respaldar) y una tabla `ajustes` para guardar el último respaldo.
+  Esto requirió subir `schemaVersion` a 2 con una migración (`addColumn`).
+- El acceso remoto está detrás de una interfaz (`RespaldoRemoto`) para poder
+  probar con un **doble falso**.
+- **Prueba madre** (test): respaldar en una base y restaurar en otra deja todo
+  idéntico, incluidos los bytes de los adjuntos.
+
 ---
 
 ## 6. La API del servidor
@@ -425,20 +440,21 @@ Estos son aprendizajes reales, no teoría:
 
 **Diseño (Fases A–D):** completo.
 
-**Construcción (Fases 0–8):** completas y verificadas.
+**Construcción (Fases 0–9):** completas y verificadas.
 
 - ✅ Backend completo para el MVP: identidad, profesionales, tratamientos,
   cambios con archivos y respaldos.
-- ✅ App con estructura, cliente de API con auto-refresco, pantallas de
-  registro/login, **base local Drift** para profesionales, tratamientos y
-  **cambios con foto y voz**, y **línea de tiempo** unificada con filtro.
+- ✅ App completa del MVP: registro/login, **base local Drift** (profesionales,
+  tratamientos, cambios con foto y voz), **línea de tiempo** unificada y
+  **respaldar/restaurar**.
 - ✅ Tests verdes en backend y app; CI configurado.
 - ✅ Sin credenciales en el repositorio ni en su historia.
 
 **Historial de commits (se irá ampliando):**
 
 ```
-<c9>    Fase 8: app — línea de tiempo (P3)
+<c10>   Fase 9: app — respaldos (P10) con snapshot completo
+1a867c3 Fase 8: app — línea de tiempo (P3)
 cc54ed1 Fase 7: app — cambios con foto y voz (P8–P9)
 73c4e7c Fase 6: app local-first con Drift (P4–P7)
 3d184cc Fase 5: app Flutter (P1/P2), auto-refresco y CORS
@@ -451,8 +467,8 @@ cafbd5c Fase 0: cimientos
 
 **Limitaciones conocidas (honestas):**
 
-- **Nada se respalda todavía al servidor**: los datos viven solo en el teléfono
-  hasta la Fase 9 (cola outbox + P10).
+- El respaldo es **completo y bajo demanda** (no sincronización incremental en
+  segundo plano), por decisión B5.
 - Los archivos se guardan en **disco local** del servidor, no en el bucket
   (Fase 10).
 - El `JWT_SECRET` de desarrollo se genera al azar: las sesiones no sobreviven
@@ -466,14 +482,13 @@ Plan restante (`docs/plan.md`), en orden:
 
 | Fase | Qué | Verificación al cerrar |
 |---|---|---|
-| **9** | Respaldos en la app: cola outbox atómica, P10, tests con doble falso | **Prueba madre:** respaldar → borrar app → restaurar → todo igual |
 | **10** | Pulido y despliegue: Dockerfile + VPS (HTTPS, firewall, respaldos de PG), APK | Dispositivo real con HTTPS |
 
-**Riesgos a vigilar:** el modo avión de punta a punta (F9).
+**Riesgos a vigilar:** el modo avión de punta a punta ya está cubierto por el
+diseño local-first; falta la prueba en un **dispositivo real**.
 
-**Próximo paso inmediato:** Fase 9 — **respaldar y restaurar desde la app**
-(cola outbox atómica + pantalla P10). Es la "prueba madre": respaldar → borrar
-la app → restaurar → todo igual.
+**Próximo paso inmediato:** Fase 10 — **pulido y despliegue**: Dockerfile,
+VPS con HTTPS (Caddy), firewall, respaldos de PostgreSQL y APK firmado.
 
 ---
 

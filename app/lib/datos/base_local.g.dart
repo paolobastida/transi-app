@@ -62,6 +62,21 @@ class $ProfesionalesTable extends Profesionales
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _pendienteMeta = const VerificationMeta(
+    'pendiente',
+  );
+  @override
+  late final GeneratedColumn<bool> pendiente = GeneratedColumn<bool>(
+    'pendiente',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("pendiente" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _creadoEnMeta = const VerificationMeta(
     'creadoEn',
   );
@@ -81,6 +96,7 @@ class $ProfesionalesTable extends Profesionales
     nombre,
     especialidad,
     activo,
+    pendiente,
     creadoEn,
   ];
   @override
@@ -133,6 +149,12 @@ class $ProfesionalesTable extends Profesionales
         activo.isAcceptableOrUnknown(data['activo']!, _activoMeta),
       );
     }
+    if (data.containsKey('pendiente')) {
+      context.handle(
+        _pendienteMeta,
+        pendiente.isAcceptableOrUnknown(data['pendiente']!, _pendienteMeta),
+      );
+    }
     if (data.containsKey('creado_en')) {
       context.handle(
         _creadoEnMeta,
@@ -168,6 +190,10 @@ class $ProfesionalesTable extends Profesionales
         DriftSqlType.bool,
         data['${effectivePrefix}activo'],
       )!,
+      pendiente: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}pendiente'],
+      )!,
       creadoEn: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}creado_en'],
@@ -187,6 +213,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
   final String nombre;
   final String especialidad;
   final bool activo;
+  final bool pendiente;
   final DateTime creadoEn;
   const FilaProfesional({
     required this.id,
@@ -194,6 +221,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
     required this.nombre,
     required this.especialidad,
     required this.activo,
+    required this.pendiente,
     required this.creadoEn,
   });
   @override
@@ -204,6 +232,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
     map['nombre'] = Variable<String>(nombre);
     map['especialidad'] = Variable<String>(especialidad);
     map['activo'] = Variable<bool>(activo);
+    map['pendiente'] = Variable<bool>(pendiente);
     map['creado_en'] = Variable<DateTime>(creadoEn);
     return map;
   }
@@ -215,6 +244,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
       nombre: Value(nombre),
       especialidad: Value(especialidad),
       activo: Value(activo),
+      pendiente: Value(pendiente),
       creadoEn: Value(creadoEn),
     );
   }
@@ -230,6 +260,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
       nombre: serializer.fromJson<String>(json['nombre']),
       especialidad: serializer.fromJson<String>(json['especialidad']),
       activo: serializer.fromJson<bool>(json['activo']),
+      pendiente: serializer.fromJson<bool>(json['pendiente']),
       creadoEn: serializer.fromJson<DateTime>(json['creadoEn']),
     );
   }
@@ -242,6 +273,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
       'nombre': serializer.toJson<String>(nombre),
       'especialidad': serializer.toJson<String>(especialidad),
       'activo': serializer.toJson<bool>(activo),
+      'pendiente': serializer.toJson<bool>(pendiente),
       'creadoEn': serializer.toJson<DateTime>(creadoEn),
     };
   }
@@ -252,6 +284,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
     String? nombre,
     String? especialidad,
     bool? activo,
+    bool? pendiente,
     DateTime? creadoEn,
   }) => FilaProfesional(
     id: id ?? this.id,
@@ -259,6 +292,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
     nombre: nombre ?? this.nombre,
     especialidad: especialidad ?? this.especialidad,
     activo: activo ?? this.activo,
+    pendiente: pendiente ?? this.pendiente,
     creadoEn: creadoEn ?? this.creadoEn,
   );
   FilaProfesional copyWithCompanion(ProfesionalesCompanion data) {
@@ -270,6 +304,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
           ? data.especialidad.value
           : this.especialidad,
       activo: data.activo.present ? data.activo.value : this.activo,
+      pendiente: data.pendiente.present ? data.pendiente.value : this.pendiente,
       creadoEn: data.creadoEn.present ? data.creadoEn.value : this.creadoEn,
     );
   }
@@ -282,14 +317,22 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
           ..write('nombre: $nombre, ')
           ..write('especialidad: $especialidad, ')
           ..write('activo: $activo, ')
+          ..write('pendiente: $pendiente, ')
           ..write('creadoEn: $creadoEn')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, usuarioId, nombre, especialidad, activo, creadoEn);
+  int get hashCode => Object.hash(
+    id,
+    usuarioId,
+    nombre,
+    especialidad,
+    activo,
+    pendiente,
+    creadoEn,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -299,6 +342,7 @@ class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
           other.nombre == this.nombre &&
           other.especialidad == this.especialidad &&
           other.activo == this.activo &&
+          other.pendiente == this.pendiente &&
           other.creadoEn == this.creadoEn);
 }
 
@@ -308,6 +352,7 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
   final Value<String> nombre;
   final Value<String> especialidad;
   final Value<bool> activo;
+  final Value<bool> pendiente;
   final Value<DateTime> creadoEn;
   final Value<int> rowid;
   const ProfesionalesCompanion({
@@ -316,6 +361,7 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
     this.nombre = const Value.absent(),
     this.especialidad = const Value.absent(),
     this.activo = const Value.absent(),
+    this.pendiente = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -325,6 +371,7 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
     required String nombre,
     required String especialidad,
     this.activo = const Value.absent(),
+    this.pendiente = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -337,6 +384,7 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
     Expression<String>? nombre,
     Expression<String>? especialidad,
     Expression<bool>? activo,
+    Expression<bool>? pendiente,
     Expression<DateTime>? creadoEn,
     Expression<int>? rowid,
   }) {
@@ -346,6 +394,7 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
       if (nombre != null) 'nombre': nombre,
       if (especialidad != null) 'especialidad': especialidad,
       if (activo != null) 'activo': activo,
+      if (pendiente != null) 'pendiente': pendiente,
       if (creadoEn != null) 'creado_en': creadoEn,
       if (rowid != null) 'rowid': rowid,
     });
@@ -357,6 +406,7 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
     Value<String>? nombre,
     Value<String>? especialidad,
     Value<bool>? activo,
+    Value<bool>? pendiente,
     Value<DateTime>? creadoEn,
     Value<int>? rowid,
   }) {
@@ -366,6 +416,7 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
       nombre: nombre ?? this.nombre,
       especialidad: especialidad ?? this.especialidad,
       activo: activo ?? this.activo,
+      pendiente: pendiente ?? this.pendiente,
       creadoEn: creadoEn ?? this.creadoEn,
       rowid: rowid ?? this.rowid,
     );
@@ -389,6 +440,9 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
     if (activo.present) {
       map['activo'] = Variable<bool>(activo.value);
     }
+    if (pendiente.present) {
+      map['pendiente'] = Variable<bool>(pendiente.value);
+    }
     if (creadoEn.present) {
       map['creado_en'] = Variable<DateTime>(creadoEn.value);
     }
@@ -406,6 +460,7 @@ class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
           ..write('nombre: $nombre, ')
           ..write('especialidad: $especialidad, ')
           ..write('activo: $activo, ')
+          ..write('pendiente: $pendiente, ')
           ..write('creadoEn: $creadoEn, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -514,6 +569,21 @@ class $TratamientosTable extends Tratamientos
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _pendienteMeta = const VerificationMeta(
+    'pendiente',
+  );
+  @override
+  late final GeneratedColumn<bool> pendiente = GeneratedColumn<bool>(
+    'pendiente',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("pendiente" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _creadoEnMeta = const VerificationMeta(
     'creadoEn',
   );
@@ -537,6 +607,7 @@ class $TratamientosTable extends Tratamientos
     fechaFin,
     profesionalId,
     activo,
+    pendiente,
     creadoEn,
   ];
   @override
@@ -620,6 +691,12 @@ class $TratamientosTable extends Tratamientos
         activo.isAcceptableOrUnknown(data['activo']!, _activoMeta),
       );
     }
+    if (data.containsKey('pendiente')) {
+      context.handle(
+        _pendienteMeta,
+        pendiente.isAcceptableOrUnknown(data['pendiente']!, _pendienteMeta),
+      );
+    }
     if (data.containsKey('creado_en')) {
       context.handle(
         _creadoEnMeta,
@@ -671,6 +748,10 @@ class $TratamientosTable extends Tratamientos
         DriftSqlType.bool,
         data['${effectivePrefix}activo'],
       )!,
+      pendiente: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}pendiente'],
+      )!,
       creadoEn: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}creado_en'],
@@ -694,6 +775,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
   final DateTime? fechaFin;
   final String? profesionalId;
   final bool activo;
+  final bool pendiente;
   final DateTime creadoEn;
   const FilaTratamiento({
     required this.id,
@@ -705,6 +787,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
     this.fechaFin,
     this.profesionalId,
     required this.activo,
+    required this.pendiente,
     required this.creadoEn,
   });
   @override
@@ -723,6 +806,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
       map['profesional_id'] = Variable<String>(profesionalId);
     }
     map['activo'] = Variable<bool>(activo);
+    map['pendiente'] = Variable<bool>(pendiente);
     map['creado_en'] = Variable<DateTime>(creadoEn);
     return map;
   }
@@ -742,6 +826,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
           ? const Value.absent()
           : Value(profesionalId),
       activo: Value(activo),
+      pendiente: Value(pendiente),
       creadoEn: Value(creadoEn),
     );
   }
@@ -761,6 +846,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
       fechaFin: serializer.fromJson<DateTime?>(json['fechaFin']),
       profesionalId: serializer.fromJson<String?>(json['profesionalId']),
       activo: serializer.fromJson<bool>(json['activo']),
+      pendiente: serializer.fromJson<bool>(json['pendiente']),
       creadoEn: serializer.fromJson<DateTime>(json['creadoEn']),
     );
   }
@@ -777,6 +863,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
       'fechaFin': serializer.toJson<DateTime?>(fechaFin),
       'profesionalId': serializer.toJson<String?>(profesionalId),
       'activo': serializer.toJson<bool>(activo),
+      'pendiente': serializer.toJson<bool>(pendiente),
       'creadoEn': serializer.toJson<DateTime>(creadoEn),
     };
   }
@@ -791,6 +878,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
     Value<DateTime?> fechaFin = const Value.absent(),
     Value<String?> profesionalId = const Value.absent(),
     bool? activo,
+    bool? pendiente,
     DateTime? creadoEn,
   }) => FilaTratamiento(
     id: id ?? this.id,
@@ -804,6 +892,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
         ? profesionalId.value
         : this.profesionalId,
     activo: activo ?? this.activo,
+    pendiente: pendiente ?? this.pendiente,
     creadoEn: creadoEn ?? this.creadoEn,
   );
   FilaTratamiento copyWithCompanion(TratamientosCompanion data) {
@@ -823,6 +912,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
           ? data.profesionalId.value
           : this.profesionalId,
       activo: data.activo.present ? data.activo.value : this.activo,
+      pendiente: data.pendiente.present ? data.pendiente.value : this.pendiente,
       creadoEn: data.creadoEn.present ? data.creadoEn.value : this.creadoEn,
     );
   }
@@ -839,6 +929,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
           ..write('fechaFin: $fechaFin, ')
           ..write('profesionalId: $profesionalId, ')
           ..write('activo: $activo, ')
+          ..write('pendiente: $pendiente, ')
           ..write('creadoEn: $creadoEn')
           ..write(')'))
         .toString();
@@ -855,6 +946,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
     fechaFin,
     profesionalId,
     activo,
+    pendiente,
     creadoEn,
   );
   @override
@@ -870,6 +962,7 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
           other.fechaFin == this.fechaFin &&
           other.profesionalId == this.profesionalId &&
           other.activo == this.activo &&
+          other.pendiente == this.pendiente &&
           other.creadoEn == this.creadoEn);
 }
 
@@ -883,6 +976,7 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
   final Value<DateTime?> fechaFin;
   final Value<String?> profesionalId;
   final Value<bool> activo;
+  final Value<bool> pendiente;
   final Value<DateTime> creadoEn;
   final Value<int> rowid;
   const TratamientosCompanion({
@@ -895,6 +989,7 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     this.fechaFin = const Value.absent(),
     this.profesionalId = const Value.absent(),
     this.activo = const Value.absent(),
+    this.pendiente = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -908,6 +1003,7 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     this.fechaFin = const Value.absent(),
     this.profesionalId = const Value.absent(),
     this.activo = const Value.absent(),
+    this.pendiente = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -926,6 +1022,7 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     Expression<DateTime>? fechaFin,
     Expression<String>? profesionalId,
     Expression<bool>? activo,
+    Expression<bool>? pendiente,
     Expression<DateTime>? creadoEn,
     Expression<int>? rowid,
   }) {
@@ -939,6 +1036,7 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
       if (fechaFin != null) 'fecha_fin': fechaFin,
       if (profesionalId != null) 'profesional_id': profesionalId,
       if (activo != null) 'activo': activo,
+      if (pendiente != null) 'pendiente': pendiente,
       if (creadoEn != null) 'creado_en': creadoEn,
       if (rowid != null) 'rowid': rowid,
     });
@@ -954,6 +1052,7 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     Value<DateTime?>? fechaFin,
     Value<String?>? profesionalId,
     Value<bool>? activo,
+    Value<bool>? pendiente,
     Value<DateTime>? creadoEn,
     Value<int>? rowid,
   }) {
@@ -967,6 +1066,7 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
       fechaFin: fechaFin ?? this.fechaFin,
       profesionalId: profesionalId ?? this.profesionalId,
       activo: activo ?? this.activo,
+      pendiente: pendiente ?? this.pendiente,
       creadoEn: creadoEn ?? this.creadoEn,
       rowid: rowid ?? this.rowid,
     );
@@ -1002,6 +1102,9 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     if (activo.present) {
       map['activo'] = Variable<bool>(activo.value);
     }
+    if (pendiente.present) {
+      map['pendiente'] = Variable<bool>(pendiente.value);
+    }
     if (creadoEn.present) {
       map['creado_en'] = Variable<DateTime>(creadoEn.value);
     }
@@ -1023,6 +1126,7 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
           ..write('fechaFin: $fechaFin, ')
           ..write('profesionalId: $profesionalId, ')
           ..write('activo: $activo, ')
+          ..write('pendiente: $pendiente, ')
           ..write('creadoEn: $creadoEn, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1089,6 +1193,21 @@ class $CambiosTable extends Cambios with TableInfo<$CambiosTable, FilaCambio> {
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _pendienteMeta = const VerificationMeta(
+    'pendiente',
+  );
+  @override
+  late final GeneratedColumn<bool> pendiente = GeneratedColumn<bool>(
+    'pendiente',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("pendiente" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _creadoEnMeta = const VerificationMeta(
     'creadoEn',
   );
@@ -1108,6 +1227,7 @@ class $CambiosTable extends Cambios with TableInfo<$CambiosTable, FilaCambio> {
     fecha,
     descripcion,
     activo,
+    pendiente,
     creadoEn,
   ];
   @override
@@ -1158,6 +1278,12 @@ class $CambiosTable extends Cambios with TableInfo<$CambiosTable, FilaCambio> {
         activo.isAcceptableOrUnknown(data['activo']!, _activoMeta),
       );
     }
+    if (data.containsKey('pendiente')) {
+      context.handle(
+        _pendienteMeta,
+        pendiente.isAcceptableOrUnknown(data['pendiente']!, _pendienteMeta),
+      );
+    }
     if (data.containsKey('creado_en')) {
       context.handle(
         _creadoEnMeta,
@@ -1193,6 +1319,10 @@ class $CambiosTable extends Cambios with TableInfo<$CambiosTable, FilaCambio> {
         DriftSqlType.bool,
         data['${effectivePrefix}activo'],
       )!,
+      pendiente: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}pendiente'],
+      )!,
       creadoEn: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}creado_en'],
@@ -1212,6 +1342,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
   final DateTime fecha;
   final String descripcion;
   final bool activo;
+  final bool pendiente;
   final DateTime creadoEn;
   const FilaCambio({
     required this.id,
@@ -1219,6 +1350,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
     required this.fecha,
     required this.descripcion,
     required this.activo,
+    required this.pendiente,
     required this.creadoEn,
   });
   @override
@@ -1229,6 +1361,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
     map['fecha'] = Variable<DateTime>(fecha);
     map['descripcion'] = Variable<String>(descripcion);
     map['activo'] = Variable<bool>(activo);
+    map['pendiente'] = Variable<bool>(pendiente);
     map['creado_en'] = Variable<DateTime>(creadoEn);
     return map;
   }
@@ -1240,6 +1373,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
       fecha: Value(fecha),
       descripcion: Value(descripcion),
       activo: Value(activo),
+      pendiente: Value(pendiente),
       creadoEn: Value(creadoEn),
     );
   }
@@ -1255,6 +1389,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
       fecha: serializer.fromJson<DateTime>(json['fecha']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
       activo: serializer.fromJson<bool>(json['activo']),
+      pendiente: serializer.fromJson<bool>(json['pendiente']),
       creadoEn: serializer.fromJson<DateTime>(json['creadoEn']),
     );
   }
@@ -1267,6 +1402,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
       'fecha': serializer.toJson<DateTime>(fecha),
       'descripcion': serializer.toJson<String>(descripcion),
       'activo': serializer.toJson<bool>(activo),
+      'pendiente': serializer.toJson<bool>(pendiente),
       'creadoEn': serializer.toJson<DateTime>(creadoEn),
     };
   }
@@ -1277,6 +1413,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
     DateTime? fecha,
     String? descripcion,
     bool? activo,
+    bool? pendiente,
     DateTime? creadoEn,
   }) => FilaCambio(
     id: id ?? this.id,
@@ -1284,6 +1421,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
     fecha: fecha ?? this.fecha,
     descripcion: descripcion ?? this.descripcion,
     activo: activo ?? this.activo,
+    pendiente: pendiente ?? this.pendiente,
     creadoEn: creadoEn ?? this.creadoEn,
   );
   FilaCambio copyWithCompanion(CambiosCompanion data) {
@@ -1295,6 +1433,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
           ? data.descripcion.value
           : this.descripcion,
       activo: data.activo.present ? data.activo.value : this.activo,
+      pendiente: data.pendiente.present ? data.pendiente.value : this.pendiente,
       creadoEn: data.creadoEn.present ? data.creadoEn.value : this.creadoEn,
     );
   }
@@ -1307,14 +1446,22 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
           ..write('fecha: $fecha, ')
           ..write('descripcion: $descripcion, ')
           ..write('activo: $activo, ')
+          ..write('pendiente: $pendiente, ')
           ..write('creadoEn: $creadoEn')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, usuarioId, fecha, descripcion, activo, creadoEn);
+  int get hashCode => Object.hash(
+    id,
+    usuarioId,
+    fecha,
+    descripcion,
+    activo,
+    pendiente,
+    creadoEn,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1324,6 +1471,7 @@ class FilaCambio extends DataClass implements Insertable<FilaCambio> {
           other.fecha == this.fecha &&
           other.descripcion == this.descripcion &&
           other.activo == this.activo &&
+          other.pendiente == this.pendiente &&
           other.creadoEn == this.creadoEn);
 }
 
@@ -1333,6 +1481,7 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
   final Value<DateTime> fecha;
   final Value<String> descripcion;
   final Value<bool> activo;
+  final Value<bool> pendiente;
   final Value<DateTime> creadoEn;
   final Value<int> rowid;
   const CambiosCompanion({
@@ -1341,6 +1490,7 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
     this.fecha = const Value.absent(),
     this.descripcion = const Value.absent(),
     this.activo = const Value.absent(),
+    this.pendiente = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1350,6 +1500,7 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
     required DateTime fecha,
     this.descripcion = const Value.absent(),
     this.activo = const Value.absent(),
+    this.pendiente = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1361,6 +1512,7 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
     Expression<DateTime>? fecha,
     Expression<String>? descripcion,
     Expression<bool>? activo,
+    Expression<bool>? pendiente,
     Expression<DateTime>? creadoEn,
     Expression<int>? rowid,
   }) {
@@ -1370,6 +1522,7 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
       if (fecha != null) 'fecha': fecha,
       if (descripcion != null) 'descripcion': descripcion,
       if (activo != null) 'activo': activo,
+      if (pendiente != null) 'pendiente': pendiente,
       if (creadoEn != null) 'creado_en': creadoEn,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1381,6 +1534,7 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
     Value<DateTime>? fecha,
     Value<String>? descripcion,
     Value<bool>? activo,
+    Value<bool>? pendiente,
     Value<DateTime>? creadoEn,
     Value<int>? rowid,
   }) {
@@ -1390,6 +1544,7 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
       fecha: fecha ?? this.fecha,
       descripcion: descripcion ?? this.descripcion,
       activo: activo ?? this.activo,
+      pendiente: pendiente ?? this.pendiente,
       creadoEn: creadoEn ?? this.creadoEn,
       rowid: rowid ?? this.rowid,
     );
@@ -1413,6 +1568,9 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
     if (activo.present) {
       map['activo'] = Variable<bool>(activo.value);
     }
+    if (pendiente.present) {
+      map['pendiente'] = Variable<bool>(pendiente.value);
+    }
     if (creadoEn.present) {
       map['creado_en'] = Variable<DateTime>(creadoEn.value);
     }
@@ -1430,6 +1588,7 @@ class CambiosCompanion extends UpdateCompanion<FilaCambio> {
           ..write('fecha: $fecha, ')
           ..write('descripcion: $descripcion, ')
           ..write('activo: $activo, ')
+          ..write('pendiente: $pendiente, ')
           ..write('creadoEn: $creadoEn, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1848,6 +2007,213 @@ class AdjuntosCompanion extends UpdateCompanion<FilaAdjunto> {
   }
 }
 
+class $AjustesTable extends Ajustes with TableInfo<$AjustesTable, FilaAjuste> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AjustesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _claveMeta = const VerificationMeta('clave');
+  @override
+  late final GeneratedColumn<String> clave = GeneratedColumn<String>(
+    'clave',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valorMeta = const VerificationMeta('valor');
+  @override
+  late final GeneratedColumn<String> valor = GeneratedColumn<String>(
+    'valor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [clave, valor];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ajustes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FilaAjuste> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('clave')) {
+      context.handle(
+        _claveMeta,
+        clave.isAcceptableOrUnknown(data['clave']!, _claveMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_claveMeta);
+    }
+    if (data.containsKey('valor')) {
+      context.handle(
+        _valorMeta,
+        valor.isAcceptableOrUnknown(data['valor']!, _valorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valorMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {clave};
+  @override
+  FilaAjuste map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FilaAjuste(
+      clave: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}clave'],
+      )!,
+      valor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}valor'],
+      )!,
+    );
+  }
+
+  @override
+  $AjustesTable createAlias(String alias) {
+    return $AjustesTable(attachedDatabase, alias);
+  }
+}
+
+class FilaAjuste extends DataClass implements Insertable<FilaAjuste> {
+  final String clave;
+  final String valor;
+  const FilaAjuste({required this.clave, required this.valor});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['clave'] = Variable<String>(clave);
+    map['valor'] = Variable<String>(valor);
+    return map;
+  }
+
+  AjustesCompanion toCompanion(bool nullToAbsent) {
+    return AjustesCompanion(clave: Value(clave), valor: Value(valor));
+  }
+
+  factory FilaAjuste.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FilaAjuste(
+      clave: serializer.fromJson<String>(json['clave']),
+      valor: serializer.fromJson<String>(json['valor']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'clave': serializer.toJson<String>(clave),
+      'valor': serializer.toJson<String>(valor),
+    };
+  }
+
+  FilaAjuste copyWith({String? clave, String? valor}) =>
+      FilaAjuste(clave: clave ?? this.clave, valor: valor ?? this.valor);
+  FilaAjuste copyWithCompanion(AjustesCompanion data) {
+    return FilaAjuste(
+      clave: data.clave.present ? data.clave.value : this.clave,
+      valor: data.valor.present ? data.valor.value : this.valor,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FilaAjuste(')
+          ..write('clave: $clave, ')
+          ..write('valor: $valor')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(clave, valor);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FilaAjuste &&
+          other.clave == this.clave &&
+          other.valor == this.valor);
+}
+
+class AjustesCompanion extends UpdateCompanion<FilaAjuste> {
+  final Value<String> clave;
+  final Value<String> valor;
+  final Value<int> rowid;
+  const AjustesCompanion({
+    this.clave = const Value.absent(),
+    this.valor = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AjustesCompanion.insert({
+    required String clave,
+    required String valor,
+    this.rowid = const Value.absent(),
+  }) : clave = Value(clave),
+       valor = Value(valor);
+  static Insertable<FilaAjuste> custom({
+    Expression<String>? clave,
+    Expression<String>? valor,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (clave != null) 'clave': clave,
+      if (valor != null) 'valor': valor,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AjustesCompanion copyWith({
+    Value<String>? clave,
+    Value<String>? valor,
+    Value<int>? rowid,
+  }) {
+    return AjustesCompanion(
+      clave: clave ?? this.clave,
+      valor: valor ?? this.valor,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (clave.present) {
+      map['clave'] = Variable<String>(clave.value);
+    }
+    if (valor.present) {
+      map['valor'] = Variable<String>(valor.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AjustesCompanion(')
+          ..write('clave: $clave, ')
+          ..write('valor: $valor, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$BaseLocal extends GeneratedDatabase {
   _$BaseLocal(QueryExecutor e) : super(e);
   $BaseLocalManager get managers => $BaseLocalManager(this);
@@ -1855,6 +2221,7 @@ abstract class _$BaseLocal extends GeneratedDatabase {
   late final $TratamientosTable tratamientos = $TratamientosTable(this);
   late final $CambiosTable cambios = $CambiosTable(this);
   late final $AdjuntosTable adjuntos = $AdjuntosTable(this);
+  late final $AjustesTable ajustes = $AjustesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1864,6 +2231,7 @@ abstract class _$BaseLocal extends GeneratedDatabase {
     tratamientos,
     cambios,
     adjuntos,
+    ajustes,
   ];
 }
 
@@ -1874,6 +2242,7 @@ typedef $$ProfesionalesTableCreateCompanionBuilder =
       required String nombre,
       required String especialidad,
       Value<bool> activo,
+      Value<bool> pendiente,
       Value<DateTime> creadoEn,
       Value<int> rowid,
     });
@@ -1884,6 +2253,7 @@ typedef $$ProfesionalesTableUpdateCompanionBuilder =
       Value<String> nombre,
       Value<String> especialidad,
       Value<bool> activo,
+      Value<bool> pendiente,
       Value<DateTime> creadoEn,
       Value<int> rowid,
     });
@@ -1919,6 +2289,11 @@ class $$ProfesionalesTableFilterComposer
 
   ColumnFilters<bool> get activo => $composableBuilder(
     column: $table.activo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get pendiente => $composableBuilder(
+    column: $table.pendiente,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1962,6 +2337,11 @@ class $$ProfesionalesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get pendiente => $composableBuilder(
+    column: $table.pendiente,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get creadoEn => $composableBuilder(
     column: $table.creadoEn,
     builder: (column) => ColumnOrderings(column),
@@ -1993,6 +2373,9 @@ class $$ProfesionalesTableAnnotationComposer
 
   GeneratedColumn<bool> get activo =>
       $composableBuilder(column: $table.activo, builder: (column) => column);
+
+  GeneratedColumn<bool> get pendiente =>
+      $composableBuilder(column: $table.pendiente, builder: (column) => column);
 
   GeneratedColumn<DateTime> get creadoEn =>
       $composableBuilder(column: $table.creadoEn, builder: (column) => column);
@@ -2034,6 +2417,7 @@ class $$ProfesionalesTableTableManager
                 Value<String> nombre = const Value.absent(),
                 Value<String> especialidad = const Value.absent(),
                 Value<bool> activo = const Value.absent(),
+                Value<bool> pendiente = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProfesionalesCompanion(
@@ -2042,6 +2426,7 @@ class $$ProfesionalesTableTableManager
                 nombre: nombre,
                 especialidad: especialidad,
                 activo: activo,
+                pendiente: pendiente,
                 creadoEn: creadoEn,
                 rowid: rowid,
               ),
@@ -2052,6 +2437,7 @@ class $$ProfesionalesTableTableManager
                 required String nombre,
                 required String especialidad,
                 Value<bool> activo = const Value.absent(),
+                Value<bool> pendiente = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProfesionalesCompanion.insert(
@@ -2060,6 +2446,7 @@ class $$ProfesionalesTableTableManager
                 nombre: nombre,
                 especialidad: especialidad,
                 activo: activo,
+                pendiente: pendiente,
                 creadoEn: creadoEn,
                 rowid: rowid,
               ),
@@ -2108,6 +2495,7 @@ typedef $$TratamientosTableCreateCompanionBuilder =
       Value<DateTime?> fechaFin,
       Value<String?> profesionalId,
       Value<bool> activo,
+      Value<bool> pendiente,
       Value<DateTime> creadoEn,
       Value<int> rowid,
     });
@@ -2122,6 +2510,7 @@ typedef $$TratamientosTableUpdateCompanionBuilder =
       Value<DateTime?> fechaFin,
       Value<String?> profesionalId,
       Value<bool> activo,
+      Value<bool> pendiente,
       Value<DateTime> creadoEn,
       Value<int> rowid,
     });
@@ -2177,6 +2566,11 @@ class $$TratamientosTableFilterComposer
 
   ColumnFilters<bool> get activo => $composableBuilder(
     column: $table.activo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get pendiente => $composableBuilder(
+    column: $table.pendiente,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2240,6 +2634,11 @@ class $$TratamientosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get pendiente => $composableBuilder(
+    column: $table.pendiente,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get creadoEn => $composableBuilder(
     column: $table.creadoEn,
     builder: (column) => ColumnOrderings(column),
@@ -2288,6 +2687,9 @@ class $$TratamientosTableAnnotationComposer
   GeneratedColumn<bool> get activo =>
       $composableBuilder(column: $table.activo, builder: (column) => column);
 
+  GeneratedColumn<bool> get pendiente =>
+      $composableBuilder(column: $table.pendiente, builder: (column) => column);
+
   GeneratedColumn<DateTime> get creadoEn =>
       $composableBuilder(column: $table.creadoEn, builder: (column) => column);
 }
@@ -2332,6 +2734,7 @@ class $$TratamientosTableTableManager
                 Value<DateTime?> fechaFin = const Value.absent(),
                 Value<String?> profesionalId = const Value.absent(),
                 Value<bool> activo = const Value.absent(),
+                Value<bool> pendiente = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TratamientosCompanion(
@@ -2344,6 +2747,7 @@ class $$TratamientosTableTableManager
                 fechaFin: fechaFin,
                 profesionalId: profesionalId,
                 activo: activo,
+                pendiente: pendiente,
                 creadoEn: creadoEn,
                 rowid: rowid,
               ),
@@ -2358,6 +2762,7 @@ class $$TratamientosTableTableManager
                 Value<DateTime?> fechaFin = const Value.absent(),
                 Value<String?> profesionalId = const Value.absent(),
                 Value<bool> activo = const Value.absent(),
+                Value<bool> pendiente = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TratamientosCompanion.insert(
@@ -2370,6 +2775,7 @@ class $$TratamientosTableTableManager
                 fechaFin: fechaFin,
                 profesionalId: profesionalId,
                 activo: activo,
+                pendiente: pendiente,
                 creadoEn: creadoEn,
                 rowid: rowid,
               ),
@@ -2413,6 +2819,7 @@ typedef $$CambiosTableCreateCompanionBuilder = CambiosCompanion Function({
   required DateTime fecha,
   Value<String> descripcion,
   Value<bool> activo,
+  Value<bool> pendiente,
   Value<DateTime> creadoEn,
   Value<int> rowid,
 });
@@ -2422,6 +2829,7 @@ typedef $$CambiosTableUpdateCompanionBuilder = CambiosCompanion Function({
   Value<DateTime> fecha,
   Value<String> descripcion,
   Value<bool> activo,
+  Value<bool> pendiente,
   Value<DateTime> creadoEn,
   Value<int> rowid,
 });
@@ -2480,6 +2888,11 @@ class $$CambiosTableFilterComposer
 
   ColumnFilters<bool> get activo => $composableBuilder(
     column: $table.activo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get pendiente => $composableBuilder(
+    column: $table.pendiente,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2548,6 +2961,11 @@ class $$CambiosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get pendiente => $composableBuilder(
+    column: $table.pendiente,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get creadoEn => $composableBuilder(
     column: $table.creadoEn,
     builder: (column) => ColumnOrderings(column),
@@ -2579,6 +2997,9 @@ class $$CambiosTableAnnotationComposer
 
   GeneratedColumn<bool> get activo =>
       $composableBuilder(column: $table.activo, builder: (column) => column);
+
+  GeneratedColumn<bool> get pendiente =>
+      $composableBuilder(column: $table.pendiente, builder: (column) => column);
 
   GeneratedColumn<DateTime> get creadoEn =>
       $composableBuilder(column: $table.creadoEn, builder: (column) => column);
@@ -2642,6 +3063,7 @@ class $$CambiosTableTableManager
                 Value<DateTime> fecha = const Value.absent(),
                 Value<String> descripcion = const Value.absent(),
                 Value<bool> activo = const Value.absent(),
+                Value<bool> pendiente = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CambiosCompanion(
@@ -2650,6 +3072,7 @@ class $$CambiosTableTableManager
                 fecha: fecha,
                 descripcion: descripcion,
                 activo: activo,
+                pendiente: pendiente,
                 creadoEn: creadoEn,
                 rowid: rowid,
               ),
@@ -2660,6 +3083,7 @@ class $$CambiosTableTableManager
                 required DateTime fecha,
                 Value<String> descripcion = const Value.absent(),
                 Value<bool> activo = const Value.absent(),
+                Value<bool> pendiente = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CambiosCompanion.insert(
@@ -2668,6 +3092,7 @@ class $$CambiosTableTableManager
                 fecha: fecha,
                 descripcion: descripcion,
                 activo: activo,
+                pendiente: pendiente,
                 creadoEn: creadoEn,
                 rowid: rowid,
               ),
@@ -3055,6 +3480,145 @@ typedef $$AdjuntosTableProcessedTableManager =
       FilaAdjunto,
       PrefetchHooks Function({bool cambioId})
     >;
+typedef $$AjustesTableCreateCompanionBuilder = AjustesCompanion Function({
+  required String clave,
+  required String valor,
+  Value<int> rowid,
+});
+typedef $$AjustesTableUpdateCompanionBuilder = AjustesCompanion Function({
+  Value<String> clave,
+  Value<String> valor,
+  Value<int> rowid,
+});
+
+class $$AjustesTableFilterComposer
+    extends Composer<_$BaseLocal, $AjustesTable> {
+  $$AjustesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get clave => $composableBuilder(
+    column: $table.clave,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get valor => $composableBuilder(
+    column: $table.valor,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AjustesTableOrderingComposer
+    extends Composer<_$BaseLocal, $AjustesTable> {
+  $$AjustesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get clave => $composableBuilder(
+    column: $table.clave,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get valor => $composableBuilder(
+    column: $table.valor,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AjustesTableAnnotationComposer
+    extends Composer<_$BaseLocal, $AjustesTable> {
+  $$AjustesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get clave =>
+      $composableBuilder(column: $table.clave, builder: (column) => column);
+
+  GeneratedColumn<String> get valor =>
+      $composableBuilder(column: $table.valor, builder: (column) => column);
+}
+
+class $$AjustesTableTableManager
+    extends
+        RootTableManager<
+          _$BaseLocal,
+          $AjustesTable,
+          FilaAjuste,
+          $$AjustesTableFilterComposer,
+          $$AjustesTableOrderingComposer,
+          $$AjustesTableAnnotationComposer,
+          $$AjustesTableCreateCompanionBuilder,
+          $$AjustesTableUpdateCompanionBuilder,
+          (FilaAjuste, BaseReferences<_$BaseLocal, $AjustesTable, FilaAjuste>),
+          FilaAjuste,
+          PrefetchHooks Function()
+        > {
+  $$AjustesTableTableManager(_$BaseLocal db, $AjustesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AjustesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AjustesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AjustesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> clave = const Value.absent(),
+            Value<String> valor = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => AjustesCompanion(clave: clave, valor: valor, rowid: rowid),
+          createCompanionCallback:
+              ({
+                required String clave,
+                required String valor,
+                Value<int> rowid = const Value.absent(),
+              }) => AjustesCompanion.insert(
+                clave: clave,
+                valor: valor,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AjustesTable, FilaAjuste>(table),
+                  BaseReferences<_$BaseLocal, $AjustesTable, FilaAjuste>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AjustesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$BaseLocal,
+      $AjustesTable,
+      FilaAjuste,
+      $$AjustesTableFilterComposer,
+      $$AjustesTableOrderingComposer,
+      $$AjustesTableAnnotationComposer,
+      $$AjustesTableCreateCompanionBuilder,
+      $$AjustesTableUpdateCompanionBuilder,
+      (FilaAjuste, BaseReferences<_$BaseLocal, $AjustesTable, FilaAjuste>),
+      FilaAjuste,
+      PrefetchHooks Function()
+    >;
 
 class $BaseLocalManager {
   final _$BaseLocal _db;
@@ -3067,4 +3631,6 @@ class $BaseLocalManager {
       $$CambiosTableTableManager(_db, _db.cambios);
   $$AdjuntosTableTableManager get adjuntos =>
       $$AdjuntosTableTableManager(_db, _db.adjuntos);
+  $$AjustesTableTableManager get ajustes =>
+      $$AjustesTableTableManager(_db, _db.ajustes);
 }

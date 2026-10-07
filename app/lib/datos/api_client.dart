@@ -64,6 +64,48 @@ class ApiClient {
         'Authorization': 'Bearer ${sesion.acceso}',
       };
 
+  /// Sube un cuerpo ya serializado (usado por el respaldo) con el token.
+  Future<void> putTextoAutenticado(String ruta, String cuerpo) async {
+    var sesion = await _almacen.leer();
+    if (sesion == null) throw ErrorApi(401, 'No hay sesión iniciada');
+
+    Future<http.Response> peticion(Sesion s) => _http.put(
+          Uri.parse('$baseUrl$ruta'),
+          headers: {..._cabeceras(s), 'Content-Type': 'application/json'},
+          body: cuerpo,
+        );
+
+    var respuesta = await peticion(sesion);
+    if (respuesta.statusCode == 401) {
+      sesion = await _refrescar(sesion);
+      respuesta = await peticion(sesion);
+    }
+    if (respuesta.statusCode < 200 || respuesta.statusCode >= 300) {
+      throw ErrorApi(respuesta.statusCode, 'No se pudo subir el respaldo');
+    }
+  }
+
+  /// Baja un cuerpo de texto (usado por el respaldo) con el token.
+  Future<String> getTextoAutenticado(String ruta) async {
+    var sesion = await _almacen.leer();
+    if (sesion == null) throw ErrorApi(401, 'No hay sesión iniciada');
+
+    Future<http.Response> peticion(Sesion s) => _http.get(
+          Uri.parse('$baseUrl$ruta'),
+          headers: _cabeceras(s),
+        );
+
+    var respuesta = await peticion(sesion);
+    if (respuesta.statusCode == 401) {
+      sesion = await _refrescar(sesion);
+      respuesta = await peticion(sesion);
+    }
+    if (respuesta.statusCode < 200 || respuesta.statusCode >= 300) {
+      throw ErrorApi(respuesta.statusCode, 'No se pudo bajar el respaldo');
+    }
+    return respuesta.body;
+  }
+
   Future<Map<String, dynamic>> _conReintento(
     Future<http.Response> Function(Sesion) peticion,
   ) async {

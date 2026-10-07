@@ -63,6 +63,7 @@ class TratamientoRepositorio {
       fechaInicio: Value(tratamiento.fechaInicio),
       fechaFin: Value(tratamiento.fechaFin),
       profesionalId: Value(tratamiento.profesionalId),
+      pendiente: const Value(true),
     ));
   }
 
@@ -70,7 +71,10 @@ class TratamientoRepositorio {
   Future<void> desactivar(String id, String usuarioId) async {
     await (_base.update(_base.tratamientos)
           ..where((t) => t.id.equals(id) & t.usuarioId.equals(usuarioId)))
-        .write(const TratamientosCompanion(activo: Value(false)));
+        .write(const TratamientosCompanion(
+      activo: Value(false),
+      pendiente: Value(true),
+    ));
   }
 
   Tratamiento _aModelo(FilaTratamiento fila) => Tratamiento(

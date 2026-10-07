@@ -74,7 +74,10 @@ class CambioRepositorio {
   Future<void> desactivar(String id, String usuarioId) async {
     await (_base.update(_base.cambios)
           ..where((t) => t.id.equals(id) & t.usuarioId.equals(usuarioId)))
-        .write(const CambiosCompanion(activo: Value(false)));
+        .write(const CambiosCompanion(
+      activo: Value(false),
+      pendiente: Value(true),
+    ));
   }
 
   Future<Cambio> _conAdjuntos(FilaCambio fila) async {

@@ -4,6 +4,7 @@ import 'datos/autenticacion.dart';
 import 'datos/cambio_repositorio.dart';
 import 'datos/linea_de_tiempo.dart';
 import 'datos/profesional_repositorio.dart';
+import 'datos/respaldo.dart';
 import 'datos/tratamiento_repositorio.dart';
 
 /// Reúne las dependencias de la app y las pone a disposición del árbol de
@@ -14,6 +15,7 @@ class Dependencias {
   final TratamientoRepositorio tratamientos;
   final CambioRepositorio cambios;
   final LineaDeTiempo lineaDeTiempo;
+  final RespaldoServicio respaldo;
 
   const Dependencias({
     required this.autenticacion,
@@ -21,6 +23,7 @@ class Dependencias {
     required this.tratamientos,
     required this.cambios,
     required this.lineaDeTiempo,
+    required this.respaldo,
   });
 }
 

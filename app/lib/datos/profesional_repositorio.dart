@@ -41,6 +41,7 @@ class ProfesionalRepositorio {
         .write(ProfesionalesCompanion(
       nombre: Value(profesional.nombre),
       especialidad: Value(profesional.especialidad),
+      pendiente: const Value(true),
     ));
   }
 
@@ -48,7 +49,10 @@ class ProfesionalRepositorio {
   Future<void> desactivar(String id, String usuarioId) async {
     await (_base.update(_base.profesionales)
           ..where((t) => t.id.equals(id) & t.usuarioId.equals(usuarioId)))
-        .write(const ProfesionalesCompanion(activo: Value(false)));
+        .write(const ProfesionalesCompanion(
+      activo: Value(false),
+      pendiente: Value(true),
+    ));
   }
 
   Profesional _aModelo(FilaProfesional fila) => Profesional(
