@@ -17,20 +17,26 @@ Este repositorio tiene dos partes:
 - **C · Stack:** 6 ADRs en [`docs/adr/`](docs/adr/) — Flutter · Go · PostgreSQL+Drift · JWT · Firebase Storage · VPS.
 - **D · Plan:** [`docs/plan.md`](docs/plan.md) — pantallas P1–P10, API, 11 fases de construcción.
 
-**Fase 0 · Cimientos — completada:**
+**Fase 1 · Identidad — completada:**
 
-- Backend Go con arquitectura hexagonal (dominio, puertos, casos de uso, adaptadores).
-- Migración `001_users` y PostgreSQL en `docker-compose.yml`.
-- `GET /salud` que hace *ping* real a la base de datos.
-- Tests unitarios (falsos) + test de integración contra PostgreSQL.
-- Proyecto Flutter en `app/` con una pantalla mínima.
-- CI en [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (pruebas de Go y Flutter).
+- Registro, login, refresco de sesión y logout (U1–U3).
+- Contraseña guardada con **bcrypt** (nunca en claro, R8).
+- **Access token JWT** (15 min) + **refresh token** revocable con rotación
+  (tabla `sessions`, ADR 004).
+- Middleware que exige `Authorization: Bearer <token>` en rutas privadas.
 
-**Siguiente:** Fase 1 de construcción — Identidad (U1–U3: registro, login,
-refresh, logout con JWT + bcrypt).
+**Siguiente:** Fase 2 de construcción — Tratamientos y profesionales (U4–U11).
 
-> Nota: el backend todavía **no** expone los endpoints de negocio (tratamientos,
-> cambios, respaldos). Solo `/salud`.
+### API disponible
+
+| Método | Ruta | Qué hace |
+|---|---|---|
+| `GET` | `/salud` | Chequeo de servidor + base de datos |
+| `POST` | `/auth/registro` | Crear cuenta (`email`, `clave`) |
+| `POST` | `/auth/login` | Iniciar sesión → `acceso` + `refresco` |
+| `POST` | `/auth/refresh` | Rotar el refresh token |
+| `POST` | `/auth/logout` | Cerrar sesión (revoca el refresh) |
+| `GET` | `/auth/yo` | Datos de la cuenta (requiere token) |
 
 ## Cómo correrlo
 
@@ -42,16 +48,21 @@ Necesitás tener instalados **Docker** y **Go** (y **Flutter** para la app).
    docker compose up -d --wait
    ```
 
-   La primera vez se aplica la migración `001_users` sola.
+   La base de **desarrollo** no usa contraseña y escucha solo en `127.0.0.1`.
+   La primera vez se aplican solas las migraciones de `backend/migrations`.
 
-2. Arrancar el backend:
+2. (Opcional) Copiar `.env.example` a `.env` y completar `JWT_SECRET`. Si no lo
+   hacés, el servidor genera un secreto aleatorio en cada arranque (las sesiones
+   no sobreviven a un reinicio). `.env` no se sube al repositorio.
+
+3. Arrancar el backend:
 
    ```sh
    cd backend
    make run
    ```
 
-3. Abrir en el navegador:
+4. Abrir en el navegador:
 
    ```
    http://localhost:8080/salud
@@ -59,14 +70,14 @@ Necesitás tener instalados **Docker** y **Go** (y **Flutter** para la app).
 
    Vas a ver: `{"estado":"ok"}` (si la base está viva).
 
-4. Correr las pruebas del backend:
+5. Correr las pruebas del backend:
 
    ```sh
    cd backend
    make test
    ```
 
-5. Para apagar la base de datos:
+6. Para apagar la base de datos:
 
    ```sh
    docker compose down

@@ -1,14 +1,21 @@
-# Levanta PostgreSQL para desarrollo. La migración 001_users se aplica sola la
-# primera vez que se crea el volumen (docker-entrypoint-initdb.d).
+# Levanta PostgreSQL para DESARROLLO.
+#
+# Sin contraseña (autenticación "trust") y escuchando SOLO en 127.0.0.1: la base
+# no queda accesible desde la red. Por eso no hay ninguna contraseña guardada
+# en el repositorio. En producción (ver docs/adr/006) se usa una base real con
+# credenciales gestionadas por variables de entorno.
+#
+# Las migraciones de backend/migrations se aplican solas la primera vez que se
+# crea el volumen (docker-entrypoint-initdb.d).
 services:
   db:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: transi
-      POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_DB: transi
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - transi-db:/var/lib/postgresql/data
       - ./backend/migrations:/docker-entrypoint-initdb.d:ro

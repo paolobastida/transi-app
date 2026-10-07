@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -10,6 +12,7 @@ import (
 
 	"transi/internal/adaptadores/entradahttp"
 	"transi/internal/adaptadores/postgres"
+	"transi/internal/adaptadores/seguridad"
 	"transi/internal/casosdeuso"
 )
 
@@ -22,6 +25,7 @@ func main() {
 }
 
 func correr() error {
+	// Base local de desarrollo: sin contraseña y solo accesible desde tu máquina.
 	urlBD := env("DATABASE_URL", "postgres://transi@localhost:5432/transi?sslmode=disable")
 	puesto := env("PORT", "8080")
 
@@ -34,10 +38,32 @@ func correr() error {
 	defer bd.Cerrar()
 	slog.Info("conectado a la base de datos")
 
+	secreto, generado, err := secretoJWT()
+	if err != nil {
+		return err
+	}
+	if generado {
+		slog.Warn("JWT_SECRET no definido: uso un secreto aleatorio para esta ejecución (las sesiones no sobreviven un reinicio)")
+	}
+
+	const (
+		vidaAcceso   = 15 * time.Minute
+		vidaRefresco = 30 * 24 * time.Hour
+	)
+	hasher := seguridad.NuevoHasherBcrypt()
+	tokens := seguridad.NuevoTokenizadorJWT(secreto, vidaAcceso)
+	identidad := casosdeuso.NuevaIdentidad(
+		postgres.NuevoUsuarioRepositorio(bd),
+		postgres.NuevoSesionRepositorio(bd),
+		hasher,
+		tokens,
+		vidaRefresco,
+	)
 	salud := casosdeuso.NuevoVerificarSalud(bd)
+
 	servidor := &http.Server{
 		Addr:              ":" + puesto,
-		Handler:           entradahttp.NuevoServidor(salud).Handler(),
+		Handler:           entradahttp.NuevoServidor(salud, identidad, tokens).Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
@@ -53,4 +79,19 @@ func env(clave, porDefecto string) string {
 		return valor
 	}
 	return porDefecto
+}
+
+// secretoJWT usa JWT_SECRET si está definido. Si no, genera uno aleatorio para
+// esta ejecución: no queda ningún secreto escrito en el repositorio y las
+// sesiones simplemente no sobreviven a un reinicio. En producción DEBE
+// definirse JWT_SECRET (estable y secreto).
+func secretoJWT() (secreto string, generado bool, err error) {
+	if valor := os.Getenv("JWT_SECRET"); valor != "" {
+		return valor, false, nil
+	}
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", false, err
+	}
+	return hex.EncodeToString(bytes), true, nil
 }

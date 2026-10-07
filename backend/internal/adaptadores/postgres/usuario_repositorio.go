@@ -29,12 +29,23 @@ func (r *UsuarioRepositorio) Crear(ctx context.Context, u dominio.Usuario) error
 }
 
 func (r *UsuarioRepositorio) BuscarPorEmail(ctx context.Context, email string) (*dominio.Usuario, error) {
-	var u dominio.Usuario
-	err := r.conexion.pool.QueryRow(ctx,
-		`SELECT id, email, password_hash, created_at
-		 FROM users WHERE email = $1`,
+	return r.buscar(ctx,
+		`SELECT id, email, password_hash, created_at FROM users WHERE email = $1`,
 		email,
-	).Scan(&u.ID, &u.Email, &u.HashContrasena, &u.FechaRegistro)
+	)
+}
+
+func (r *UsuarioRepositorio) BuscarPorID(ctx context.Context, id string) (*dominio.Usuario, error) {
+	return r.buscar(ctx,
+		`SELECT id, email, password_hash, created_at FROM users WHERE id = $1`,
+		id,
+	)
+}
+
+func (r *UsuarioRepositorio) buscar(ctx context.Context, consulta string, argumento any) (*dominio.Usuario, error) {
+	var u dominio.Usuario
+	err := r.conexion.pool.QueryRow(ctx, consulta, argumento).
+		Scan(&u.ID, &u.Email, &u.HashContrasena, &u.FechaRegistro)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, puertos.ErrNoEncontrado
 	}

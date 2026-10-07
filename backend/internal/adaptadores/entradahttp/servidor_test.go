@@ -1,19 +1,13 @@
 package entradahttp
 
 import (
-	"context"
 	"errors"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
-type saludFalsa struct{ err error }
-
-func (s saludFalsa) Ejecutar(context.Context) error { return s.err }
-
 func TestSaludRespondeOK(t *testing.T) {
-	rec := pedirSalud(t, saludFalsa{})
+	rec := pedir(t, nuevoServidorDePrueba(verificadorFalso{}), http.MethodGet, "/salud", nil, "")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("código = %d, esperaba 200", rec.Code)
 	}
@@ -23,17 +17,8 @@ func TestSaludRespondeOK(t *testing.T) {
 }
 
 func TestSaludConBaseCaida(t *testing.T) {
-	rec := pedirSalud(t, saludFalsa{err: errors.New("caída")})
+	rec := pedir(t, nuevoServidorDePrueba(verificadorFalso{err: errors.New("caída")}), http.MethodGet, "/salud", nil, "")
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("código = %d, esperaba 503", rec.Code)
 	}
-}
-
-func pedirSalud(t *testing.T, salud saludFalsa) *httptest.ResponseRecorder {
-	t.Helper()
-	srv := NuevoServidor(salud)
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/salud", nil)
-	srv.Handler().ServeHTTP(rec, req)
-	return rec
 }
