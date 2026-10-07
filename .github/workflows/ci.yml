@@ -67,3 +67,12 @@ jobs:
       - name: Pruebas (flutter test)
         run: flutter test
         working-directory: app
+
+  docker:
+    name: Imagen (Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construir la imagen del backend
+        run: docker build -t transi-api:ci backend

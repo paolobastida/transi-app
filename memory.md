@@ -299,6 +299,22 @@ commit.
 - **Prueba madre** (test): respaldar en una base y restaurar en otra deja todo
   idéntico, incluidos los bytes de los adjuntos.
 
+### Fase 10 — Pulido y despliegue
+
+- `backend/Dockerfile`: build multi-etapa, imagen final mínima (Alpine, usuario
+  sin privilegios). **Verificada**: la imagen se construye y arranca, y responde
+  `/salud` conectándose a Postgres.
+- `docker-compose.prod.yml`: PostgreSQL + servidor + **Caddy** (HTTPS automático
+  con Let's Encrypt). Los puertos 80/443 son lo único expuesto.
+- `deploy/`: `Caddyfile`, `.env.prod.example` y `respaldar-postgres.sh`
+  (respaldos con fecha).
+- `docs/despliegue.md`: guía paso a paso (VPS, firewall, dominio, HTTPS,
+  respaldos automáticos, actualizaciones, APK).
+- CI: se agregó un job que construye la imagen Docker.
+
+> Lo que **no** se puede hacer desde acá: entrar a tu VPS y desplegar, y firmar
+> el APK. Eso requiere tus credenciales, un dominio y un keystore.
+
 ---
 
 ## 6. La API del servidor
@@ -440,20 +456,22 @@ Estos son aprendizajes reales, no teoría:
 
 **Diseño (Fases A–D):** completo.
 
-**Construcción (Fases 0–9):** completas y verificadas.
+**Construcción (Fases 0–10):** completas y verificadas. **MVP terminado.**
 
-- ✅ Backend completo para el MVP: identidad, profesionales, tratamientos,
-  cambios con archivos y respaldos.
-- ✅ App completa del MVP: registro/login, **base local Drift** (profesionales,
-  tratamientos, cambios con foto y voz), **línea de tiempo** unificada y
-  **respaldar/restaurar**.
-- ✅ Tests verdes en backend y app; CI configurado.
+- ✅ Backend completo: identidad, profesionales, tratamientos, cambios con
+  archivos y respaldos.
+- ✅ App completa: registro/login, base local Drift (profesionales,
+  tratamientos, cambios con foto y voz), línea de tiempo y respaldar/restaurar.
+- ✅ Paquete de despliegue: Dockerfile, compose de producción con HTTPS (Caddy)
+  y respaldos de PostgreSQL.
+- ✅ Tests verdes en backend y app; CI configurado (incluida la imagen Docker).
 - ✅ Sin credenciales en el repositorio ni en su historia.
 
-**Historial de commits (se irá ampliando):**
+**Historial de commits:**
 
 ```
-<c10>   Fase 9: app — respaldos (P10) con snapshot completo
+<final> Fase 10: Dockerfile, compose de producción con HTTPS y guía de despliegue
+373b09e Fase 9: app — respaldos con snapshot completo (P10) y prueba madre
 1a867c3 Fase 8: app — línea de tiempo (P3)
 cc54ed1 Fase 7: app — cambios con foto y voz (P8–P9)
 73c4e7c Fase 6: app local-first con Drift (P4–P7)
@@ -467,28 +485,37 @@ cafbd5c Fase 0: cimientos
 
 **Limitaciones conocidas (honestas):**
 
-- El respaldo es **completo y bajo demanda** (no sincronización incremental en
-  segundo plano), por decisión B5.
-- Los archivos se guardan en **disco local** del servidor, no en el bucket
-  (Fase 10).
-- El `JWT_SECRET` de desarrollo se genera al azar: las sesiones no sobreviven
-  reinicios salvo que definas `.env`.
+- El respaldo es **completo y bajo demanda** (no sincronización incremental), por
+  decisión B5.
+- Los archivos se guardan en un **volumen de disco** del servidor; el ADR-005
+  propone Firebase Storage como destino final (cambiar solo el adaptador).
+- El despliegue real en un VPS y la **firma del APK** no se ejecutaron desde acá:
+  requieren tus credenciales, un dominio y un keystore (guía en
+  `docs/despliegue.md`).
 
 ---
 
 ## 12. Qué falta
 
-Plan restante (`docs/plan.md`), en orden:
+**El MVP (Fases 0–10) está completo.** No queda ninguna fase del plan.
 
-| Fase | Qué | Verificación al cerrar |
-|---|---|---|
-| **10** | Pulido y despliegue: Dockerfile + VPS (HTTPS, firewall, respaldos de PG), APK | Dispositivo real con HTTPS |
+Lo que queda es **ponerlo en producción** (tu parte): desplegar en el VPS y
+firmar el APK, siguiendo `docs/despliegue.md`.
 
-**Riesgos a vigilar:** el modo avión de punta a punta ya está cubierto por el
-diseño local-first; falta la prueba en un **dispositivo real**.
+### Backlog (fuera del MVP, según `domain.md`)
 
-**Próximo paso inmediato:** Fase 10 — **pulido y despliegue**: Dockerfile,
-VPS con HTTPS (Caddy), firewall, respaldos de PostgreSQL y APK firmado.
+- Preparar cita / resumen para el profesional.
+- Recordatorios de dosis (notificaciones).
+- Gráficas y métricas de evolución.
+- Exportación de datos.
+- Migrar el almacenamiento de archivos a **Firebase Storage** (ADR-005).
+
+### Ideas de mejora técnica
+
+- Migraciones de la app con un runner (hoy Drift migra solo, versión 2).
+- Sincronización incremental (hoy el respaldo es completo).
+- Reproducir las notas de voz en el detalle (hoy solo se listan).
+- Decidir el futuro del login (ver la discusión sobre cuenta opcional).
 
 ---
 
@@ -509,4 +536,4 @@ VPS con HTTPS (Caddy), firewall, respaldos de PostgreSQL y APK firmado.
 
 ---
 
-*Última actualización: Fase 5 completada.*
+*Última actualización: Fase 10 completada — MVP terminado.*

@@ -93,7 +93,16 @@ Este repositorio tiene dos partes:
 - **Prueba madre** (test con servidor falso): respaldar → restaurar en otra base
   → todo idéntico.
 
-**Siguiente:** Fase 10 — Pulido y despliegue (Dockerfile, VPS con HTTPS, APK).
+**Fase 10 · Pulido y despliegue — completada:**
+
+- `backend/Dockerfile` (imagen mínima, usuario sin privilegios).
+- `docker-compose.prod.yml` con PostgreSQL, servidor y **Caddy** (HTTPS
+  automático) — ver [`docs/despliegue.md`](docs/despliegue.md).
+- Script de **respaldos de PostgreSQL** (`deploy/respaldar-postgres.sh`).
+- CI ampliado con la construcción de la imagen Docker.
+
+> **Todas las fases del MVP (0–10) están completas.** El despliegue real en un
+> VPS y la firma del APK requieren tus credenciales y un dominio (ver la guía).
 
 ### API disponible
 

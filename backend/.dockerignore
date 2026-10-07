@@ -1,0 +1,5 @@
+bin/
+transi-api
+datos/
+*.env
+.env

@@ -9,5 +9,8 @@ backend/transi-api
 # Archivos subidos en desarrollo (fotos/audios/respaldos locales)
 backend/datos/
 
+# Respaldos de la base de datos de producción
+respaldos-db/
+
 # Archivos temporales del sistema operativo
 .DS_Store
