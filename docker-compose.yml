@@ -1,0 +1,22 @@
+# Levanta PostgreSQL para desarrollo. La migración 001_users se aplica sola la
+# primera vez que se crea el volumen (docker-entrypoint-initdb.d).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: transi
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: transi
+    ports:
+      - "5432:5432"
+    volumes:
+      - transi-db:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transi -d transi"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  transi-db:

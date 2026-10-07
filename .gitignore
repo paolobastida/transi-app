@@ -1,0 +1,10 @@
+# Cosas privadas: nunca subir al repositorio
+.env
+*.env
+
+# Cosas generadas por las herramientas (no hace falta guardarlas)
+backend/bin/
+backend/transi-api
+
+# Archivos temporales del sistema operativo
+.DS_Store
