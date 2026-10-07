@@ -4,4 +4,8 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Solo en desarrollo: permite HTTP (sin cifrar) para hablar con el
+         servidor local por WiFi (http://192.168.x.x:8080). En producción se usa
+         HTTPS y esto no hace falta. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

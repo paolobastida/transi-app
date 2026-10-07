@@ -179,6 +179,9 @@ Necesitás tener instalados **Docker** y **Go** (y **Flutter** para la app).
    flutter run -d chrome --dart-define=API_BASE_URL=http://192.168.0.10:8080
    ```
 
+   Para probarla en un **teléfono real**, ver
+   [`docs/probar-en-dispositivo.md`](docs/probar-en-dispositivo.md).
+
 7. Para apagar la base de datos:
 
    ```sh

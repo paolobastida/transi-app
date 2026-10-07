@@ -375,6 +375,12 @@ flutter run -d chrome
 querés sesiones que sobrevivan reinicios. Sin `.env`, el servidor genera un
 secreto aleatorio en cada arranque. `.env` **no** se sube al repositorio.
 
+**Probar en un teléfono real:** ver
+[`docs/probar-en-dispositivo.md`](docs/probar-en-dispositivo.md). Requiere el SDK
+de Android (o Xcode) y que el teléfono esté en la misma red WiFi que la
+computadora; se corre con
+`flutter run --dart-define=API_BASE_URL=http://TU_IP:8080`.
+
 ---
 
 ## 8. Seguridad

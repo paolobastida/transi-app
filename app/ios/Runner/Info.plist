@@ -10,6 +10,13 @@
 	<string>Transi usa el micrófono para grabar notas de voz en tus cambios.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Transi accede a tus fotos para adjuntarlas a tus cambios.</string>
+	<!-- Solo en desarrollo: permite hablar con el servidor local por WiFi
+	     (http://192.168.x.x:8080). En producción se usa HTTPS. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
