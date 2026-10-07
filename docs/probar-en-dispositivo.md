@@ -109,18 +109,72 @@ teléfono e instalalo (hay que permitir "instalar apps de origen desconocido").
 
 ## 6. iOS (iPhone/iPad)
 
-1. Instalar **Xcode** completo y aceptar la licencia.
-2. `sudo xcodebuild -runFirstLaunch`.
-3. Abrir el proyecto en Xcode y configurar un **equipo de firma** (Signing &
-   Capabilities → Team) con tu Apple ID.
-4. En el iPhone: confiar en el desarrollador (Ajustes → General → VPN y
-   administración de dispositivos).
-5. Correr:
+### 6.1 Instalar Xcode (una sola vez)
+
+Xcode no viene con las Command Line Tools; hay que instalarlo aparte (pesa
+varios GB):
+
+1. Instalar **Xcode** desde la App Store (o desde developer.apple.com).
+2. Apuntar las herramientas a Xcode e inicializarlo:
 
    ```sh
-   cd app
-   flutter run --dart-define=API_BASE_URL=http://192.168.0.15:8080
+   sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+   sudo xcodebuild -runFirstLaunch
+   xcodebuild -version    # debe responder con la versión de Xcode
    ```
+
+3. CocoaPods: `pod --version` (si falta: `sudo gem install cocoapods`).
+
+`flutter doctor` debe mostrar `[✓] Xcode`.
+
+### 6.2 Preparar el iPhone
+
+1. Conectar el iPhone por cable y **confiar** en la computadora.
+2. Activar el **Modo de desarrollador** (iOS 16+):
+   **Ajustes → Privacidad y seguridad → Modo de desarrollador → activar** y
+   reiniciar el teléfono.
+3. Verificar que aparezca:
+
+   ```sh
+   flutter devices
+   ```
+
+### 6.3 Firmar con tu Apple ID (una sola vez)
+
+Flutter necesita un **equipo de firma**. Con un Apple ID gratuito alcanza para
+desarrollo (la app dura ~7 días):
+
+1. Abrir el proyecto en Xcode:
+
+   ```sh
+   cd app/ios
+   open Runner.xcworkspace   # si no existe, primero: flutter build ios --no-codesign
+   ```
+
+2. En Xcode: seleccionar el proyecto **Runner → TARGETS Runner → Signing &
+   Capabilities**.
+3. Tildar **Automatically manage signing** y elegir tu **Team** (tu Apple ID).
+4. Si aparece un error de bundle identifier, cambiar `com.transi.transi` por uno
+   único (ej. `com.tunombre.transi`).
+5. Cerrar Xcode.
+
+### 6.4 Correr en el iPhone
+
+```sh
+cd app
+flutter run --dart-define=API_BASE_URL=http://192.168.1.68:8080
+```
+
+Cambiá la IP por la de tu Mac (`ipconfig getifaddr en0`). El iPhone y la Mac
+deben estar en el **mismo WiFi**.
+
+La primera vez, en el iPhone puede aparecer un aviso de desarrollador no
+confiable: **Ajustes → General → VPN y administración de dispositivos → confiar**
+en tu Apple ID.
+
+> **Próximos lanzamientos:** con una cuenta gratuita, la app deja de abrir a los
+> ~7 días y hay que volver a correr `flutter run` desde la Mac. Con cuenta paga
+> ese límite desaparece.
 
 ---
 
@@ -134,6 +188,10 @@ teléfono e instalalo (hay que permitir "instalar apps de origen desconocido").
 | La IP cambió | DHCP | Volver a averiguar la IP, o reservarla en el router |
 | Error de "cleartext not permitted" | HTTP en Android/iOS | Ya resuelto para **debug** (ver `AndroidManifest.xml` de debug y `Info.plist`) |
 | No pide permiso de cámara/micrófono | Permisos denegados antes | Ajustes de la app → Permisos → activar |
+| `xcodebuild` no existe / Xcode incompleto | Solo hay Command Line Tools | Instalar Xcode y `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer` |
+| Error de firma ("no development team") | Falta el equipo en Xcode | Runner → Signing & Capabilities → elegir tu Team (Apple ID) |
+| El iPhone no aparece en `flutter devices` | Modo desarrollador/USB | Activar Modo de desarrollador (iOS 16+); confiar en la computadora |
+| La app deja de abrir a los días | Cuenta Apple gratuita | Volver a correr `flutter run` desde la Mac |
 
 ---
 
