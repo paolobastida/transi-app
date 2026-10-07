@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"transi/internal/adaptadores/almacen"
 	"transi/internal/adaptadores/entradahttp"
 	"transi/internal/adaptadores/postgres"
 	"transi/internal/adaptadores/seguridad"
@@ -62,11 +63,21 @@ func correr() error {
 	repoProfesionales := postgres.NuevoProfesionalRepositorio(bd)
 	profesionales := casosdeuso.NuevoProfesionales(repoProfesionales)
 	tratamientos := casosdeuso.NuevoTratamientos(postgres.NuevoTratamientoRepositorio(bd), repoProfesionales)
+
+	// Almacenamiento de archivos: disco local en desarrollo (ADR 005).
+	directorioArchivos := env("ARCHIVOS_DIR", "./datos/archivos")
+	archivos, err := almacen.NuevoDisco(directorioArchivos)
+	if err != nil {
+		return err
+	}
+	slog.Info("archivos en disco", "directorio", directorioArchivos)
+	cambios := casosdeuso.NuevosCambios(postgres.NuevoCambioRepositorio(bd), archivos)
+
 	salud := casosdeuso.NuevoVerificarSalud(bd)
 
 	servidor := &http.Server{
 		Addr:              ":" + puesto,
-		Handler:           entradahttp.NuevoServidor(salud, identidad, profesionales, tratamientos, tokens).Handler(),
+		Handler:           entradahttp.NuevoServidor(salud, identidad, profesionales, tratamientos, cambios, tokens).Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

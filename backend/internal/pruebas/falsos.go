@@ -3,8 +3,11 @@
 package pruebas
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -211,5 +214,106 @@ func (r *TratamientosFalso) Desactivar(_ context.Context, id, usuarioID string) 
 	}
 	t.Activo = false
 	r.PorID[id] = t
+	return nil
+}
+
+// ArchivosFalso es un puertos.ArchivoAlmacen en memoria.
+type ArchivosFalso struct {
+	PorReferencia map[string][]byte
+	Borrados      []string
+	FallaAlSubir  bool
+	contador      int
+}
+
+func NuevoArchivosFalso() *ArchivosFalso {
+	return &ArchivosFalso{PorReferencia: map[string][]byte{}}
+}
+
+func (a *ArchivosFalso) Subir(_ context.Context, nombre string, contenido io.Reader) (string, error) {
+	if a.FallaAlSubir {
+		return "", errors.New("falla de almacenamiento")
+	}
+	datos, err := io.ReadAll(contenido)
+	if err != nil {
+		return "", err
+	}
+	a.contador++
+	referencia := fmt.Sprintf("ref-%d-%s", a.contador, nombre)
+	a.PorReferencia[referencia] = datos
+	return referencia, nil
+}
+
+func (a *ArchivosFalso) Bajar(_ context.Context, referencia string) (io.ReadCloser, error) {
+	datos, ok := a.PorReferencia[referencia]
+	if !ok {
+		return nil, puertos.ErrNoEncontrado
+	}
+	return io.NopCloser(bytes.NewReader(datos)), nil
+}
+
+func (a *ArchivosFalso) Borrar(_ context.Context, referencia string) error {
+	delete(a.PorReferencia, referencia)
+	a.Borrados = append(a.Borrados, referencia)
+	return nil
+}
+
+// CambiosFalso es un puertos.CambioRepositorio en memoria.
+type CambiosFalso struct {
+	PorID        map[string]dominio.Cambio
+	FallaAlCrear bool
+}
+
+func NuevoCambiosFalso() *CambiosFalso {
+	return &CambiosFalso{PorID: map[string]dominio.Cambio{}}
+}
+
+func (r *CambiosFalso) Crear(_ context.Context, c dominio.Cambio) error {
+	if r.FallaAlCrear {
+		return errors.New("falla al guardar la ficha")
+	}
+	r.PorID[c.ID] = c
+	return nil
+}
+
+func (r *CambiosFalso) ListarPorUsuario(_ context.Context, usuarioID string, filtro puertos.FiltroCambios) ([]dominio.Cambio, error) {
+	var resultado []dominio.Cambio
+	for _, c := range r.PorID {
+		if c.UsuarioID != usuarioID || !c.Activo {
+			continue
+		}
+		if filtro.Desde != nil && c.Fecha.Before(*filtro.Desde) {
+			continue
+		}
+		if filtro.Hasta != nil && c.Fecha.After(*filtro.Hasta) {
+			continue
+		}
+		resultado = append(resultado, c)
+	}
+	return resultado, nil
+}
+
+func (r *CambiosFalso) BuscarPorID(_ context.Context, id, usuarioID string) (*dominio.Cambio, error) {
+	c, ok := r.PorID[id]
+	if !ok || c.UsuarioID != usuarioID {
+		return nil, puertos.ErrNoEncontrado
+	}
+	return &c, nil
+}
+
+func (r *CambiosFalso) Actualizar(_ context.Context, c dominio.Cambio) error {
+	if _, ok := r.PorID[c.ID]; !ok {
+		return puertos.ErrNoEncontrado
+	}
+	r.PorID[c.ID] = c
+	return nil
+}
+
+func (r *CambiosFalso) Desactivar(_ context.Context, id, usuarioID string) error {
+	c, ok := r.PorID[id]
+	if !ok || c.UsuarioID != usuarioID || !c.Activo {
+		return puertos.ErrNoEncontrado
+	}
+	c.Activo = false
+	r.PorID[id] = c
 	return nil
 }

@@ -19,6 +19,7 @@ type Servidor struct {
 	identidad     casosdeuso.Identidad
 	profesionales casosdeuso.Profesionales
 	tratamientos  casosdeuso.Tratamientos
+	cambios       casosdeuso.Cambios
 	tokens        puertos.Tokenizador
 	mux           *http.ServeMux
 }
@@ -28,6 +29,7 @@ func NuevoServidor(
 	identidad casosdeuso.Identidad,
 	profesionales casosdeuso.Profesionales,
 	tratamientos casosdeuso.Tratamientos,
+	cambios casosdeuso.Cambios,
 	tokens puertos.Tokenizador,
 ) *Servidor {
 	s := &Servidor{
@@ -35,6 +37,7 @@ func NuevoServidor(
 		identidad:     identidad,
 		profesionales: profesionales,
 		tratamientos:  tratamientos,
+		cambios:       cambios,
 		tokens:        tokens,
 		mux:           http.NewServeMux(),
 	}
@@ -63,6 +66,11 @@ func (s *Servidor) rutas() {
 	s.mux.HandleFunc("GET /tratamientos", s.conAuth(s.manejarListarTratamientos))
 	s.mux.HandleFunc("PUT /tratamientos/{id}", s.conAuth(s.manejarEditarTratamiento))
 	s.mux.HandleFunc("DELETE /tratamientos/{id}", s.conAuth(s.manejarDesactivarTratamiento))
+
+	s.mux.HandleFunc("POST /cambios", s.conAuth(s.manejarCrearCambio))
+	s.mux.HandleFunc("GET /cambios", s.conAuth(s.manejarListarCambios))
+	s.mux.HandleFunc("PUT /cambios/{id}", s.conAuth(s.manejarEditarCambio))
+	s.mux.HandleFunc("DELETE /cambios/{id}", s.conAuth(s.manejarDesactivarCambio))
 }
 
 func (s *Servidor) manejarSalud(w http.ResponseWriter, r *http.Request) {
@@ -99,6 +107,10 @@ func (s *Servidor) manejarError(w http.ResponseWriter, err error) {
 		escribirError(w, http.StatusBadRequest, "tratamiento_incompleto", err.Error())
 	case errors.Is(err, dominio.ErrFechasInvalidas):
 		escribirError(w, http.StatusBadRequest, "fechas_invalidas", err.Error())
+	case errors.Is(err, dominio.ErrFechaFutura):
+		escribirError(w, http.StatusBadRequest, "fecha_futura", err.Error())
+	case errors.Is(err, dominio.ErrCambioVacio):
+		escribirError(w, http.StatusBadRequest, "cambio_vacio", err.Error())
 	case errors.Is(err, casosdeuso.ErrProfesionalInvalido):
 		escribirError(w, http.StatusBadRequest, "profesional_invalido", err.Error())
 	case errors.Is(err, puertos.ErrConflicto):

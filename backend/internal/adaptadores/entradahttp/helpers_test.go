@@ -31,8 +31,9 @@ func nuevoServidorDePrueba(verificador verificadorFalso) *Servidor {
 	)
 	profesionales := casosdeuso.NuevoProfesionales(pruebas.NuevoProfesionalesFalso())
 	tratamientos := casosdeuso.NuevoTratamientos(pruebas.NuevoTratamientosFalso(), pruebas.NuevoProfesionalesFalso())
+	cambios := casosdeuso.NuevosCambios(pruebas.NuevoCambiosFalso(), pruebas.NuevoArchivosFalso())
 	salud := casosdeuso.NuevoVerificarSalud(verificador)
-	return NuevoServidor(salud, identidad, profesionales, tratamientos, pruebas.TokenizadorFalso{})
+	return NuevoServidor(salud, identidad, profesionales, tratamientos, cambios, pruebas.TokenizadorFalso{})
 }
 
 func pedir(t *testing.T, s *Servidor, metodo, ruta string, cuerpo []byte, token string) *httptest.ResponseRecorder {

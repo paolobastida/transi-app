@@ -17,15 +17,17 @@ Este repositorio tiene dos partes:
 - **C · Stack:** 6 ADRs en [`docs/adr/`](docs/adr/) — Flutter · Go · PostgreSQL+Drift · JWT · Firebase Storage · VPS.
 - **D · Plan:** [`docs/plan.md`](docs/plan.md) — pantallas P1–P10, API, 11 fases de construcción.
 
-**Fase 2 · Tratamientos y profesionales — completada:**
+**Fase 3 · Cambios y archivos — completada:**
 
-- CRUD de profesionales y tratamientos (U4–U11).
-- Reglas aplicadas: R2 (fecha de fin ≥ inicio), R6 (campos obligatorios),
-  R7 (profesional opcional), R1 (cada quien ve solo lo suyo) y R5
-  (**borrado lógico**: desactivar, nunca borrar).
-- El estado *activo/finalizado* de un tratamiento se **deriva** de la fecha de fin.
+- Registrar, listar, editar y desactivar cambios (U12–U14).
+- Reglas: R3 (nada con fecha futura), R4 (descripción **o** al menos un adjunto),
+  R5 (borrado lógico).
+- Subida de fotos y notas de voz por `multipart/form-data` al puerto
+  `ArchivoAlmacen` (disco local en desarrollo, ADR 005).
+- **Compensación**: si falla guardar la ficha, se borran los archivos ya subidos
+  (sin archivos huérfanos).
 
-**Siguiente:** Fase 3 de construcción — Cambios y archivos (U12–U14).
+**Siguiente:** Fase 4 — Respaldos del servidor (U16).
 
 ### API disponible
 
@@ -41,6 +43,9 @@ Este repositorio tiene dos partes:
 | `PUT` · `DELETE` | `/profesionales/{id}` | Editar / desactivar profesional |
 | `POST` · `GET` | `/tratamientos` | Crear / listar (`?desde&hasta&estado`) |
 | `PUT` · `DELETE` | `/tratamientos/{id}` | Editar (incluye cerrar) / desactivar |
+| `POST` | `/cambios` | Registrar cambio (multipart: `fecha`, `descripcion`, `fotos`, `audios`) |
+| `GET` | `/cambios` | Listar cambios (`?desde&hasta`) |
+| `PUT` · `DELETE` | `/cambios/{id}` | Editar / desactivar cambio |
 
 > Salvo `/salud` y `/auth/*`, todos requieren `Authorization: Bearer <access JWT>`.
 

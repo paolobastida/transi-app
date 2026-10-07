@@ -6,5 +6,8 @@
 backend/bin/
 backend/transi-api
 
+# Archivos subidos en desarrollo (fotos/audios/respaldos locales)
+backend/datos/
+
 # Archivos temporales del sistema operativo
 .DS_Store
