@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"transi/internal/adaptadores/almacen"
@@ -76,9 +77,10 @@ func correr() error {
 
 	salud := casosdeuso.NuevoVerificarSalud(bd)
 
+	origenes := separar(env("CORS_ORIGENES", "*"))
 	servidor := &http.Server{
 		Addr:              ":" + puesto,
-		Handler:           entradahttp.NuevoServidor(salud, identidad, profesionales, tratamientos, cambios, respaldos, tokens).Handler(),
+		Handler:           entradahttp.ConCORS(origenes, entradahttp.NuevoServidor(salud, identidad, profesionales, tratamientos, cambios, respaldos, tokens).Handler()),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
@@ -94,6 +96,17 @@ func env(clave, porDefecto string) string {
 		return valor
 	}
 	return porDefecto
+}
+
+// separar divide una lista separada por comas, ignorando espacios vacíos.
+func separar(valor string) []string {
+	var partes []string
+	for _, parte := range strings.Split(valor, ",") {
+		if recortada := strings.TrimSpace(parte); recortada != "" {
+			partes = append(partes, recortada)
+		}
+	}
+	return partes
 }
 
 // secretoJWT usa JWT_SECRET si está definido. Si no, genera uno aleatorio para

@@ -36,3 +36,34 @@ func usuarioDesdeContexto(ctx context.Context) (puertos.UsuarioAutenticado, bool
 	actual, ok := ctx.Value(claveUsuario).(puertos.UsuarioAutenticado)
 	return actual, ok
 }
+
+// ConCORS permite que un navegador (por ejemplo la app Flutter en modo web)
+// llame a la API desde otro origen. Los orígenes se configuran por variable de
+// entorno; "*" permite todos (cómodo en desarrollo, a restringir en producción).
+func ConCORS(origenes []string, siguiente http.Handler) http.Handler {
+	permitidos := make(map[string]bool, len(origenes))
+	for _, origen := range origenes {
+		permitidos[origen] = true
+	}
+	permitirTodos := permitidos["*"]
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origen := r.Header.Get("Origin")
+		if origen != "" && (permitirTodos || permitidos[origen]) {
+			if permitirTodos {
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+			} else {
+				w.Header().Set("Access-Control-Allow-Origin", origen)
+				w.Header().Set("Vary", "Origin")
+			}
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+			w.Header().Set("Access-Control-Max-Age", "600")
+		}
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		siguiente.ServeHTTP(w, r)
+	})
+}

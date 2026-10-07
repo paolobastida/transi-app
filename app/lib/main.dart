@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
+import 'datos/autenticacion.dart';
+import 'dominio/usuario.dart';
+import 'presentacion/pantalla_inicio.dart';
+import 'presentacion/pantalla_login.dart';
+
 void main() {
-  runApp(const TransiApp());
+  runApp(TransiApp(autenticacion: Autenticacion()));
 }
 
-/// Raíz de la app. En la Fase 5 se reemplaza por las pantallas P1–P10.
 class TransiApp extends StatelessWidget {
-  const TransiApp({super.key});
+  final Autenticacion autenticacion;
+
+  const TransiApp({super.key, required this.autenticacion});
 
   @override
   Widget build(BuildContext context) {
@@ -15,22 +21,44 @@ class TransiApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
-      home: const PantallaInicio(),
+      home: PantallaArranque(autenticacion: autenticacion),
     );
   }
 }
 
-/// Pantalla mínima de cimientos: acá irá la línea de tiempo (P3).
-class PantallaInicio extends StatelessWidget {
-  const PantallaInicio({super.key});
+/// Decide con qué pantalla arrancar: si ya hay sesión guardada, va al inicio;
+/// si no, pide entrar.
+class PantallaArranque extends StatefulWidget {
+  final Autenticacion autenticacion;
+
+  const PantallaArranque({super.key, required this.autenticacion});
+
+  @override
+  State<PantallaArranque> createState() => _PantallaArranqueState();
+}
+
+class _PantallaArranqueState extends State<PantallaArranque> {
+  late final Future<Usuario?> _sesion = widget.autenticacion.sesionActual();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Transi')),
-      body: const Center(
-        child: Text('Acá va tu línea de tiempo'),
-      ),
+    return FutureBuilder<Usuario?>(
+      future: _sesion,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final usuario = snapshot.data;
+        if (usuario != null) {
+          return PantallaInicio(
+            autenticacion: widget.autenticacion,
+            usuario: usuario,
+          );
+        }
+        return PantallaLogin(autenticacion: widget.autenticacion);
+      },
     );
   }
 }

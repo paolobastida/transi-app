@@ -46,7 +46,17 @@ Este repositorio tiene dos partes:
 - Subir respaldo completo, recuperar el último y ver el historial.
 - El servidor **no interpreta** el respaldo: lo guarda y lo devuelve tal cual.
 
-**Siguiente:** Fase 5 — App Flutter (cimientos, cliente de API, pantallas P1–P2).
+**Fase 5 · App: cimientos y pantallas de acceso — completada (P1–P2):**
+
+- Estructura `dominio/ · datos/ · presentacion/`.
+- Cliente de API con **auto-refresco** del token (401 → renovar → reintentar),
+  implementado una sola vez (ADR 004).
+- Sesión guardada en el **almacenamiento seguro** del dispositivo.
+- Pantallas **P1 Registro** y **P2 Login**, y pantalla de inicio provisional.
+- Backend con **CORS** configurable (`CORS_ORIGENES`) para poder previsualizar
+  la app en el navegador.
+
+**Siguiente:** Fase 6 — App: profesionales y tratamientos local-first (P4–P7).
 
 ### API disponible
 
@@ -110,7 +120,20 @@ Necesitás tener instalados **Docker** y **Go** (y **Flutter** para la app).
    make test
    ```
 
-6. Para apagar la base de datos:
+6. Arrancar la app (en el navegador o en un emulador):
+
+   ```sh
+   cd app
+   flutter run -d chrome
+   ```
+
+   Para apuntar a otra dirección del servidor:
+
+   ```sh
+   flutter run -d chrome --dart-define=API_BASE_URL=http://192.168.0.10:8080
+   ```
+
+7. Para apagar la base de datos:
 
    ```sh
    docker compose down
