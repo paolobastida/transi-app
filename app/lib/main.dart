@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'datos/autenticacion.dart';
 import 'datos/base_local.dart';
+import 'datos/cambio_repositorio.dart';
 import 'datos/profesional_repositorio.dart';
 import 'datos/tratamiento_repositorio.dart';
 import 'dependencias.dart';
@@ -18,6 +19,7 @@ void main() {
     autenticacion: Autenticacion(),
     profesionales: ProfesionalRepositorio(base),
     tratamientos: TratamientoRepositorio(base),
+    cambios: CambioRepositorio(base),
   );
 
   runApp(TransiApp(dependencias: dependencias));

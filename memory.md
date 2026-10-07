@@ -262,6 +262,19 @@ commit.
 - **Verificación:** repositorios probados con base en memoria; crear y listar un
   tratamiento funciona sin red.
 
+### Fase 7 — App: cambios con foto y voz (P8–P9)
+
+- Tablas locales `cambios` y `adjuntos` en Drift. El contenido de los archivos se
+  guarda como **bytes en la base local**, para funcionar igual en todas las
+  plataformas (incluida web).
+- **P8 Registrar cambio**: descripción + **foto** (`image_picker`) + **nota de
+  voz** (`record`, grabada como stream de bytes). Fecha por defecto hoy.
+- **P9 Detalle**: ver descripción, fotos y notas de voz; desactivar (R5).
+- Permisos de cámara/micrófono en Android (`AndroidManifest.xml`) e iOS
+  (`Info.plist`).
+- **Verificación:** repositorios de cambios probados con base en memoria; los
+  adjuntos se guardan y recuperan íntegros.
+
 ---
 
 ## 6. La API del servidor
@@ -403,20 +416,21 @@ Estos son aprendizajes reales, no teoría:
 
 **Diseño (Fases A–D):** completo.
 
-**Construcción (Fases 0–6):** completas y verificadas.
+**Construcción (Fases 0–7):** completas y verificadas.
 
 - ✅ Backend completo para el MVP: identidad, profesionales, tratamientos,
   cambios con archivos y respaldos.
 - ✅ App con estructura, cliente de API con auto-refresco, pantallas de
-  registro/login y, desde la Fase 6, **base local Drift** para profesionales y
-  tratamientos (funciona sin red).
+  registro/login, **base local Drift** para profesionales, tratamientos y
+  **cambios con foto y voz** (funciona sin red).
 - ✅ Tests verdes en backend y app; CI configurado.
 - ✅ Sin credenciales en el repositorio ni en su historia.
 
 **Historial de commits (se irá ampliando):**
 
 ```
-<c7>    Fase 6: app local-first con Drift (P4–P7)
+<c8>    Fase 7: app — cambios con foto y voz (P8–P9)
+73c4e7c Fase 6: app local-first con Drift (P4–P7)
 3d184cc Fase 5: app Flutter (P1/P2), auto-refresco y CORS
 0abdafe Fase 4: respaldos del servidor (U16)
 f7d9bd6 Fase 3: cambios y archivos (U12-U14) con compensación
@@ -427,8 +441,10 @@ cafbd5c Fase 0: cimientos
 
 **Limitaciones conocidas (honestas):**
 
-- **Cambios, fotos y línea de tiempo todavía no son locales**: llegan en las
-  Fases 7–8. Hoy lo local son profesionales y tratamientos.
+- **La línea de tiempo unificada (P3) todavía no existe**: hoy la pestaña muestra
+  solo los cambios. Los tratamientos y cambios se unen por fecha en la Fase 8.
+- Los cambios **aún no se respaldan** al servidor: eso llega con la cola outbox
+  en la Fase 9.
 - Los archivos se guardan en **disco local** del servidor, no en el bucket
   (Fase 10).
 - El `JWT_SECRET` de desarrollo se genera al azar: las sesiones no sobreviven
@@ -442,16 +458,15 @@ Plan restante (`docs/plan.md`), en orden:
 
 | Fase | Qué | Verificación al cerrar |
 |---|---|---|
-| **7** | App: cambios con medios (P8, cámara/micrófono + permisos) | **Modo avión:** cambio con foto y voz |
 | **8** | Línea de tiempo (P3) con filtro de fechas | Evolución visible con datos de prueba |
 | **9** | Respaldos en la app: cola outbox atómica, P10, tests con doble falso | **Prueba madre:** respaldar → borrar app → restaurar → todo igual |
 | **10** | Pulido y despliegue: Dockerfile + VPS (HTTPS, firewall, respaldos de PG), APK | Dispositivo real con HTTPS |
 
-**Riesgos a vigilar:** permisos de cámara/micrófono (F7) y el modo avión de
-punta a punta (F9).
+**Riesgos a vigilar:** permisos de cámara/micrófono (ya resueltos en F7) y el
+modo avión de punta a punta (F9).
 
-**Próximo paso inmediato:** Fase 7 — registrar **cambios con foto y nota de voz**
-desde la app, también contra la base local.
+**Próximo paso inmediato:** Fase 8 — **línea de tiempo** (P3) que une
+tratamientos y cambios ordenados por fecha, con filtro por rango.
 
 ---
 

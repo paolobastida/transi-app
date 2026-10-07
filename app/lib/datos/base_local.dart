@@ -35,8 +35,37 @@ class Tratamientos extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Cambio (hecho físico) guardado en el teléfono.
+@DataClassName('FilaCambio')
+class Cambios extends Table {
+  TextColumn get id => text()();
+  TextColumn get usuarioId => text()();
+  DateTimeColumn get fecha => dateTime()();
+  TextColumn get descripcion => text().withDefault(const Constant(''))();
+  BoolColumn get activo => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get creadoEn => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Adjunto de un cambio. En el teléfono guardamos el contenido (bytes) en la
+/// propia base, para que funcione igual en todas las plataformas.
+@DataClassName('FilaAdjunto')
+class Adjuntos extends Table {
+  TextColumn get id => text()();
+  TextColumn get cambioId => text().references(Cambios, #id)();
+  TextColumn get tipo => text()();
+  TextColumn get nombre => text().withDefault(const Constant(''))();
+  BlobColumn get contenido => blob()();
+  DateTimeColumn get creadoEn => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Base de datos local del dispositivo (fuente de verdad para la interfaz).
-@DriftDatabase(tables: [Profesionales, Tratamientos])
+@DriftDatabase(tables: [Profesionales, Tratamientos, Cambios, Adjuntos])
 class BaseLocal extends _$BaseLocal {
   BaseLocal([QueryExecutor? ejecutor]) : super(ejecutor ?? _abrir());
 

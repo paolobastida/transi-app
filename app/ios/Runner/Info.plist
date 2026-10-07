@@ -4,6 +4,12 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Transi usa la cámara para adjuntar fotos a tus cambios.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Transi usa el micrófono para grabar notas de voz en tus cambios.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Transi accede a tus fotos para adjuntarlas a tus cambios.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

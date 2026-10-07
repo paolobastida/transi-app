@@ -65,7 +65,16 @@ Este repositorio tiene dos partes:
 - El arranque de la app **ya no necesita internet** (la sesión guardada alcanza).
 - Pruebas de repositorio con base en memoria.
 
-**Siguiente:** Fase 7 — App: cambios con foto y voz (P8) y detalle (P9).
+**Fase 7 · App: cambios con foto y voz — completada (P8–P9):**
+
+- Registrar un cambio con **descripción, foto (cámara) y nota de voz
+  (micrófono)**. Guarda **solo en la base local**, sin esperar a la red.
+- Pantalla **P9 Detalle** para ver el cambio y sus adjuntos.
+- Permisos de cámara y micrófono configurados (Android e iOS).
+- El contenido de los archivos se guarda en la base local, así funciona igual
+  en el teléfono y en el navegador.
+
+**Siguiente:** Fase 8 — Línea de tiempo (P3) que une tratamientos y cambios.
 
 ### API disponible
 
