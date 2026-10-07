@@ -72,12 +72,13 @@ func correr() error {
 	}
 	slog.Info("archivos en disco", "directorio", directorioArchivos)
 	cambios := casosdeuso.NuevosCambios(postgres.NuevoCambioRepositorio(bd), archivos)
+	respaldos := casosdeuso.NuevosRespaldos(postgres.NuevoRespaldoRepositorio(bd), archivos)
 
 	salud := casosdeuso.NuevoVerificarSalud(bd)
 
 	servidor := &http.Server{
 		Addr:              ":" + puesto,
-		Handler:           entradahttp.NuevoServidor(salud, identidad, profesionales, tratamientos, cambios, tokens).Handler(),
+		Handler:           entradahttp.NuevoServidor(salud, identidad, profesionales, tratamientos, cambios, respaldos, tokens).Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

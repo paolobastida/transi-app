@@ -317,3 +317,39 @@ func (r *CambiosFalso) Desactivar(_ context.Context, id, usuarioID string) error
 	r.PorID[id] = c
 	return nil
 }
+
+// RespaldosFalso es un puertos.RespaldoRepositorio en memoria.
+type RespaldosFalso struct {
+	PorUsuario   map[string][]dominio.Respaldo
+	FallaAlCrear bool
+}
+
+func NuevoRespaldosFalso() *RespaldosFalso {
+	return &RespaldosFalso{PorUsuario: map[string][]dominio.Respaldo{}}
+}
+
+func (r *RespaldosFalso) Crear(_ context.Context, respaldo dominio.Respaldo) error {
+	if r.FallaAlCrear {
+		return errors.New("falla al guardar el respaldo")
+	}
+	r.PorUsuario[respaldo.UsuarioID] = append(r.PorUsuario[respaldo.UsuarioID], respaldo)
+	return nil
+}
+
+func (r *RespaldosFalso) Ultimo(_ context.Context, usuarioID string) (*dominio.Respaldo, error) {
+	respaldos := r.PorUsuario[usuarioID]
+	if len(respaldos) == 0 {
+		return nil, puertos.ErrNoEncontrado
+	}
+	ultimo := respaldos[0]
+	for _, respaldo := range respaldos {
+		if respaldo.CreadoEn.After(ultimo.CreadoEn) {
+			ultimo = respaldo
+		}
+	}
+	return &ultimo, nil
+}
+
+func (r *RespaldosFalso) ListarPorUsuario(_ context.Context, usuarioID string) ([]dominio.Respaldo, error) {
+	return r.PorUsuario[usuarioID], nil
+}

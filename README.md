@@ -17,17 +17,36 @@ Este repositorio tiene dos partes:
 - **C · Stack:** 6 ADRs en [`docs/adr/`](docs/adr/) — Flutter · Go · PostgreSQL+Drift · JWT · Firebase Storage · VPS.
 - **D · Plan:** [`docs/plan.md`](docs/plan.md) — pantallas P1–P10, API, 11 fases de construcción.
 
-**Fase 3 · Cambios y archivos — completada:**
+**Fase 0 · Cimientos — completada:**
 
-- Registrar, listar, editar y desactivar cambios (U12–U14).
-- Reglas: R3 (nada con fecha futura), R4 (descripción **o** al menos un adjunto),
-  R5 (borrado lógico).
-- Subida de fotos y notas de voz por `multipart/form-data` al puerto
-  `ArchivoAlmacen` (disco local en desarrollo, ADR 005).
-- **Compensación**: si falla guardar la ficha, se borran los archivos ya subidos
-  (sin archivos huérfanos).
+- Backend Go con arquitectura hexagonal, PostgreSQL en `docker-compose.yml`.
+- Migración `001_users`, `GET /salud` con *ping* real a la base, tests y CI.
+- Proyecto Flutter en `app/`.
 
-**Siguiente:** Fase 4 — Respaldos del servidor (U16).
+**Fase 1 · Identidad — completada (U1–U3):**
+
+- Registro, login, refresco de sesión y logout.
+- Contraseña con **bcrypt** (R8); **JWT** de acceso + **refresh revocable** con
+  rotación (tabla `sessions`, ADR 004); middleware `Authorization: Bearer`.
+
+**Fase 2 · Tratamientos y profesionales — completada (U4–U11):**
+
+- CRUD de ambos, con R1 (solo lo propio), R2 (fechas), R5 (borrado lógico),
+  R6 (campos obligatorios) y R7 (profesional opcional).
+- El estado *activo/finalizado* se **deriva** de la fecha de fin.
+
+**Fase 3 · Cambios y archivos — completada (U12–U14):**
+
+- Cambios con foto/nota de voz (`multipart`) y R3/R4.
+- Subida al puerto `ArchivoAlmacen` (disco local en desarrollo, ADR 005) con
+  **compensación** para no dejar archivos huérfanos.
+
+**Fase 4 · Respaldos del servidor — completada (U16):**
+
+- Subir respaldo completo, recuperar el último y ver el historial.
+- El servidor **no interpreta** el respaldo: lo guarda y lo devuelve tal cual.
+
+**Siguiente:** Fase 5 — App Flutter (cimientos, cliente de API, pantallas P1–P2).
 
 ### API disponible
 
@@ -46,6 +65,9 @@ Este repositorio tiene dos partes:
 | `POST` | `/cambios` | Registrar cambio (multipart: `fecha`, `descripcion`, `fotos`, `audios`) |
 | `GET` | `/cambios` | Listar cambios (`?desde&hasta`) |
 | `PUT` · `DELETE` | `/cambios/{id}` | Editar / desactivar cambio |
+| `PUT` | `/respaldos` | Subir un respaldo completo |
+| `GET` | `/respaldos` | Historial de respaldos |
+| `GET` | `/respaldos/ultimo` | Recuperar el último respaldo |
 
 > Salvo `/salud` y `/auth/*`, todos requieren `Authorization: Bearer <access JWT>`.
 

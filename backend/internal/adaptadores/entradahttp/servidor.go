@@ -20,6 +20,7 @@ type Servidor struct {
 	profesionales casosdeuso.Profesionales
 	tratamientos  casosdeuso.Tratamientos
 	cambios       casosdeuso.Cambios
+	respaldos     casosdeuso.Respaldos
 	tokens        puertos.Tokenizador
 	mux           *http.ServeMux
 }
@@ -30,6 +31,7 @@ func NuevoServidor(
 	profesionales casosdeuso.Profesionales,
 	tratamientos casosdeuso.Tratamientos,
 	cambios casosdeuso.Cambios,
+	respaldos casosdeuso.Respaldos,
 	tokens puertos.Tokenizador,
 ) *Servidor {
 	s := &Servidor{
@@ -38,6 +40,7 @@ func NuevoServidor(
 		profesionales: profesionales,
 		tratamientos:  tratamientos,
 		cambios:       cambios,
+		respaldos:     respaldos,
 		tokens:        tokens,
 		mux:           http.NewServeMux(),
 	}
@@ -71,6 +74,10 @@ func (s *Servidor) rutas() {
 	s.mux.HandleFunc("GET /cambios", s.conAuth(s.manejarListarCambios))
 	s.mux.HandleFunc("PUT /cambios/{id}", s.conAuth(s.manejarEditarCambio))
 	s.mux.HandleFunc("DELETE /cambios/{id}", s.conAuth(s.manejarDesactivarCambio))
+
+	s.mux.HandleFunc("PUT /respaldos", s.conAuth(s.manejarCrearRespaldo))
+	s.mux.HandleFunc("GET /respaldos", s.conAuth(s.manejarListarRespaldos))
+	s.mux.HandleFunc("GET /respaldos/ultimo", s.conAuth(s.manejarRestaurarRespaldo))
 }
 
 func (s *Servidor) manejarSalud(w http.ResponseWriter, r *http.Request) {
