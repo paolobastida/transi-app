@@ -17,15 +17,15 @@ Este repositorio tiene dos partes:
 - **C · Stack:** 6 ADRs en [`docs/adr/`](docs/adr/) — Flutter · Go · PostgreSQL+Drift · JWT · Firebase Storage · VPS.
 - **D · Plan:** [`docs/plan.md`](docs/plan.md) — pantallas P1–P10, API, 11 fases de construcción.
 
-**Fase 1 · Identidad — completada:**
+**Fase 2 · Tratamientos y profesionales — completada:**
 
-- Registro, login, refresco de sesión y logout (U1–U3).
-- Contraseña guardada con **bcrypt** (nunca en claro, R8).
-- **Access token JWT** (15 min) + **refresh token** revocable con rotación
-  (tabla `sessions`, ADR 004).
-- Middleware que exige `Authorization: Bearer <token>` en rutas privadas.
+- CRUD de profesionales y tratamientos (U4–U11).
+- Reglas aplicadas: R2 (fecha de fin ≥ inicio), R6 (campos obligatorios),
+  R7 (profesional opcional), R1 (cada quien ve solo lo suyo) y R5
+  (**borrado lógico**: desactivar, nunca borrar).
+- El estado *activo/finalizado* de un tratamiento se **deriva** de la fecha de fin.
 
-**Siguiente:** Fase 2 de construcción — Tratamientos y profesionales (U4–U11).
+**Siguiente:** Fase 3 de construcción — Cambios y archivos (U12–U14).
 
 ### API disponible
 
@@ -37,6 +37,12 @@ Este repositorio tiene dos partes:
 | `POST` | `/auth/refresh` | Rotar el refresh token |
 | `POST` | `/auth/logout` | Cerrar sesión (revoca el refresh) |
 | `GET` | `/auth/yo` | Datos de la cuenta (requiere token) |
+| `POST` · `GET` | `/profesionales` | Crear / listar profesionales |
+| `PUT` · `DELETE` | `/profesionales/{id}` | Editar / desactivar profesional |
+| `POST` · `GET` | `/tratamientos` | Crear / listar (`?desde&hasta&estado`) |
+| `PUT` · `DELETE` | `/tratamientos/{id}` | Editar (incluye cerrar) / desactivar |
+
+> Salvo `/salud` y `/auth/*`, todos requieren `Authorization: Bearer <access JWT>`.
 
 ## Cómo correrlo
 

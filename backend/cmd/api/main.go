@@ -59,11 +59,14 @@ func correr() error {
 		tokens,
 		vidaRefresco,
 	)
+	repoProfesionales := postgres.NuevoProfesionalRepositorio(bd)
+	profesionales := casosdeuso.NuevoProfesionales(repoProfesionales)
+	tratamientos := casosdeuso.NuevoTratamientos(postgres.NuevoTratamientoRepositorio(bd), repoProfesionales)
 	salud := casosdeuso.NuevoVerificarSalud(bd)
 
 	servidor := &http.Server{
 		Addr:              ":" + puesto,
-		Handler:           entradahttp.NuevoServidor(salud, identidad, tokens).Handler(),
+		Handler:           entradahttp.NuevoServidor(salud, identidad, profesionales, tratamientos, tokens).Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

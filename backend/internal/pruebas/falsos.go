@@ -100,3 +100,116 @@ func (TokenizadorFalso) ValidarAcceso(token string) (puertos.UsuarioAutenticado,
 	}
 	return puertos.UsuarioAutenticado{ID: partes[1], Email: partes[2]}, nil
 }
+
+// ProfesionalesFalso es un puertos.ProfesionalRepositorio en memoria.
+type ProfesionalesFalso struct {
+	PorID map[string]dominio.Profesional
+}
+
+func NuevoProfesionalesFalso() *ProfesionalesFalso {
+	return &ProfesionalesFalso{PorID: map[string]dominio.Profesional{}}
+}
+
+func (r *ProfesionalesFalso) Crear(_ context.Context, p dominio.Profesional) error {
+	r.PorID[p.ID] = p
+	return nil
+}
+
+func (r *ProfesionalesFalso) ListarPorUsuario(_ context.Context, usuarioID string) ([]dominio.Profesional, error) {
+	var resultado []dominio.Profesional
+	for _, p := range r.PorID {
+		if p.UsuarioID == usuarioID && p.Activo {
+			resultado = append(resultado, p)
+		}
+	}
+	return resultado, nil
+}
+
+func (r *ProfesionalesFalso) BuscarPorID(_ context.Context, id, usuarioID string) (*dominio.Profesional, error) {
+	p, ok := r.PorID[id]
+	if !ok || p.UsuarioID != usuarioID {
+		return nil, puertos.ErrNoEncontrado
+	}
+	return &p, nil
+}
+
+func (r *ProfesionalesFalso) Actualizar(_ context.Context, p dominio.Profesional) error {
+	if _, ok := r.PorID[p.ID]; !ok {
+		return puertos.ErrNoEncontrado
+	}
+	r.PorID[p.ID] = p
+	return nil
+}
+
+func (r *ProfesionalesFalso) Desactivar(_ context.Context, id, usuarioID string) error {
+	p, ok := r.PorID[id]
+	if !ok || p.UsuarioID != usuarioID || !p.Activo {
+		return puertos.ErrNoEncontrado
+	}
+	p.Activo = false
+	r.PorID[id] = p
+	return nil
+}
+
+// TratamientosFalso es un puertos.TratamientoRepositorio en memoria.
+type TratamientosFalso struct {
+	PorID map[string]dominio.Tratamiento
+}
+
+func NuevoTratamientosFalso() *TratamientosFalso {
+	return &TratamientosFalso{PorID: map[string]dominio.Tratamiento{}}
+}
+
+func (r *TratamientosFalso) Crear(_ context.Context, t dominio.Tratamiento) error {
+	r.PorID[t.ID] = t
+	return nil
+}
+
+func (r *TratamientosFalso) ListarPorUsuario(_ context.Context, usuarioID string, filtro puertos.FiltroTratamientos) ([]dominio.Tratamiento, error) {
+	var resultado []dominio.Tratamiento
+	for _, t := range r.PorID {
+		if t.UsuarioID != usuarioID || !t.Activo {
+			continue
+		}
+		if filtro.Desde != nil && t.FechaInicio.Before(*filtro.Desde) {
+			continue
+		}
+		if filtro.Hasta != nil && t.FechaInicio.After(*filtro.Hasta) {
+			continue
+		}
+		if filtro.Estado == "activo" && t.Finalizado() {
+			continue
+		}
+		if filtro.Estado == "finalizado" && !t.Finalizado() {
+			continue
+		}
+		resultado = append(resultado, t)
+	}
+	return resultado, nil
+}
+
+func (r *TratamientosFalso) BuscarPorID(_ context.Context, id, usuarioID string) (*dominio.Tratamiento, error) {
+	t, ok := r.PorID[id]
+	if !ok || t.UsuarioID != usuarioID {
+		return nil, puertos.ErrNoEncontrado
+	}
+	return &t, nil
+}
+
+func (r *TratamientosFalso) Actualizar(_ context.Context, t dominio.Tratamiento) error {
+	if _, ok := r.PorID[t.ID]; !ok {
+		return puertos.ErrNoEncontrado
+	}
+	r.PorID[t.ID] = t
+	return nil
+}
+
+func (r *TratamientosFalso) Desactivar(_ context.Context, id, usuarioID string) error {
+	t, ok := r.PorID[id]
+	if !ok || t.UsuarioID != usuarioID || !t.Activo {
+		return puertos.ErrNoEncontrado
+	}
+	t.Activo = false
+	r.PorID[id] = t
+	return nil
+}

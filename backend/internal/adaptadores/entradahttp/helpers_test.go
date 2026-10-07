@@ -3,7 +3,9 @@ package entradahttp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -27,8 +29,10 @@ func nuevoServidorDePrueba(verificador verificadorFalso) *Servidor {
 		pruebas.TokenizadorFalso{},
 		24*time.Hour,
 	)
+	profesionales := casosdeuso.NuevoProfesionales(pruebas.NuevoProfesionalesFalso())
+	tratamientos := casosdeuso.NuevoTratamientos(pruebas.NuevoTratamientosFalso(), pruebas.NuevoProfesionalesFalso())
 	salud := casosdeuso.NuevoVerificarSalud(verificador)
-	return NuevoServidor(salud, identidad, pruebas.TokenizadorFalso{})
+	return NuevoServidor(salud, identidad, profesionales, tratamientos, pruebas.TokenizadorFalso{})
 }
 
 func pedir(t *testing.T, s *Servidor, metodo, ruta string, cuerpo []byte, token string) *httptest.ResponseRecorder {
@@ -44,4 +48,21 @@ func pedir(t *testing.T, s *Servidor, metodo, ruta string, cuerpo []byte, token 
 	rec := httptest.NewRecorder()
 	s.Handler().ServeHTTP(rec, req)
 	return rec
+}
+
+// obtenerToken registra e inicia sesión, y devuelve el access token.
+func obtenerToken(t *testing.T, s *Servidor) string {
+	t.Helper()
+	credenciales := []byte(`{"email":"tina@transi.test","clave":"secreto123"}`)
+	if rec := pedir(t, s, http.MethodPost, "/auth/registro", credenciales, ""); rec.Code != http.StatusCreated {
+		t.Fatalf("registro de prueba: %d", rec.Code)
+	}
+	rec := pedir(t, s, http.MethodPost, "/auth/login", credenciales, "")
+	var respuesta struct {
+		Acceso string `json:"acceso"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &respuesta); err != nil {
+		t.Fatalf("login de prueba: %v", err)
+	}
+	return respuesta.Acceso
 }
