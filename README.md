@@ -74,7 +74,14 @@ Este repositorio tiene dos partes:
 - El contenido de los archivos se guarda en la base local, así funciona igual
   en el teléfono y en el navegador.
 
-**Siguiente:** Fase 8 — Línea de tiempo (P3) que une tratamientos y cambios.
+**Fase 8 · Línea de tiempo — completada (P3):**
+
+- La pestaña principal une **tratamientos y cambios** ordenados por fecha
+  (más reciente primero).
+- **Filtro por rango de fechas** (desde / hasta).
+- No es una tabla: es una **consulta de lectura** que junta las dos listas.
+
+**Siguiente:** Fase 9 — Respaldos desde la app (cola outbox) y pantalla P10.
 
 ### API disponible
 

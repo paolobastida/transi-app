@@ -275,6 +275,15 @@ commit.
 - **Verificación:** repositorios de cambios probados con base en memoria; los
   adjuntos se guardan y recuperan íntegros.
 
+### Fase 8 — Línea de tiempo (P3)
+
+- La pestaña principal une **tratamientos y cambios** por fecha (más reciente
+  primero), con **filtro por rango**.
+- Es una **consulta de lectura**: no hay tabla de línea de tiempo. Se combinan
+  los dos streams locales (helper `_combinar`, equivalente mínimo de
+  `combineLatest`, sin dependencias extra).
+- **Verificación:** tests de que une, ordena y filtra correctamente.
+
 ---
 
 ## 6. La API del servidor
@@ -416,20 +425,21 @@ Estos son aprendizajes reales, no teoría:
 
 **Diseño (Fases A–D):** completo.
 
-**Construcción (Fases 0–7):** completas y verificadas.
+**Construcción (Fases 0–8):** completas y verificadas.
 
 - ✅ Backend completo para el MVP: identidad, profesionales, tratamientos,
   cambios con archivos y respaldos.
 - ✅ App con estructura, cliente de API con auto-refresco, pantallas de
   registro/login, **base local Drift** para profesionales, tratamientos y
-  **cambios con foto y voz** (funciona sin red).
+  **cambios con foto y voz**, y **línea de tiempo** unificada con filtro.
 - ✅ Tests verdes en backend y app; CI configurado.
 - ✅ Sin credenciales en el repositorio ni en su historia.
 
 **Historial de commits (se irá ampliando):**
 
 ```
-<c8>    Fase 7: app — cambios con foto y voz (P8–P9)
+<c9>    Fase 8: app — línea de tiempo (P3)
+cc54ed1 Fase 7: app — cambios con foto y voz (P8–P9)
 73c4e7c Fase 6: app local-first con Drift (P4–P7)
 3d184cc Fase 5: app Flutter (P1/P2), auto-refresco y CORS
 0abdafe Fase 4: respaldos del servidor (U16)
@@ -441,10 +451,8 @@ cafbd5c Fase 0: cimientos
 
 **Limitaciones conocidas (honestas):**
 
-- **La línea de tiempo unificada (P3) todavía no existe**: hoy la pestaña muestra
-  solo los cambios. Los tratamientos y cambios se unen por fecha en la Fase 8.
-- Los cambios **aún no se respaldan** al servidor: eso llega con la cola outbox
-  en la Fase 9.
+- **Nada se respalda todavía al servidor**: los datos viven solo en el teléfono
+  hasta la Fase 9 (cola outbox + P10).
 - Los archivos se guardan en **disco local** del servidor, no en el bucket
   (Fase 10).
 - El `JWT_SECRET` de desarrollo se genera al azar: las sesiones no sobreviven
@@ -458,15 +466,14 @@ Plan restante (`docs/plan.md`), en orden:
 
 | Fase | Qué | Verificación al cerrar |
 |---|---|---|
-| **8** | Línea de tiempo (P3) con filtro de fechas | Evolución visible con datos de prueba |
 | **9** | Respaldos en la app: cola outbox atómica, P10, tests con doble falso | **Prueba madre:** respaldar → borrar app → restaurar → todo igual |
 | **10** | Pulido y despliegue: Dockerfile + VPS (HTTPS, firewall, respaldos de PG), APK | Dispositivo real con HTTPS |
 
-**Riesgos a vigilar:** permisos de cámara/micrófono (ya resueltos en F7) y el
-modo avión de punta a punta (F9).
+**Riesgos a vigilar:** el modo avión de punta a punta (F9).
 
-**Próximo paso inmediato:** Fase 8 — **línea de tiempo** (P3) que une
-tratamientos y cambios ordenados por fecha, con filtro por rango.
+**Próximo paso inmediato:** Fase 9 — **respaldar y restaurar desde la app**
+(cola outbox atómica + pantalla P10). Es la "prueba madre": respaldar → borrar
+la app → restaurar → todo igual.
 
 ---
 

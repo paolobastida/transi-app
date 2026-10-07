@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'datos/autenticacion.dart';
 import 'datos/base_local.dart';
 import 'datos/cambio_repositorio.dart';
+import 'datos/linea_de_tiempo.dart';
 import 'datos/profesional_repositorio.dart';
 import 'datos/tratamiento_repositorio.dart';
 import 'dependencias.dart';
@@ -15,11 +16,14 @@ void main() {
 
   // La base local es la fuente de verdad de la interfaz (offline-first).
   final base = BaseLocal();
+  final tratamientos = TratamientoRepositorio(base);
+  final cambios = CambioRepositorio(base);
   final dependencias = Dependencias(
     autenticacion: Autenticacion(),
     profesionales: ProfesionalRepositorio(base),
-    tratamientos: TratamientoRepositorio(base),
-    cambios: CambioRepositorio(base),
+    tratamientos: tratamientos,
+    cambios: cambios,
+    lineaDeTiempo: LineaDeTiempo(cambios: cambios, tratamientos: tratamientos),
   );
 
   runApp(TransiApp(dependencias: dependencias));

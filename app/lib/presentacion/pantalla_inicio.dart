@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../dependencias.dart';
-import '../dominio/cambio.dart';
 import '../dominio/usuario.dart';
 import 'formulario_cambio.dart';
-import 'pantalla_detalle_cambio.dart';
+import 'pantalla_linea_de_tiempo.dart';
 import 'pantalla_login.dart';
 import 'pantalla_profesionales.dart';
 import 'pantalla_tratamientos.dart';
@@ -45,7 +44,7 @@ class _PantallaInicioState extends State<PantallaInicio> {
   @override
   Widget build(BuildContext context) {
     final paginas = [
-      _LineaDeTiempo(usuarioId: widget.usuario.id),
+      PantallaLineaDeTiempo(usuarioId: widget.usuario.id),
       PantallaTratamientos(usuarioId: widget.usuario.id),
       PantallaProfesionales(usuarioId: widget.usuario.id),
     ];
@@ -81,62 +80,3 @@ class _PantallaInicioState extends State<PantallaInicio> {
     );
   }
 }
-
-/// P3 provisional: por ahora lista los cambios. La línea de tiempo completa
-/// (tratamientos + cambios unidos por fecha) llega en la Fase 8.
-class _LineaDeTiempo extends StatelessWidget {
-  final String usuarioId;
-
-  const _LineaDeTiempo({required this.usuarioId});
-
-  @override
-  Widget build(BuildContext context) {
-    final repositorio = Alcance.de(context).cambios;
-
-    return StreamBuilder<List<Cambio>>(
-      stream: repositorio.observar(usuarioId),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final cambios = snapshot.data!;
-        if (cambios.isEmpty) {
-          return const Center(
-            child: Text('Todavía no registraste cambios.\nTocá "Registrar cambio".'),
-          );
-        }
-        return ListView.builder(
-          itemCount: cambios.length,
-          itemBuilder: (context, indice) {
-            final cambio = cambios[indice];
-            return ListTile(
-              leading: Icon(_iconoDe(cambio)),
-              title: Text(
-                cambio.descripcion.isEmpty ? 'Cambio' : cambio.descripcion,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(_fechaTexto(cambio.fecha)),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => PantallaDetalleCambio(cambio: cambio),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  IconData _iconoDe(Cambio cambio) {
-    if (cambio.adjuntos.any((a) => a.esFoto)) return Icons.photo;
-    if (cambio.adjuntos.isNotEmpty) return Icons.mic;
-    return Icons.notes;
-  }
-}
-
-String _fechaTexto(DateTime fecha) =>
-    '${fecha.year.toString().padLeft(4, '0')}-'
-    '${fecha.month.toString().padLeft(2, '0')}-'
-    '${fecha.day.toString().padLeft(2, '0')}';

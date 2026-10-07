@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'datos/autenticacion.dart';
 import 'datos/cambio_repositorio.dart';
+import 'datos/linea_de_tiempo.dart';
 import 'datos/profesional_repositorio.dart';
 import 'datos/tratamiento_repositorio.dart';
 
@@ -12,12 +13,14 @@ class Dependencias {
   final ProfesionalRepositorio profesionales;
   final TratamientoRepositorio tratamientos;
   final CambioRepositorio cambios;
+  final LineaDeTiempo lineaDeTiempo;
 
   const Dependencias({
     required this.autenticacion,
     required this.profesionales,
     required this.tratamientos,
     required this.cambios,
+    required this.lineaDeTiempo,
   });
 }
 
