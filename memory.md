@@ -248,6 +248,20 @@ commit.
 - **Verificación:** `flutter analyze` limpio, widget tests verdes, app servida en
   el navegador.
 
+### Fase 6 — App local-first (P4–P7)
+
+- **Drift** (SQLite) como base de datos local del teléfono: la **fuente de
+  verdad** de la interfaz.
+- Pantallas **P4 Tratamientos** (filtro activos/finalizados/todos), **P5
+  Profesionales** y sus formularios **P6/P7**. Guardan **solo en la base local**:
+  no llaman al servidor.
+- El arranque de la app **ya no necesita red**: si hay sesión guardada, entra
+  directo (offline-first).
+- Se agregaron los archivos de Drift para web (`web/sqlite3.wasm` y
+  `web/drift_worker.dart.js`).
+- **Verificación:** repositorios probados con base en memoria; crear y listar un
+  tratamiento funciona sin red.
+
 ---
 
 ## 6. La API del servidor
@@ -389,18 +403,20 @@ Estos son aprendizajes reales, no teoría:
 
 **Diseño (Fases A–D):** completo.
 
-**Construcción (Fases 0–5):** completas y verificadas.
+**Construcción (Fases 0–6):** completas y verificadas.
 
 - ✅ Backend completo para el MVP: identidad, profesionales, tratamientos,
   cambios con archivos y respaldos.
-- ✅ App con estructura, cliente de API con auto-refresco y pantallas de
-  registro/login.
+- ✅ App con estructura, cliente de API con auto-refresco, pantallas de
+  registro/login y, desde la Fase 6, **base local Drift** para profesionales y
+  tratamientos (funciona sin red).
 - ✅ Tests verdes en backend y app; CI configurado.
 - ✅ Sin credenciales en el repositorio ni en su historia.
 
-**Historial de commits:**
+**Historial de commits (se irá ampliando):**
 
 ```
+<c7>    Fase 6: app local-first con Drift (P4–P7)
 3d184cc Fase 5: app Flutter (P1/P2), auto-refresco y CORS
 0abdafe Fase 4: respaldos del servidor (U16)
 f7d9bd6 Fase 3: cambios y archivos (U12-U14) con compensación
@@ -411,9 +427,10 @@ cafbd5c Fase 0: cimientos
 
 **Limitaciones conocidas (honestas):**
 
-- La app **todavía no es offline-first**: las pantallas de acceso hablan con el
-  servidor; la base local (Drift) llega en la Fase 6.
-- Los archivos se guardan en **disco local**, no en el bucket (Fase 10).
+- **Cambios, fotos y línea de tiempo todavía no son locales**: llegan en las
+  Fases 7–8. Hoy lo local son profesionales y tratamientos.
+- Los archivos se guardan en **disco local** del servidor, no en el bucket
+  (Fase 10).
 - El `JWT_SECRET` de desarrollo se genera al azar: las sesiones no sobreviven
   reinicios salvo que definas `.env`.
 
@@ -425,7 +442,6 @@ Plan restante (`docs/plan.md`), en orden:
 
 | Fase | Qué | Verificación al cerrar |
 |---|---|---|
-| **6** | App: profesionales y tratamientos local-first (P4–P7), esquema Drift | **Modo avión:** crear y ver tratamiento |
 | **7** | App: cambios con medios (P8, cámara/micrófono + permisos) | **Modo avión:** cambio con foto y voz |
 | **8** | Línea de tiempo (P3) con filtro de fechas | Evolución visible con datos de prueba |
 | **9** | Respaldos en la app: cola outbox atómica, P10, tests con doble falso | **Prueba madre:** respaldar → borrar app → restaurar → todo igual |
@@ -434,9 +450,8 @@ Plan restante (`docs/plan.md`), en orden:
 **Riesgos a vigilar:** permisos de cámara/micrófono (F7) y el modo avión de
 punta a punta (F9).
 
-**Próximo paso inmediato:** Fase 6 — introducir **Drift** (base local) y volver
-las pantallas de profesionales/tratamientos **local-first**, de modo que
-funcionen sin red.
+**Próximo paso inmediato:** Fase 7 — registrar **cambios con foto y nota de voz**
+desde la app, también contra la base local.
 
 ---
 

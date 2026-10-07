@@ -37,10 +37,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => PantallaInicio(
-            autenticacion: widget.autenticacion,
-            usuario: usuario,
-          ),
+          builder: (_) => PantallaInicio(usuario: usuario),
         ),
       );
     } catch (e) {

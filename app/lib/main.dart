@@ -1,44 +1,65 @@
 import 'package:flutter/material.dart';
 
 import 'datos/autenticacion.dart';
+import 'datos/base_local.dart';
+import 'datos/profesional_repositorio.dart';
+import 'datos/tratamiento_repositorio.dart';
+import 'dependencias.dart';
 import 'dominio/usuario.dart';
 import 'presentacion/pantalla_inicio.dart';
 import 'presentacion/pantalla_login.dart';
 
 void main() {
-  runApp(TransiApp(autenticacion: Autenticacion()));
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // La base local es la fuente de verdad de la interfaz (offline-first).
+  final base = BaseLocal();
+  final dependencias = Dependencias(
+    autenticacion: Autenticacion(),
+    profesionales: ProfesionalRepositorio(base),
+    tratamientos: TratamientoRepositorio(base),
+  );
+
+  runApp(TransiApp(dependencias: dependencias));
 }
 
 class TransiApp extends StatelessWidget {
-  final Autenticacion autenticacion;
+  final Dependencias dependencias;
 
-  const TransiApp({super.key, required this.autenticacion});
+  const TransiApp({super.key, required this.dependencias});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Transi',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+    return Alcance(
+      dependencias: dependencias,
+      child: MaterialApp(
+        title: 'Transi',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        ),
+        home: const PantallaArranque(),
       ),
-      home: PantallaArranque(autenticacion: autenticacion),
     );
   }
 }
 
-/// Decide con qué pantalla arrancar: si ya hay sesión guardada, va al inicio;
-/// si no, pide entrar.
+/// Decide con qué pantalla arrancar: si ya hay sesión guardada, va al inicio
+/// (sin usar red); si no, pide entrar.
 class PantallaArranque extends StatefulWidget {
-  final Autenticacion autenticacion;
-
-  const PantallaArranque({super.key, required this.autenticacion});
+  const PantallaArranque({super.key});
 
   @override
   State<PantallaArranque> createState() => _PantallaArranqueState();
 }
 
 class _PantallaArranqueState extends State<PantallaArranque> {
-  late final Future<Usuario?> _sesion = widget.autenticacion.sesionActual();
+  Future<Usuario?>? _sesion;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sesion ??= Alcance.de(context).autenticacion.sesionActual();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,12 +73,9 @@ class _PantallaArranqueState extends State<PantallaArranque> {
         }
         final usuario = snapshot.data;
         if (usuario != null) {
-          return PantallaInicio(
-            autenticacion: widget.autenticacion,
-            usuario: usuario,
-          );
+          return PantallaInicio(usuario: usuario);
         }
-        return PantallaLogin(autenticacion: widget.autenticacion);
+        return PantallaLogin(autenticacion: Alcance.de(context).autenticacion);
       },
     );
   }

@@ -56,7 +56,16 @@ Este repositorio tiene dos partes:
 - Backend con **CORS** configurable (`CORS_ORIGENES`) para poder previsualizar
   la app en el navegador.
 
-**Siguiente:** Fase 6 — App: profesionales y tratamientos local-first (P4–P7).
+**Fase 6 · App: profesionales y tratamientos local-first — completada (P4–P7):**
+
+- Base de datos local con **Drift** (SQLite) en el teléfono: es la **fuente de
+  verdad** de la interfaz.
+- Pantallas **P4 Tratamientos** (activos/finalizados/todos), **P5 Profesionales**
+  y sus formularios **P6/P7**, que guardan **solo en la base local**.
+- El arranque de la app **ya no necesita internet** (la sesión guardada alcanza).
+- Pruebas de repositorio con base en memoria.
+
+**Siguiente:** Fase 7 — App: cambios con foto y voz (P8) y detalle (P9).
 
 ### API disponible
 

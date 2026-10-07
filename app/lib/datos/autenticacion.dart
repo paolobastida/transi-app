@@ -17,33 +17,34 @@ class Autenticacion {
     await _api.postPublico('/auth/registro', {'email': email, 'clave': clave});
   }
 
-  /// U2 · Iniciar sesión y guardar los tokens.
+  /// U2 · Iniciar sesión. Requiere red (primera vez).
   Future<Usuario> entrar(String email, String clave) async {
     final datos = await _api.postPublico(
       '/auth/login',
       {'email': email, 'clave': clave},
     );
     await _almacen.guardar(Sesion.fromJson(datos));
-    return _quienSoy();
+
+    final usuario = await _quienSoy();
+    await _almacen.guardarUsuario(usuario);
+    return usuario;
   }
 
-  /// U3 · Obtener quién soy (usa el token guardado).
   Future<Usuario> _quienSoy() async {
     final datos = await _api.getAutenticado('/auth/yo');
     return Usuario.fromJson(datos);
   }
 
-  /// Devuelve el usuario si hay una sesión válida; si no, null.
+  /// Devuelve el usuario guardado, **sin usar red**. Es lo que permite arrancar
+  /// la app en modo avión una vez que ya se inició sesión.
   Future<Usuario?> sesionActual() async {
-    if (await _almacen.leer() == null) return null;
-    try {
-      return await _quienSoy();
-    } catch (_) {
-      return null;
-    }
+    final sesion = await _almacen.leer();
+    if (sesion == null) return null;
+    return _almacen.leerUsuario();
   }
 
-  /// Cerrar sesión: revoca el refresh en el servidor y borra los tokens.
+  /// Cerrar sesión: revoca el refresh en el servidor (si hay red) y borra los
+  /// datos locales de la sesión.
   Future<void> salir() async {
     final sesion = await _almacen.leer();
     if (sesion != null) {

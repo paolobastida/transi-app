@@ -37,10 +37,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) => PantallaInicio(
-            autenticacion: widget.autenticacion,
-            usuario: usuario,
-          ),
+          builder: (_) => PantallaInicio(usuario: usuario),
         ),
         (ruta) => false,
       );
