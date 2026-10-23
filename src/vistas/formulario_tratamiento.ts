@@ -9,6 +9,7 @@ import {
   type Tratamiento,
 } from "../modelo";
 import { navegar } from "../rutas";
+import { icono } from "../iconos";
 import { aviso, h } from "../ui";
 import { barraGuardar, cabeceraFormulario, campo } from "./comunes";
 
@@ -180,29 +181,38 @@ export function vistaFormularioTratamiento(id?: string): HTMLElement {
       "main",
       { class: "contenido" },
       h(
-        "div",
-        { class: "seccion-formulario" },
-        h("h2", {}, "Medicamentos"),
+        "section",
+        { class: "panel" },
         h(
-          "p",
-          { class: "ayuda" },
-          "Podés cargar varios. Todos comparten las fechas y el profesional del tratamiento.",
+          "div",
+          { class: "panel-cabecera" },
+          h("h2", { class: "panel-titulo" }, "Medicamentos"),
+          h(
+            "p",
+            { class: "ayuda panel-ayuda" },
+            "Podés cargar varios. Todos comparten las fechas y el profesional del tratamiento.",
+          ),
+        ),
+        lista,
+        h(
+          "button",
+          { class: "btn agregar-medicamento", type: "button", onClick: agregarMedicamento },
+          icono("mas"),
+          "Agregar otro medicamento",
         ),
       ),
-      lista,
       h(
-        "button",
-        { class: "btn agregar-medicamento", type: "button", onClick: agregarMedicamento },
-        "＋ Agregar otro medicamento",
+        "section",
+        { class: "panel" },
+        h("h2", { class: "panel-titulo" }, "Fechas y profesional"),
+        h(
+          "div",
+          { class: "fila-campos" },
+          campo("Inicio", inicio),
+          campo("Fin", fin, "Dejala vacía si seguís con el tratamiento."),
+        ),
+        campo("Profesional", profesional, "Opcional. Podés incluir la especialidad."),
       ),
-      h("h2", { class: "seccion-formulario" }, "Fechas y profesional"),
-      h(
-        "div",
-        { class: "fila-campos" },
-        campo("Inicio", inicio),
-        campo("Fin", fin, "Dejala vacía si seguís con el tratamiento."),
-      ),
-      campo("Profesional", profesional, "Opcional. Podés incluir la especialidad."),
       h(
         "p",
         { class: "nota-local" },

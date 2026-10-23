@@ -2,6 +2,7 @@ import { borrarTodo, cargar, guardar, normalizar, serializar } from "../almacen"
 import { hoy } from "../formato";
 import { datosDemo } from "../modelo";
 import { navegar } from "../rutas";
+import { icono } from "../iconos";
 import { aviso, confirmar, h } from "../ui";
 import { cabeceraVista } from "./comunes";
 
@@ -104,10 +105,16 @@ export function vistaAjustes(): HTMLElement {
         h(
           "div",
           { class: "fila-botones" },
-          h("button", { class: "btn secundario", type: "button", onClick: exportar }, "Exportar"),
+          h(
+            "button",
+            { class: "btn secundario", type: "button", onClick: exportar },
+            icono("descargar"),
+            "Exportar",
+          ),
           h(
             "button",
             { class: "btn secundario", type: "button", onClick: () => inputImportar.click() },
+            icono("subir"),
             "Importar",
           ),
           inputImportar,
@@ -121,7 +128,12 @@ export function vistaAjustes(): HTMLElement {
         h(
           "div",
           { class: "fila-botones" },
-          h("button", { class: "btn secundario", type: "button", onClick: cargarDemo }, "Cargar datos de ejemplo"),
+          h(
+            "button",
+            { class: "btn secundario", type: "button", onClick: cargarDemo },
+            icono("chispa"),
+            "Cargar datos de ejemplo",
+          ),
         ),
       ),
       h(
@@ -132,10 +144,15 @@ export function vistaAjustes(): HTMLElement {
         h(
           "div",
           { class: "fila-botones" },
-          h("button", { class: "btn peligro", type: "button", onClick: borrar }, "Borrar todos mis datos"),
+          h(
+            "button",
+            { class: "btn peligro", type: "button", onClick: borrar },
+            icono("basura"),
+            "Borrar todos mis datos",
+          ),
         ),
       ),
-      h("p", { class: "pie" }, `Transi · versión 2.0 · ${total} ${total === 1 ? "registro" : "registros"} en este dispositivo`),
+      h("p", { class: "pie" }, `Transi · versión 2.1 · ${total} ${total === 1 ? "registro" : "registros"} en este dispositivo`),
     ),
   );
 }

@@ -35,8 +35,9 @@ Todo en una línea de tiempo, sin planillas ni formularios infinitos.
   hace cuánto empezaste.
 - **Registrar y editar tratamientos** con **uno o varios medicamentos**. Todos
   comparten las fechas y el profesional, y cada uno tiene su dosis y frecuencia.
-- **Registrar cambios** con una nota y una foto opcional. La foto se comprime en
-  el navegador antes de guardarse.
+- **Registrar cambios** con una nota, una foto opcional y una **nota de voz**
+  (hasta 60 segundos). La foto y el audio se comprimen en el navegador antes de
+  guardarse.
 - **Exportar e importar** todo como un archivo JSON.
 - **Datos de ejemplo** en un clic para ver la app funcionando sin cargar nada.
 - **Borrar todo** sin dejar rastros.
@@ -44,14 +45,14 @@ Todo en una línea de tiempo, sin planillas ni formularios infinitos.
 ## Qué quedó afuera (a propósito)
 
 La versión anterior de Transi tenía backend en Go, app Flutter, app Tauri,
-cuentas, respaldos en la nube, recordatorios y notas de voz. Para el portafolio
-recorté todo lo que no se puede mostrar en 30 segundos:
+cuentas, respaldos en la nube y recordatorios. Para el portafolio recorté todo
+lo que no se puede mostrar en 30 segundos:
 
 | Quedó afuera | Por qué |
 |---|---|
 | Cuentas y servidor | El valor está en los datos, no en el login. Sin servidor, la privacidad es real y no hay nada que mantener. |
 | Respaldos en la nube | Se reemplazaron por exportar/importar un JSON. |
-| Recordatorios y audio | Funciones útiles, pero no hacen falta para entender el producto. |
+| Recordatorios | Es una función que depende de una app abierta o de notificaciones nativas; suma mucho y no hace falta para entender el producto. |
 | Flutter + Tauri | Una sola app web corre en cualquier lado y se prueba con un link. |
 
 La versión completa sigue disponible en el tag
@@ -60,14 +61,16 @@ La versión completa sigue disponible en el tag
 
 ## Cómo está hecha
 
-- **TypeScript puro + Vite**, sin frameworks de UI. 3.100 líneas entre app,
+- **TypeScript puro + Vite**, sin frameworks de UI. 3.900 líneas entre app,
   estilos y pruebas.
 - **localStorage** como única base de datos (`transi.datos`). No hay API, no
   hay cookies, no hay analytics.
 - **Fotos comprimidas** con `<canvas>` a un máximo de 1200 px y JPEG 0.78.
+- **Notas de voz** con `MediaRecorder`, en MP4/Opus cuando el navegador lo
+  permite (WebM como alternativa), con un máximo de 60 segundos.
 - **Rutas por hash** (`#/detalle/cambio/123`), así funciona en cualquier hosting
   estático y el botón Atrás hace lo que esperás.
-- **24 pruebas** con Vitest sobre el modelo, la persistencia, las fechas y las
+- **27 pruebas** con Vitest sobre el modelo, la persistencia, las fechas y las
   rutas.
 
 ```
@@ -108,6 +111,7 @@ type Cambio = {
   fecha: string;               // AAAA-MM-DD
   descripcion: string;
   foto: string | null;         // data URL comprimida
+  audio: string | null;        // data URL de la nota de voz
 };
 ```
 
@@ -128,7 +132,7 @@ pnpm dev
 Abrí `http://localhost:5173` y elegí **“Ver la app con datos de ejemplo”**.
 
 ```sh
-pnpm test     # 24 pruebas
+pnpm test     # 27 pruebas
 pnpm build    # dist/ listo para publicar
 ```
 
@@ -144,11 +148,11 @@ El repositorio incluye `.github/workflows/paginas.yml`. En GitHub:
 
 | Inicio | Tratamiento con varios medicamentos | Registrar un cambio |
 |---|---|---|
-| <img src="docs/capturas/inicio.jpg" width="240" alt="Línea de tiempo con tratamientos en curso"> | <img src="docs/capturas/formulario-tratamiento.jpg" width="240" alt="Formulario de tratamiento con dos medicamentos"> | <img src="docs/capturas/formulario-cambio.jpg" width="240" alt="Formulario de un cambio con foto"> |
+| <img src="docs/capturas/inicio.jpg" width="240" alt="Línea de tiempo con tratamientos en curso"> | <img src="docs/capturas/formulario-tratamiento.jpg" width="240" alt="Formulario de tratamiento con dos medicamentos"> | <img src="docs/capturas/formulario-cambio.jpg" width="240" alt="Formulario de un cambio con foto y nota de voz"> |
 
 | Detalle de un cambio | Ajustes | Primer arranque |
 |---|---|---|
-| <img src="docs/capturas/detalle-cambio.jpg" width="240" alt="Detalle de un cambio con foto"> | <img src="docs/capturas/ajustes.jpg" width="240" alt="Pantalla de ajustes y datos locales"> | <img src="docs/capturas/bienvenida.jpg" width="240" alt="Pantalla de bienvenida con datos de ejemplo"> |
+| <img src="docs/capturas/detalle-cambio.jpg" width="240" alt="Detalle de un cambio con foto y nota de voz"> | <img src="docs/capturas/ajustes.jpg" width="240" alt="Pantalla de ajustes y datos locales"> | <img src="docs/capturas/bienvenida.jpg" width="240" alt="Pantalla de bienvenida con datos de ejemplo"> |
 
 ## Decisiones que vale la pena contar
 
@@ -169,6 +173,10 @@ El repositorio incluye `.github/workflows/paginas.yml`. En GitHub:
 Transi no envía datos a ningún servidor. No usa cookies, analytics ni fuentes
 externas. Todo lo que cargás se guarda en el `localStorage` de tu navegador y
 podés borrarlo desde **Ajustes → Borrar todos mis datos**.
+
+El micrófono solo se activa cuando tocás **Grabar nota** y se apaga al detener
+la grabación o salir de la pantalla. Grabar audio requiere HTTPS (o
+`localhost`), una restricción de seguridad del navegador.
 
 Esto es una app de registro personal: **no reemplaza un historial clínico ni es
 consejo médico**.

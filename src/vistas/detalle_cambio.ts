@@ -1,6 +1,7 @@
 import { cargar, guardar } from "../almacen";
 import { fechaLarga } from "../formato";
 import { navegar } from "../rutas";
+import { icono } from "../iconos";
 import { aviso, confirmar, h } from "../ui";
 import { cabeceraVista } from "./comunes";
 
@@ -42,6 +43,14 @@ export function vistaDetalleCambio(id: string): HTMLElement {
         h("p", { class: "descripcion" }, cambio.descripcion),
         cambio.foto
           ? h("img", { class: "foto-detalle", src: cambio.foto, alt: "Foto de este cambio" })
+          : null,
+        cambio.audio
+          ? h(
+              "div",
+              { class: "audio-detalle" },
+              h("span", { class: "audio-etiqueta" }, icono("microfono"), "Nota de voz"),
+              h("audio", { controls: true, preload: "metadata", src: cambio.audio }),
+            )
           : null,
       ),
       h(

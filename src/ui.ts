@@ -1,5 +1,7 @@
 /** Helpers mínimos de UI: crear nodos, montar vistas y avisar. */
 
+import { icono, type NombreIcono } from "./iconos";
+
 export type Hijo = Node | string | number | null | undefined | false;
 
 const PROPIEDADES = new Set(["value", "checked", "disabled", "selected", "indeterminate"]);
@@ -48,11 +50,11 @@ export function confirmar(mensaje: string): boolean {
   return window.confirm(mensaje);
 }
 
-export function vacio(icono: string, mensaje: string): HTMLElement {
+export function vacio(nombre: NombreIcono, mensaje: string): HTMLElement {
   return h(
     "div",
     { class: "vacio" },
-    h("div", { class: "vacio-icono", "aria-hidden": "true" }, icono),
+    h("div", { class: "vacio-icono" }, icono(nombre)),
     h("p", {}, mensaje),
   );
 }

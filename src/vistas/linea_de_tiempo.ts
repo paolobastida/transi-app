@@ -10,6 +10,7 @@ import {
   type Filtro,
 } from "../modelo";
 import { navegar } from "../rutas";
+import { icono } from "../iconos";
 import { h, vacio } from "../ui";
 
 export function vistaLineaDeTiempo(datos: Datos, filtro: Filtro): HTMLElement {
@@ -22,7 +23,7 @@ export function vistaLineaDeTiempo(datos: Datos, filtro: Filtro): HTMLElement {
         : filtro === "cambios"
           ? "Todavía no registraste cambios."
           : "Tu historia empieza con el primer registro.";
-    return vacio("✦", mensaje);
+    return vacio("chispa", mensaje);
   }
 
   const contenedor = h("div", { class: "linea-tiempo" });
@@ -41,7 +42,7 @@ function filaEvento(evento: Evento): HTMLElement {
     const activo = tratamientoActivo(tratamiento);
     return fila({
       clase: "tratamiento",
-      icono: "💊",
+      iconoEvento: "pildora",
       titulo: tituloTratamiento(tratamiento),
       detalle: `${resumenTratamiento(tratamiento) || "Tratamiento"} · desde ${fechaCorta(tratamiento.inicio)}`,
       etiqueta: activo ? { texto: "En curso", clase: "activo" } : { texto: "Finalizado", clase: "cerrado" },
@@ -52,21 +53,23 @@ function filaEvento(evento: Evento): HTMLElement {
   const cambio = evento.cambio;
   return fila({
     clase: "cambio",
-    icono: "✎",
+    iconoEvento: "lapiz",
     titulo: cambio.descripcion,
     detalle: fechaCorta(cambio.fecha),
     foto: cambio.foto,
+    audio: Boolean(cambio.audio),
     alAbrir: () => navegar(`/detalle/cambio/${cambio.id}`),
   });
 }
 
 function fila(opciones: {
   clase: string;
-  icono: string;
+  iconoEvento: "pildora" | "lapiz";
   titulo: string;
   detalle: string;
   etiqueta?: { texto: string; clase: string };
   foto?: string | null;
+  audio?: boolean;
   alAbrir: () => void;
 }): HTMLElement {
   const abrir = opciones.alAbrir;
@@ -94,7 +97,11 @@ function fila(opciones: {
           }
         },
       },
-      h("div", { class: "icono-tarjeta", "aria-hidden": "true" }, opciones.icono),
+      h(
+        "div",
+        { class: `icono-tarjeta ${opciones.clase === "tratamiento" ? "azul" : "rosa"}` },
+        icono(opciones.iconoEvento),
+      ),
       h(
         "div",
         { class: "fila-texto" },
@@ -103,6 +110,13 @@ function fila(opciones: {
       ),
       opciones.etiqueta
         ? h("span", { class: `etiqueta ${opciones.etiqueta.clase}` }, opciones.etiqueta.texto)
+        : null,
+      opciones.audio
+        ? h(
+            "span",
+            { class: "mini-audio", title: "Tiene nota de voz", "aria-label": "Tiene nota de voz" },
+            icono("microfono"),
+          )
         : null,
       opciones.foto
         ? h("img", { class: "miniatura", src: opciones.foto, alt: "Foto del cambio", loading: "lazy" })

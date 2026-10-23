@@ -1,3 +1,4 @@
+import { icono } from "../iconos";
 import { h } from "../ui";
 
 /** Barra superior de un formulario: cancelar a la izquierda, título al centro. */
@@ -19,7 +20,7 @@ export function cabeceraVista(titulo: string, alVolver: () => void, accion?: HTM
     h(
       "button",
       { class: "btn icono", type: "button", title: "Volver", "aria-label": "Volver", onClick: alVolver },
-      "←",
+      icono("atras"),
     ),
     h("h1", {}, titulo),
     accion ?? h("span", { class: "barra-hueco" }),

@@ -100,14 +100,20 @@ describe("tratamientos", () => {
 
 describe("cambios", () => {
   it("exige descripción y fecha", () => {
-    expect(validarCambio({ fecha: "2026-01-01", descripcion: " ", foto: null })).toMatch(/cambió/i);
-    expect(validarCambio({ fecha: "", descripcion: "algo", foto: null })).toMatch(/fecha/i);
+    expect(validarCambio({ fecha: "2026-01-01", descripcion: " ", foto: null, audio: null })).toMatch(/cambió/i);
+    expect(validarCambio({ fecha: "", descripcion: "algo", foto: null, audio: null })).toMatch(/fecha/i);
   });
 
-  it("guarda la foto opcional", () => {
-    const cambio = crearCambio({ fecha: "2026-01-01", descripcion: "  hola  ", foto: "data:image/jpeg;base64,x" });
+  it("guarda la foto y la nota de voz opcionales", () => {
+    const cambio = crearCambio({
+      fecha: "2026-01-01",
+      descripcion: "  hola  ",
+      foto: "data:image/jpeg;base64,x",
+      audio: "data:audio/webm;base64,y",
+    });
     expect(cambio.descripcion).toBe("hola");
     expect(cambio.foto).toContain("data:image");
+    expect(cambio.audio).toContain("data:audio");
   });
 });
 

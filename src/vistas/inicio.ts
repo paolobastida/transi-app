@@ -10,6 +10,7 @@ import {
   type Tratamiento,
 } from "../modelo";
 import { navegar } from "../rutas";
+import { icono, type NombreIcono } from "../iconos";
 import { aviso, h } from "../ui";
 import { vistaLineaDeTiempo } from "./linea_de_tiempo";
 
@@ -67,7 +68,8 @@ export function vistaInicio(filtroInicial: Filtro = "todo"): HTMLElement {
       h(
         "button",
         { class: "fab", type: "button", onClick: () => navegar("/registrar") },
-        "＋ Registrar",
+        h("span", { class: "fab-icono" }, icono("mas")),
+        "Registrar",
       ),
     );
   };
@@ -86,6 +88,7 @@ export function vistaInicio(filtroInicial: Filtro = "todo"): HTMLElement {
       "section",
       { class: "bienvenida tarjeta" },
       h("span", { class: "logo grande", "aria-hidden": "true" }),
+      h("span", { class: "eyebrow" }, "Privado por diseño"),
       h("h1", {}, "Tu transición, a tu ritmo"),
       h(
         "p",
@@ -96,12 +99,20 @@ export function vistaInicio(filtroInicial: Filtro = "todo"): HTMLElement {
       h(
         "button",
         { class: "btn primario", type: "button", onClick: () => navegar("/registrar") },
-        "＋ Registrar lo primero",
+        icono("mas"),
+        "Registrar lo primero",
       ),
       h(
         "button",
         { class: "btn enlace", type: "button", onClick: usarDemo },
         "Ver la app con datos de ejemplo",
+      ),
+      h(
+        "div",
+        { class: "bienvenida-sellos" },
+        sello("candado", "Sin cuentas"),
+        sello("check", "100% en tu dispositivo"),
+        sello("check", "Exportable cuando quieras"),
       ),
     );
 
@@ -128,6 +139,7 @@ export function vistaInicio(filtroInicial: Filtro = "todo"): HTMLElement {
         h(
           "span",
           { class: "insignia-local", title: "Los datos se guardan en este navegador" },
+          icono("candado"),
           "100% local",
         ),
         h(
@@ -139,7 +151,7 @@ export function vistaInicio(filtroInicial: Filtro = "todo"): HTMLElement {
             "aria-label": "Ajustes",
             onClick: () => navegar("/ajustes"),
           },
-          "⚙",
+          icono("ajustes"),
         ),
       ),
     ),
@@ -180,14 +192,18 @@ function enCurso(datos: Datos): HTMLElement {
           h(
             "div",
             { class: "en-curso-fila" },
-            h("span", { class: "icono-tarjeta", "aria-hidden": "true" }, "💊"),
+            h("span", { class: "icono-tarjeta azul" }, icono("pildora")),
             h("span", { class: "etiqueta activo" }, "En curso"),
           ),
           h("strong", {}, tituloTratamiento(tratamiento)),
           h("span", { class: "en-curso-detalle" }, resumenTratamiento(tratamiento) || "Tratamiento"),
-          h("span", { class: "tenue" }, duracionTexto(tratamiento.inicio)),
+          h("span", { class: "tenue" }, icono("reloj"), duracionTexto(tratamiento.inicio)),
         ),
       ),
     ),
   );
+}
+
+function sello(nombre: NombreIcono, texto: string): HTMLElement {
+  return h("span", { class: "sello" }, icono(nombre), texto);
 }

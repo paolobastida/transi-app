@@ -4,7 +4,7 @@ import type { Cambio, Datos, Medicamento, Tratamiento } from "./modelo";
 import { datosVacios, nuevoId } from "./modelo";
 
 const CLAVE = "transi.datos";
-const VERSION = 3;
+const VERSION = 4;
 
 let memoria: Datos | null = null;
 
@@ -71,6 +71,7 @@ function comoCambio(valor: unknown): Cambio | null {
     fecha,
     descripcion,
     foto: textoONulo(bruto["foto"]),
+    audio: textoONulo(bruto["audio"]),
   };
 }
 

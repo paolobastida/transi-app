@@ -1,3 +1,4 @@
+import { limpiarVista } from "./ciclo_vida";
 import { analizarRuta, navegar, rutaActual } from "./rutas";
 import { montar } from "./ui";
 import { vistaAjustes } from "./vistas/ajustes";
@@ -9,6 +10,7 @@ import { vistaInicio } from "./vistas/inicio";
 import { vistaRegistrar } from "./vistas/registrar";
 
 function render(): void {
+  limpiarVista();
   const pantalla = analizarRuta(rutaActual());
 
   switch (pantalla.nombre) {

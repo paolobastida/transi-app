@@ -5,7 +5,7 @@ import { restarMeses } from "../src/formato";
 describe("normalizar respaldos", () => {
   it("acepta un archivo válido y descarta registros incompletos", () => {
     const datos = normalizar({
-      version: 3,
+      version: 4,
       tratamientos: [
         {
           id: "t1",
@@ -23,11 +23,30 @@ describe("normalizar respaldos", () => {
     });
 
     expect(datos).not.toBeNull();
-    expect(datos?.version).toBe(3);
+    expect(datos?.version).toBe(4);
     expect(datos?.tratamientos).toHaveLength(1);
     expect(datos?.cambios).toHaveLength(1);
     expect(datos?.tratamientos[0]?.medicamentos[0]?.nombre).toBe("Testosterona");
     expect(datos?.cambios[0]?.foto).toBeNull();
+    expect(datos?.cambios[0]?.audio).toBeNull();
+  });
+
+  it("conserva la nota de voz de un cambio", () => {
+    const datos = normalizar({
+      version: 4,
+      tratamientos: [],
+      cambios: [
+        {
+          id: "c1",
+          fecha: "2026-02-01",
+          descripcion: "Con audio",
+          foto: null,
+          audio: "data:audio/webm;base64,abc",
+        },
+      ],
+    });
+
+    expect(datos?.cambios[0]?.audio).toBe("data:audio/webm;base64,abc");
   });
 
   it("migra un tratamiento de la versión anterior (un medicamento suelto)", () => {
@@ -61,10 +80,10 @@ describe("normalizar respaldos", () => {
   });
 
   it("serializa con la marca de la app para poder reconocerlo", () => {
-    const texto = serializar({ version: 3, tratamientos: [], cambios: [] });
+    const texto = serializar({ version: 4, tratamientos: [], cambios: [] });
     const leido = JSON.parse(texto);
     expect(leido.app).toBe("transi");
-    expect(leido.version).toBe(3);
+    expect(leido.version).toBe(4);
   });
 });
 

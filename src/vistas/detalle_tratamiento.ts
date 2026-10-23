@@ -2,6 +2,7 @@ import { cargar, guardar } from "../almacen";
 import { fechaLarga } from "../formato";
 import { descripcionMedicamento, tituloTratamiento, tratamientoActivo } from "../modelo";
 import { navegar } from "../rutas";
+import { icono } from "../iconos";
 import { aviso, confirmar, h } from "../ui";
 import { cabeceraVista } from "./comunes";
 
@@ -43,7 +44,17 @@ export function vistaDetalleTratamiento(id: string): HTMLElement {
         h(
           "div",
           { class: "ficha-cabecera" },
-          h("div", {}, h("h2", {}, tituloTratamiento(tratamiento)), h("p", { class: "sub" }, "Registrado en tu historia")),
+          h(
+            "div",
+            { class: "ficha-titulo" },
+            h("span", { class: "icono-tarjeta grande azul" }, icono("pildora")),
+            h(
+              "div",
+              { class: "ficha-titulo-texto" },
+              h("h2", {}, tituloTratamiento(tratamiento)),
+              h("p", { class: "sub" }, "Registrado en tu historia"),
+            ),
+          ),
           h("span", { class: `etiqueta ${activo ? "activo" : "cerrado"}` }, activo ? "En curso" : "Finalizado"),
         ),
         h(
@@ -61,7 +72,7 @@ export function vistaDetalleTratamiento(id: string): HTMLElement {
               h(
                 "li",
                 { class: "medicamento-item" },
-                h("span", { class: "icono-tarjeta", "aria-hidden": "true" }, "💊"),
+                h("span", { class: "icono-tarjeta azul" }, icono("pildora")),
                 h(
                   "div",
                   { class: "medicamento-item-texto" },

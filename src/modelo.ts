@@ -22,10 +22,11 @@ export interface Cambio {
   fecha: string;
   descripcion: string;
   foto: string | null;
+  audio: string | null;
 }
 
 export interface Datos {
-  version: 3;
+  version: 4;
   tratamientos: Tratamiento[];
   cambios: Cambio[];
 }
@@ -53,12 +54,13 @@ export interface EntradaCambio {
   fecha: string;
   descripcion: string;
   foto: string | null;
+  audio: string | null;
 }
 
-export const DATOS_VACIOS: Datos = { version: 3, tratamientos: [], cambios: [] };
+export const DATOS_VACIOS: Datos = { version: 4, tratamientos: [], cambios: [] };
 
 export function datosVacios(): Datos {
-  return { version: 3, tratamientos: [], cambios: [] };
+  return { version: 4, tratamientos: [], cambios: [] };
 }
 
 export function nuevoId(): string {
@@ -147,6 +149,7 @@ export function crearCambio(entrada: EntradaCambio): Cambio {
     fecha: entrada.fecha,
     descripcion: entrada.descripcion.trim(),
     foto: entrada.foto || null,
+    audio: entrada.audio || null,
   };
 }
 
@@ -215,7 +218,7 @@ export function datosDemo(referencia = hoy()): Datos {
   const hace = (meses: number) => restarMeses(referencia, meses);
 
   return {
-    version: 3,
+    version: 4,
     tratamientos: [
       {
         id: nuevoId(),
@@ -253,6 +256,7 @@ export function datosDemo(referencia = hoy()): Datos {
         descripcion:
           "La voz se está asentando. Me costó un toque el cambio, pero escucharme en audios ya me hace sentir más yo.",
         foto: null,
+        audio: null,
       },
       {
         id: nuevoId(),
@@ -260,6 +264,7 @@ export function datosDemo(referencia = hoy()): Datos {
         descripcion:
           "Primera ronda de análisis con la endocrinóloga. Todo en rango, seguimos con la misma dosis.",
         foto: null,
+        audio: null,
       },
       {
         id: nuevoId(),
@@ -267,6 +272,7 @@ export function datosDemo(referencia = hoy()): Datos {
         descripcion:
           "Fui a comprar ropa sola por primera vez. Probarme cosas frente al espejo dejó de ser una pelea.",
         foto: null,
+        audio: null,
       },
       {
         id: nuevoId(),
@@ -274,6 +280,7 @@ export function datosDemo(referencia = hoy()): Datos {
         descripcion:
           "Arranqué el tratamiento. Mucha emoción y un poco de miedo, pero después de años de espera por fin estaba ahí.",
         foto: null,
+        audio: null,
       },
     ],
   };
