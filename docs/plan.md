@@ -18,12 +18,12 @@ APP
 │   ├── P3  Línea de tiempo     → U15  (pestaña inicial; filtro por rango;
 │   │                                estados vacío/cargando/error)
 │   ├── P4  Tratamientos        → U10  (activos/finalizados)
-│   ├── P5  Profesionales       → U5
 │   └── [FAB] Registrar cambio  → P8   (a un toque, siempre)
 │
 ├── FORMULARIOS
 │   ├── P6  Alta/edición tratamiento  → U8/U9
-│   ├── P7  Alta/edición profesional  → U4/U6
+│   │            (libre y general; varios medicamentos de una; profesional
+│   │             del tratamiento como texto, no entidad aparte)
 │   ├── P8  Registrar cambio          → U12 ⭐ (descripción, foto, nota de voz,
 │   │            fecha=hoy; guardar NUNCA espera red)
 │   └── P9  Detalle (cambio/tratamiento) → U14/U9/U11/U14 (desactivar)
@@ -48,11 +48,13 @@ error: `{"error": {"codigo", "mensaje"}}`.
 | Grupo | Endpoints |
 |---|---|
 | **Auth** | `POST /auth/registro` · `POST /auth/login` · `POST /auth/refresh` · `POST /auth/logout` |
-| **Profesionales** | `GET|POST /profesionales` · `PUT|DELETE /profesionales/{id}` (DELETE = lógico) |
 | **Tratamientos** | `GET|POST /tratamientos` (`?desde&hasta&estado`) · `PUT|DELETE /tratamientos/{id}` |
 | **Cambios** | `GET|POST /cambios` (`?desde&hasta`; POST = **multipart** con archivos) · `PUT|DELETE /cambios/{id}` |
 | **Respaldos** | `PUT /respaldos` (snapshot completo → bucket) · `GET /respaldos/ultimo` (restaurar) · `GET /respaldos` (historial) |
 | **Health** | `GET /salud` |
+
+> **Revisado en Fase 11:** se eliminaron los endpoints `/profesionales` (el
+> profesional vive dentro del tratamiento).
 
 **Ausencias intencionales:** sin `GET /timeline` (P3/U15 lee la base local)
 y sin sync incremental (B5: respaldo completo bajo demanda).

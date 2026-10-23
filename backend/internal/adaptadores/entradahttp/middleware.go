@@ -2,6 +2,7 @@ package entradahttp
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -35,6 +36,27 @@ func (s *Servidor) conAuth(siguiente http.HandlerFunc) http.HandlerFunc {
 func usuarioDesdeContexto(ctx context.Context) (puertos.UsuarioAutenticado, bool) {
 	actual, ok := ctx.Value(claveUsuario).(puertos.UsuarioAutenticado)
 	return actual, ok
+}
+
+// usuarioActual recupera el usuario autenticado que dejó `conAuth`. Si no hay,
+// escribe el 401 y devuelve ok=false. Así cada handler corta con un solo `if`
+// en vez de repetir el mismo bloque de error.
+func usuarioActual(w http.ResponseWriter, r *http.Request) (puertos.UsuarioAutenticado, bool) {
+	actual, ok := usuarioDesdeContexto(r.Context())
+	if !ok {
+		escribirError(w, http.StatusUnauthorized, "no_autenticado", "sesión no válida")
+	}
+	return actual, ok
+}
+
+// decodificarJSON lee el cuerpo JSON del request. Si viene mal formado, escribe
+// el 400 y devuelve false: un solo lugar define qué es un "cuerpo inválido".
+func decodificarJSON(w http.ResponseWriter, r *http.Request, destino any) bool {
+	if err := json.NewDecoder(r.Body).Decode(destino); err != nil {
+		escribirError(w, http.StatusBadRequest, "json_invalido", "el cuerpo no es JSON válido")
+		return false
+	}
+	return true
 }
 
 // ConCORS permite que un navegador (por ejemplo la app Flutter en modo web)

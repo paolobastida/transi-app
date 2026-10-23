@@ -2,10 +2,6 @@ package casosdeuso
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"time"
 
@@ -42,6 +38,7 @@ type Identidad struct {
 	sesiones     puertos.SesionRepositorio
 	hasher       puertos.Hasher
 	tokens       puertos.Tokenizador
+	refrescos    puertos.GeneradorRefresco
 	vidaRefresco time.Duration
 }
 
@@ -50,6 +47,7 @@ func NuevaIdentidad(
 	sesiones puertos.SesionRepositorio,
 	hasher puertos.Hasher,
 	tokens puertos.Tokenizador,
+	refrescos puertos.GeneradorRefresco,
 	vidaRefresco time.Duration,
 ) Identidad {
 	return Identidad{
@@ -57,6 +55,7 @@ func NuevaIdentidad(
 		sesiones:     sesiones,
 		hasher:       hasher,
 		tokens:       tokens,
+		refrescos:    refrescos,
 		vidaRefresco: vidaRefresco,
 	}
 }
@@ -70,6 +69,11 @@ func (i Identidad) Registrarse(ctx context.Context, c Credenciales) (dominio.Usu
 		return dominio.Usuario{}, err
 	}
 	if _, err := i.usuarios.BuscarPorEmail(ctx, c.Email); err == nil {
+		// Igual que en el login: aunque el email ya exista, gastamos el mismo
+		// tiempo de bcrypt que un registro válido. Sin esto, un email
+		// registrado responde ~50x más rápido que uno nuevo y se puede
+		// enumerar la base por timing (el cuerpo ya es idéntico a propósito).
+		i.hasher.Verificar(hashFalso, c.Clave)
 		return dominio.Usuario{}, puertos.ErrConflicto
 	} else if !errors.Is(err, puertos.ErrNoEncontrado) {
 		return dominio.Usuario{}, err
@@ -95,6 +99,12 @@ func (i Identidad) Registrarse(ctx context.Context, c Credenciales) (dominio.Usu
 func (i Identidad) IniciarSesion(ctx context.Context, c Credenciales) (Tokens, error) {
 	u, err := i.usuarios.BuscarPorEmail(ctx, c.Email)
 	if errors.Is(err, puertos.ErrNoEncontrado) {
+		// Aunque el usuario no exista, verificar una contraseña falsa para
+		// igualar el tiempo de respuesta. Sin esto, un login con email
+		// inexistente responde ~50x más rápido que uno con email existente y
+		// permite enumerar las cuentas registradas (relevante: saber quién usa
+		// esta app ya revela información sensible).
+		i.hasher.Verificar(hashFalso, c.Clave)
 		return Tokens{}, ErrCredencialesInvalidas
 	}
 	if err != nil {
@@ -106,9 +116,13 @@ func (i Identidad) IniciarSesion(ctx context.Context, c Credenciales) (Tokens, e
 	return i.emitir(ctx, *u)
 }
 
+// hashFalso es un bcrypt válido de una contraseña que nadie tiene. Solo sirve
+// para gastar el mismo tiempo de CPU que una verificación real.
+const hashFalso = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+
 // Renovar rota el refresh token: el viejo se invalida y se emite uno nuevo.
 func (i Identidad) Renovar(ctx context.Context, refresco string) (Tokens, error) {
-	sesion, err := i.sesiones.BuscarPorHash(ctx, hashDeToken(refresco))
+	sesion, err := i.sesiones.BuscarPorHash(ctx, i.refrescos.Hash(refresco))
 	if errors.Is(err, puertos.ErrNoEncontrado) {
 		return Tokens{}, ErrNoAutenticado
 	}
@@ -139,7 +153,7 @@ func (i Identidad) Renovar(ctx context.Context, refresco string) (Tokens, error)
 
 // CerrarSesion revoca el refresh token (borrar la fila cierra la sesión).
 func (i Identidad) CerrarSesion(ctx context.Context, refresco string) error {
-	err := i.sesiones.Borrar(ctx, hashDeToken(refresco))
+	err := i.sesiones.Borrar(ctx, i.refrescos.Hash(refresco))
 	if errors.Is(err, puertos.ErrNoEncontrado) {
 		return nil
 	}
@@ -164,7 +178,7 @@ func (i Identidad) emitir(ctx context.Context, u dominio.Usuario) (Tokens, error
 	if err != nil {
 		return Tokens{}, err
 	}
-	refresco, hash, err := generarTokenRefresco()
+	refresco, hash, err := i.refrescos.Generar()
 	if err != nil {
 		return Tokens{}, err
 	}
@@ -180,20 +194,4 @@ func (i Identidad) emitir(ctx context.Context, u dominio.Usuario) (Tokens, error
 		return Tokens{}, err
 	}
 	return Tokens{Acceso: acceso, Refresco: refresco, AccesoExpiraEn: expiraEn}, nil
-}
-
-// generarTokenRefresco devuelve el token en claro (va al celular) y su hash
-// (queda en la base). Son aleatorios con crypto/rand: no es criptografía propia.
-func generarTokenRefresco() (token, hash string, err error) {
-	bytes := make([]byte, 32)
-	if _, err = rand.Read(bytes); err != nil {
-		return "", "", err
-	}
-	token = base64.RawURLEncoding.EncodeToString(bytes)
-	return token, hashDeToken(token), nil
-}
-
-func hashDeToken(token string) string {
-	suma := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(suma[:])
 }

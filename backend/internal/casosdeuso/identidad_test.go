@@ -14,7 +14,7 @@ import (
 func identidadDePrueba() (Identidad, *pruebas.UsuariosFalso, *pruebas.SesionesFalso) {
 	usuarios := pruebas.NuevoUsuariosFalso()
 	sesiones := pruebas.NuevoSesionesFalso()
-	id := NuevaIdentidad(usuarios, sesiones, pruebas.HasherFalso{}, pruebas.TokenizadorFalso{}, 30*24*time.Hour)
+	id := NuevaIdentidad(usuarios, sesiones, pruebas.HasherFalso{}, pruebas.TokenizadorFalso{}, &pruebas.GeneradorRefrescoFalso{}, 30*24*time.Hour)
 	return id, usuarios, sesiones
 }
 

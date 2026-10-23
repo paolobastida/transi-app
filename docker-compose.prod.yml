@@ -28,6 +28,9 @@ services:
       PORT: "8080"
       ARCHIVOS_DIR: /app/datos/archivos
       CORS_ORIGENES: ${CORS_ORIGENES}
+      # Red interna de Docker: es de donde Caddy conecta a la API. Sin esto, el
+      # límite de intentos ignora X-Forwarded-For (y se puede saltar falseándolo).
+      PROXIES_CONFIABLES: ${PROXIES_CONFIABLES:-172.16.0.0/12}
     volumes:
       - transi-archivos:/app/datos/archivos
     depends_on:

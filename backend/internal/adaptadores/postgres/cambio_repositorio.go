@@ -96,7 +96,7 @@ func (r *CambioRepositorio) BuscarPorID(ctx context.Context, id, usuarioID strin
 	var c dominio.Cambio
 	err := r.conexion.pool.QueryRow(ctx,
 		`SELECT `+columnasCambio+`
-		 FROM cambios WHERE id = $1 AND usuario_id = $2`,
+		 FROM cambios WHERE id = $1 AND usuario_id = $2 AND activo = true`,
 		id, usuarioID,
 	).Scan(&c.ID, &c.UsuarioID, &c.Fecha, &c.Descripcion, &c.Activo)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -116,7 +116,7 @@ func (r *CambioRepositorio) BuscarPorID(ctx context.Context, id, usuarioID strin
 func (r *CambioRepositorio) Actualizar(ctx context.Context, c dominio.Cambio) error {
 	etiqueta, err := r.conexion.pool.Exec(ctx,
 		`UPDATE cambios SET fecha = $1, descripcion = $2
-		 WHERE id = $3 AND usuario_id = $4`,
+		 WHERE id = $3 AND usuario_id = $4 AND activo = true`,
 		c.Fecha, c.Descripcion, c.ID, c.UsuarioID,
 	)
 	if err != nil {

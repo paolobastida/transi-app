@@ -28,6 +28,34 @@ class TratamientoRepositorio {
     return consulta.watch().map((filas) => filas.map(_aModelo).toList());
   }
 
+  /// Profesionales ya usados antes (nombre + especialidad únicos), para
+  /// ofrecerlos como sugerencias al registrar un tratamiento. No es una tabla:
+  /// se deriva de los tratamientos guardados.
+  Stream<List<ProfesionalUsado>> observarProfesionales(String usuarioId) {
+    final consulta = _base.select(_base.tratamientos)
+      ..where((t) =>
+          t.usuarioId.equals(usuarioId) &
+          t.activo.equals(true) &
+          t.profesionalNombre.isNotNull());
+    return consulta.watch().map((filas) {
+      final vistos = <String>{};
+      final resultado = <ProfesionalUsado>[];
+      for (final f in filas) {
+        final nombre = f.profesionalNombre;
+        if (nombre == null || nombre.trim().isEmpty) continue;
+        final clave = '$nombre|${f.profesionalEspecialidad ?? ''}';
+        if (vistos.add(clave)) {
+          resultado.add(ProfesionalUsado(
+            nombre: nombre,
+            especialidad: f.profesionalEspecialidad,
+          ));
+        }
+      }
+      resultado.sort((a, b) => a.nombre.compareTo(b.nombre));
+      return resultado;
+    });
+  }
+
   Future<Tratamiento> crear({
     required String usuarioId,
     required String nombre,
@@ -35,7 +63,14 @@ class TratamientoRepositorio {
     required String frecuencia,
     required DateTime fechaInicio,
     DateTime? fechaFin,
-    String? profesionalId,
+    String? via,
+    String? presentacion,
+    double? dosisCantidad,
+    String? dosisUnidad,
+    String? indicacion,
+    String? profesionalNombre,
+    String? profesionalEspecialidad,
+    List<int> recordatorioMinutos = const [],
   }) async {
     final tratamiento = Tratamiento(
       id: const Uuid().v4(),
@@ -45,13 +80,21 @@ class TratamientoRepositorio {
       frecuencia: frecuencia,
       fechaInicio: fechaInicio,
       fechaFin: fechaFin,
-      profesionalId: profesionalId,
+      via: via,
+      presentacion: presentacion,
+      dosisCantidad: dosisCantidad,
+      dosisUnidad: dosisUnidad,
+      indicacion: indicacion,
+      profesionalNombre: profesionalNombre,
+      profesionalEspecialidad: profesionalEspecialidad,
+      recordatorioMinutos: recordatorioMinutos,
     );
     await _base.into(_base.tratamientos).insert(_aCompanion(tratamiento));
     return tratamiento;
   }
 
   Future<void> actualizar(Tratamiento tratamiento) async {
+    final horas = horasTexto(tratamiento.recordatorioMinutos);
     await (_base.update(_base.tratamientos)
           ..where((t) =>
               t.id.equals(tratamiento.id) &
@@ -62,7 +105,14 @@ class TratamientoRepositorio {
       frecuencia: Value(tratamiento.frecuencia),
       fechaInicio: Value(tratamiento.fechaInicio),
       fechaFin: Value(tratamiento.fechaFin),
-      profesionalId: Value(tratamiento.profesionalId),
+      via: Value(tratamiento.via),
+      presentacion: Value(tratamiento.presentacion),
+      dosisCantidad: Value(tratamiento.dosisCantidad),
+      dosisUnidad: Value(tratamiento.dosisUnidad),
+      indicacion: Value(tratamiento.indicacion),
+      profesionalNombre: Value(tratamiento.profesionalNombre),
+      profesionalEspecialidad: Value(tratamiento.profesionalEspecialidad),
+      recordatorioHoras: Value(horas.isEmpty ? null : horas),
       pendiente: const Value(true),
     ));
   }
@@ -85,19 +135,43 @@ class TratamientoRepositorio {
         frecuencia: fila.frecuencia,
         fechaInicio: fila.fechaInicio,
         fechaFin: fila.fechaFin,
-        profesionalId: fila.profesionalId,
         activo: fila.activo,
+        via: fila.via,
+        presentacion: fila.presentacion,
+        dosisCantidad: fila.dosisCantidad,
+        dosisUnidad: fila.dosisUnidad,
+        indicacion: fila.indicacion,
+        profesionalNombre: fila.profesionalNombre,
+        profesionalEspecialidad: fila.profesionalEspecialidad,
+        recordatorioMinutos: horasDesdeTexto(fila.recordatorioHoras),
       );
 
-  TratamientosCompanion _aCompanion(Tratamiento t) =>
-      TratamientosCompanion.insert(
-        id: t.id,
-        usuarioId: t.usuarioId,
-        nombre: t.nombre,
-        dosis: t.dosis,
-        frecuencia: t.frecuencia,
-        fechaInicio: t.fechaInicio,
-        fechaFin: Value(t.fechaFin),
-        profesionalId: Value(t.profesionalId),
-      );
+  TratamientosCompanion _aCompanion(Tratamiento t) {
+    final horas = horasTexto(t.recordatorioMinutos);
+    return TratamientosCompanion.insert(
+      id: t.id,
+      usuarioId: t.usuarioId,
+      nombre: t.nombre,
+      dosis: t.dosis,
+      frecuencia: t.frecuencia,
+      fechaInicio: t.fechaInicio,
+      fechaFin: Value(t.fechaFin),
+      via: Value(t.via),
+      presentacion: Value(t.presentacion),
+      dosisCantidad: Value(t.dosisCantidad),
+      dosisUnidad: Value(t.dosisUnidad),
+      indicacion: Value(t.indicacion),
+      profesionalNombre: Value(t.profesionalNombre),
+      profesionalEspecialidad: Value(t.profesionalEspecialidad),
+      recordatorioHoras: Value(horas.isEmpty ? null : horas),
+    );
+  }
+}
+
+/// Profesional ya usado, derivado de los tratamientos (sugerencia).
+class ProfesionalUsado {
+  final String nombre;
+  final String? especialidad;
+
+  const ProfesionalUsado({required this.nombre, this.especialidad});
 }

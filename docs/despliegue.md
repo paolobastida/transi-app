@@ -151,7 +151,46 @@ flutter build apk --release \
   --dart-define=API_BASE_URL=https://transi.tudominio.com
 ```
 
+> **La URL DEBE ser `https://`.** La app falla el arranque si en un build de
+> publicación apunta a `http://`: en claro viajarían la contraseña, los tokens y
+> los respaldos (con fotos y notas de voz). Solo se permite HTTP en modo debug,
+> para desarrollo contra el servidor local.
+
 El APK queda en `app/build/app/outputs/flutter-apk/app-release.apk`.
+
+> **Antes de publicar:** el `release` sigue firmado con las claves de debug
+> (`android/app/build.gradle.kts`). Cualquiera con el APK puede re-firmarlo con
+> una clave conocida y distribuir una variante troyanizada que el sistema
+> firmará con la identidad real de la app. Hay que generar un keystore propio.
+
+---
+
+## 11. Límites de seguridad activos
+
+Estos valores están puestos en el código y no se pueden cambiar por entorno:
+
+| Dónde | Límite | Por qué |
+|---|---|---|
+| `/auth/registro`, `/auth/login`, `/auth/refresh` | 10 intentos por minuto y IP (`429`) | Fuerza bruta y DoS de CPU: cada intento ejecuta un bcrypt (~50 ms) |
+| Cuerpos JSON | 64 KB | Evita que una petición sin autenticar fuerce al servidor a leer cientos de MB |
+| `POST /cambios` | 60 MB totales, 20 MB por adjunto | Evita llenar el disco del VPS |
+| `PUT /respaldos` | 100 MB | Un respaldo con muchas fotos puede ser grande |
+| Adjuntos | Se valida el **contenido real** (magic bytes), no el nombre | Un `.html` enviado como foto se descarta |
+
+Además, el servidor responde con `Cache-Control: no-store` y
+`X-Content-Type-Options: nosniff`, y registra el timing de login con un hash
+falso para que no se pueda deducir qué emails están registrados.
+
+> **`CORS_ORIGENES`:** si no la definís, **no** se permiten orígenes cruzados.
+> La app móvil no lo necesita. Definila solo para probar la versión web.
+
+> **`PROXIES_CONFIABLES`:** de dónde se acepta `X-Forwarded-For` para el límite
+> de intentos. En producción **tiene que incluir la red interna de Docker**
+> (`172.16.0.0/12`, ya viene por defecto en `docker-compose.prod.yml`), que es
+> de donde Caddy conecta a la API. Si se deja vacío, la API ignora
+> `X-Forwarded-For` y usa la IP de la conexión — seguro, pero entonces todos los
+> clientes comparten la IP de Caddy. **Nunca** lo pongas en `*` ni confíes en
+> redes públicas: un cliente podría falsear el header y saltarse el límite.
 
 > **Firma:** para publicar en la tienda hay que firmar el APK con un keystore
 > propio (`android/key.properties` + `keytool`). El keystore **no** se sube al
@@ -174,4 +213,6 @@ el adaptador `ArchivoAlmacen` (el puerto ya existe), sin tocar el resto.
 - Nunca subir `.env` ni el keystore al repositorio.
 - `JWT_SECRET` estable y secreto; rotarlo invalida los access tokens.
 - Restringir `CORS_ORIGENES` al origen real de la app web en producción.
+- `PROXIES_CONFIABLES` solo con la red del reverse proxy (nunca `*`): de eso
+  depende que el límite de intentos no se pueda saltar.
 - HTTPS siempre: es lo que protege las contraseñas y los tokens en tránsito.

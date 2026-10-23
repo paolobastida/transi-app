@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'datos/api_client.dart';
@@ -5,7 +7,7 @@ import 'datos/autenticacion.dart';
 import 'datos/base_local.dart';
 import 'datos/cambio_repositorio.dart';
 import 'datos/linea_de_tiempo.dart';
-import 'datos/profesional_repositorio.dart';
+import 'datos/recordatorios.dart';
 import 'datos/respaldo.dart';
 import 'datos/tratamiento_repositorio.dart';
 import 'dependencias.dart';
@@ -14,20 +16,38 @@ import 'presentacion/pantalla_inicio.dart';
 import 'presentacion/pantalla_login.dart';
 import 'presentacion/tema.dart';
 
-void main() {
+import 'config.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // En un build de publicación el servidor tiene que ser HTTPS: en claro
+  // viajarían la contraseña, los tokens y los respaldos con fotos y notas de
+  // voz. Solo se permite HTTP cuando se compila en modo debug (desarrollo
+  // contra el servidor local).
+  assert(
+    Config.enDebug || Config.apiBaseUrl.startsWith('https://'),
+    'API_BASE_URL debe ser https:// en un build de publicación. Se recibió: '
+    '${Config.apiBaseUrl}',
+  );
 
   // La base local es la fuente de verdad de la interfaz (offline-first).
   final base = BaseLocal();
   final tratamientos = TratamientoRepositorio(base);
   final cambios = CambioRepositorio(base);
+  final recordatorios = RecordatorioServicio(base);
+  // En web el servicio no hace nada (las notificaciones locales no existen).
+  await recordatorios.iniciar();
+  // Vuelve a programar los avisos guardados (app actualizada, celular
+  // reiniciado, etc.). No bloquea el arranque.
+  unawaited(recordatorios.reprogramarTodos());
   final dependencias = Dependencias(
-    autenticacion: Autenticacion(),
-    profesionales: ProfesionalRepositorio(base),
+    autenticacion: Autenticacion(base: base),
     tratamientos: tratamientos,
     cambios: cambios,
     lineaDeTiempo: LineaDeTiempo(cambios: cambios, tratamientos: tratamientos),
     respaldo: RespaldoServicio(base, RespaldoApi(ApiClient())),
+    recordatorios: recordatorios,
   );
 
   runApp(TransiApp(dependencias: dependencias));

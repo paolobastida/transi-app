@@ -2,13 +2,10 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"transi/internal/adaptadores/almacen"
@@ -26,62 +23,64 @@ func main() {
 	}
 }
 
+// correr arma el servidor con las piezas concretas que elige la configuración.
+// Solo *conecta*: leer el entorno es responsabilidad de leerConfiguracion.
 func correr() error {
-	// Base local de desarrollo: sin contraseña y solo accesible desde tu máquina.
-	urlBD := env("DATABASE_URL", "postgres://transi@localhost:5432/transi?sslmode=disable")
-	puesto := env("PORT", "8080")
+	cfg, err := leerConfiguracion()
+	if err != nil {
+		return err
+	}
 
 	ctx := context.Background()
 
-	bd, err := postgres.NuevaConexion(ctx, urlBD)
+	bd, err := postgres.NuevaConexion(ctx, cfg.urlBaseDatos)
 	if err != nil {
 		return err
 	}
 	defer bd.Cerrar()
 	slog.Info("conectado a la base de datos")
 
-	secreto, generado, err := secretoJWT()
-	if err != nil {
-		return err
-	}
-	if generado {
-		slog.Warn("JWT_SECRET no definido: uso un secreto aleatorio para esta ejecución (las sesiones no sobreviven un reinicio)")
-	}
-
-	const (
-		vidaAcceso   = 15 * time.Minute
-		vidaRefresco = 30 * 24 * time.Hour
-	)
 	hasher := seguridad.NuevoHasherBcrypt()
-	tokens := seguridad.NuevoTokenizadorJWT(secreto, vidaAcceso)
+	tokens := seguridad.NuevoTokenizadorJWT(cfg.secretoJWT, cfg.vidaAcceso)
 	identidad := casosdeuso.NuevaIdentidad(
 		postgres.NuevoUsuarioRepositorio(bd),
 		postgres.NuevoSesionRepositorio(bd),
 		hasher,
 		tokens,
-		vidaRefresco,
+		seguridad.NuevoGeneradorRefresco(),
+		cfg.vidaRefresco,
 	)
-	repoProfesionales := postgres.NuevoProfesionalRepositorio(bd)
-	profesionales := casosdeuso.NuevoProfesionales(repoProfesionales)
-	tratamientos := casosdeuso.NuevoTratamientos(postgres.NuevoTratamientoRepositorio(bd), repoProfesionales)
+	tratamientos := casosdeuso.NuevoTratamientos(postgres.NuevoTratamientoRepositorio(bd))
 
 	// Almacenamiento de archivos: disco local en desarrollo (ADR 005).
-	directorioArchivos := env("ARCHIVOS_DIR", "./datos/archivos")
-	archivos, err := almacen.NuevoDisco(directorioArchivos)
+	archivos, err := almacen.NuevoDisco(cfg.directorioDatos)
 	if err != nil {
 		return err
 	}
-	slog.Info("archivos en disco", "directorio", directorioArchivos)
+	slog.Info("archivos en disco", "directorio", cfg.directorioDatos)
 	cambios := casosdeuso.NuevosCambios(postgres.NuevoCambioRepositorio(bd), archivos)
 	respaldos := casosdeuso.NuevosRespaldos(postgres.NuevoRespaldoRepositorio(bd), archivos)
 
 	salud := casosdeuso.NuevoVerificarSalud(bd)
 
-	origenes := separar(env("CORS_ORIGENES", "*"))
+	// Límite de intentos por IP en /auth/*: frena fuerza bruta y el DoS de CPU
+	// (cada intento de login ejecuta un bcrypt).
+	limites := entradahttp.NuevoLimitador(cfg.maxIntentos, cfg.periodoLimite, cfg.proxies)
+	go func() {
+		for range time.Tick(cfg.periodoLimite) {
+			limites.Limpiar()
+		}
+	}()
+
 	servidor := &http.Server{
-		Addr:              ":" + puesto,
-		Handler:           entradahttp.ConCORS(origenes, entradahttp.NuevoServidor(salud, identidad, profesionales, tratamientos, cambios, respaldos, tokens).Handler()),
+		Addr: ":" + cfg.puerto,
+		Handler: entradahttp.ConCORS(cfg.origenesCORS,
+			entradahttp.NuevoServidor(salud, identidad, tratamientos, cambios, respaldos, tokens, limites).Handler()),
 		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      2 * time.Minute,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    1 << 16,
 	}
 
 	slog.Info("escuchando", "direccion", servidor.Addr)
@@ -89,37 +88,4 @@ func correr() error {
 		return err
 	}
 	return nil
-}
-
-func env(clave, porDefecto string) string {
-	if valor := os.Getenv(clave); valor != "" {
-		return valor
-	}
-	return porDefecto
-}
-
-// separar divide una lista separada por comas, ignorando espacios vacíos.
-func separar(valor string) []string {
-	var partes []string
-	for _, parte := range strings.Split(valor, ",") {
-		if recortada := strings.TrimSpace(parte); recortada != "" {
-			partes = append(partes, recortada)
-		}
-	}
-	return partes
-}
-
-// secretoJWT usa JWT_SECRET si está definido. Si no, genera uno aleatorio para
-// esta ejecución: no queda ningún secreto escrito en el repositorio y las
-// sesiones simplemente no sobreviven a un reinicio. En producción DEBE
-// definirse JWT_SECRET (estable y secreto).
-func secretoJWT() (secreto string, generado bool, err error) {
-	if valor := os.Getenv("JWT_SECRET"); valor != "" {
-		return valor, false, nil
-	}
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", false, err
-	}
-	return hex.EncodeToString(bytes), true, nil
 }

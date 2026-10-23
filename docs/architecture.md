@@ -58,10 +58,12 @@ sección 6 (dónde NO aplicarlo).
 | Puerto | Responsabilidad |
 |---|---|
 | `UsuarioRepositorio` | Cuentas: crear, buscar por email |
-| `ProfesionalRepositorio` | Fichas de profesionales (crear, listar, editar, desactivar) |
 | `TratamientoRepositorio` | Guardar, buscar, listar, desactivar tratamientos |
 | `CambioRepositorio` | Guardar, buscar, listar, desactivar cambios |
 | `ArchivoAlmacen` | `subir(archivo) → id`, `bajar(id)`, `borrar(id)` — esconde "¿disco o nube?" |
+
+> **Fase 11:** se eliminó `ProfesionalRepositorio`. El profesional vive como
+> texto dentro del tratamiento, así que no necesita puerto propio.
 
 ### Celular
 
@@ -69,7 +71,7 @@ Cada repositorio del servidor tiene su par local:
 
 | Puerto (cliente) | Adaptador local | Adaptador remoto |
 |---|---|---|
-| Mismos 5 puertos | Base de datos del dispositivo (**fuente de verdad para la UI**) | API HTTP (para respaldo) |
+| Mismos 4 puertos | Base de datos del dispositivo (**fuente de verdad para la UI**) | API HTTP (para respaldo) |
 
 Las pantallas y casos de uso del celular **nunca** hablan JSON directamente:
 llaman a un puerto. Si mañana hay otro mecanismo de respaldo, cambian adaptadores.
@@ -85,11 +87,8 @@ llaman a un puerto. Si mañana hay otro mecanismo de respaldo, cambian adaptador
 | U1 | Registrarse | Email único; contraseña ≥ 8; solo hash (R8) |
 | U2 | Iniciar sesión | Requiere red (decisión B4) |
 | U3 | Obtener quién soy | Token válido |
-| U4 | Crear profesional | nombre + especialidad |
-| U5 | Listar mis profesionales | Solo los del usuario |
-| U6 | Editar profesional | |
-| U7 | Desactivar profesional | R5: nunca borrado físico |
-| U8 | Crear tratamiento | R2, R6, R7 |
+| ~~U4–U7~~ | ~~Profesionales~~ | **Eliminados en Fase 11**: el profesional es un dato del tratamiento (U8) |
+| U8 | Crear tratamiento | R2, R6, R7; profesional opcional (texto) |
 | U9 | Editar tratamiento (incluye cerrar) | R2 al cambiar fechas |
 | U10 | Listar tratamientos | Por usuario; opcional por estado/rango |
 | U11 | Desactivar tratamiento | R5 |

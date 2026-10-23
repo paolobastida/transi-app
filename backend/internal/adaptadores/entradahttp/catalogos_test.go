@@ -16,6 +16,13 @@ func TestFlujoTratamientos(t *testing.T) {
 		t.Fatalf("crear: código = %d, cuerpo = %s", rec.Code, rec.Body.String())
 	}
 
+	// Crear con profesional inline (201)
+	rec = pedir(t, s, http.MethodPost, "/tratamientos",
+		[]byte(`{"nombre":"Espironolactona","dosis":"100 mg","frecuencia":"cada día","fechaInicio":"2026-01-10","profesionalNombre":"Dra. García","profesionalEspecialidad":"Endocrinología"}`), token)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("crear con profesional: código = %d, cuerpo = %s", rec.Code, rec.Body.String())
+	}
+
 	// Fecha de fin anterior al inicio (400)
 	rec = pedir(t, s, http.MethodPost, "/tratamientos",
 		[]byte(`{"nombre":"X","dosis":"1","frecuencia":"d","fechaInicio":"2026-03-01","fechaFin":"2026-02-01"}`), token)

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../dependencias.dart';
 import '../dominio/tratamiento.dart';
+import 'formato_fecha.dart';
 import 'formulario_tratamiento.dart';
 import 'tema.dart';
 
@@ -60,9 +61,11 @@ class _PantallaTratamientosState extends State<PantallaTratamientos> {
                 }
                 final tratamientos = snapshot.data!;
                 if (tratamientos.isEmpty) {
-                  return const EstadoVacio(
+                  return EstadoVacio(
                     icono: Icons.medication_outlined,
-                    mensaje: 'No hay tratamientos todavía.\nTocá + para agregar uno.',
+                    mensaje: 'No hay tratamientos todavía.',
+                    etiquetaAccion: 'Agregar tratamiento',
+                    onAccion: () => _abrirFormulario(),
                   );
                 }
                 return ListView.builder(
@@ -70,6 +73,11 @@ class _PantallaTratamientosState extends State<PantallaTratamientos> {
                   itemCount: tratamientos.length,
                   itemBuilder: (context, indice) {
                     final t = tratamientos[indice];
+                    final detalles = [
+                      t.dosis,
+                      if (t.via != null) t.via,
+                      t.frecuencia,
+                    ].join(' · ');
                     return Card(
                       child: ListTile(
                         leading: CircleAvatar(
@@ -81,11 +89,32 @@ class _PantallaTratamientosState extends State<PantallaTratamientos> {
                           ),
                         ),
                         title: Text(t.nombre),
-                        subtitle: Text(
-                            '${t.dosis} · ${t.frecuencia} · desde ${_fecha(t.fechaInicio)}'),
-                        trailing: Chip(
-                          label: Text(t.finalizado ? 'Finalizado' : 'Activo'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('$detalles · desde ${fechaTexto(t.fechaInicio)}'),
+                            if (t.profesionalNombre != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.person_outline, size: 14),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        t.profesionalEspecialidad == null
+                                            ? t.profesionalNombre!
+                                            : '${t.profesionalNombre} · ${t.profesionalEspecialidad}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
+                        trailing: EtiquetaEstado(activo: !t.finalizado),
                         onTap: () => _abrirFormulario(t),
                       ),
                     );
@@ -103,8 +132,3 @@ class _PantallaTratamientosState extends State<PantallaTratamientos> {
     );
   }
 }
-
-String _fecha(DateTime fecha) =>
-    '${fecha.year.toString().padLeft(4, '0')}-'
-    '${fecha.month.toString().padLeft(2, '0')}-'
-    '${fecha.day.toString().padLeft(2, '0')}';

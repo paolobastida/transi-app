@@ -1,9 +1,12 @@
 package entradahttp
 
 import (
-	"encoding/json"
+	"bytes"
 	"io"
+	"log/slog"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"transi/internal/casosdeuso"
@@ -33,9 +36,8 @@ type cuerpoEditarCambio struct {
 //   - campos de texto: "fecha" (AAAA-MM-DD) y "descripcion"
 //   - archivos: "fotos" (fotos) y "audios" (notas de voz)
 func (s *Servidor) manejarCrearCambio(w http.ResponseWriter, r *http.Request) {
-	actual, ok := usuarioDesdeContexto(r.Context())
+	actual, ok := usuarioActual(w, r)
 	if !ok {
-		escribirError(w, http.StatusUnauthorized, "no_autenticado", "sesión no válida")
 		return
 	}
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
@@ -70,9 +72,8 @@ func (s *Servidor) manejarCrearCambio(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Servidor) manejarListarCambios(w http.ResponseWriter, r *http.Request) {
-	actual, ok := usuarioDesdeContexto(r.Context())
+	actual, ok := usuarioActual(w, r)
 	if !ok {
-		escribirError(w, http.StatusUnauthorized, "no_autenticado", "sesión no válida")
 		return
 	}
 	filtro, ok := leerFiltroCambios(w, r)
@@ -92,14 +93,12 @@ func (s *Servidor) manejarListarCambios(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *Servidor) manejarEditarCambio(w http.ResponseWriter, r *http.Request) {
-	actual, ok := usuarioDesdeContexto(r.Context())
+	actual, ok := usuarioActual(w, r)
 	if !ok {
-		escribirError(w, http.StatusUnauthorized, "no_autenticado", "sesión no válida")
 		return
 	}
 	var cuerpo cuerpoEditarCambio
-	if err := json.NewDecoder(r.Body).Decode(&cuerpo); err != nil {
-		escribirError(w, http.StatusBadRequest, "json_invalido", "el cuerpo no es JSON válido")
+	if !decodificarJSON(w, r, &cuerpo) {
 		return
 	}
 	fecha, err := time.Parse(formatoFecha, cuerpo.Fecha)
@@ -116,9 +115,8 @@ func (s *Servidor) manejarEditarCambio(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Servidor) manejarDesactivarCambio(w http.ResponseWriter, r *http.Request) {
-	actual, ok := usuarioDesdeContexto(r.Context())
+	actual, ok := usuarioActual(w, r)
 	if !ok {
-		escribirError(w, http.StatusUnauthorized, "no_autenticado", "sesión no válida")
 		return
 	}
 	if err := s.cambios.Desactivar(r.Context(), actual.ID, r.PathValue("id")); err != nil {
@@ -128,6 +126,18 @@ func (s *Servidor) manejarDesactivarCambio(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// extensionPorTipo es la única extensión que se guarda para cada tipo de
+// adjunto. No se conserva la que declara el cliente: así, un archivo con
+// extensión ".html" o ".svg" no queda en disco como tal (si mañana se sirve
+// algo desde acá, sería XSS almacenado).
+var extensionPorTipo = map[dominio.TipoAdjunto]string{
+	dominio.TipoFoto:  ".jpg",
+	dominio.TipoAudio: ".m4a",
+}
+
+// leerArchivos toma los adjuntos del formulario, **verificando que el contenido
+// coincida con el tipo declarado** en el campo. Confiar en el nombre del campo
+// o en el Content-Type del cliente habría permitido guardar un .exe como "foto".
 func leerArchivos(r *http.Request, campo string, tipo dominio.TipoAdjunto, closers *[]io.Closer) []casosdeuso.EntradaAdjunto {
 	if r.MultipartForm == nil {
 		return nil
@@ -136,37 +146,75 @@ func leerArchivos(r *http.Request, campo string, tipo dominio.TipoAdjunto, close
 	for _, cabecera := range r.MultipartForm.File[campo] {
 		archivo, err := cabecera.Open()
 		if err != nil {
+			slog.Warn("no se pudo abrir un adjunto", "campo", campo, "error", err)
 			continue
 		}
-		*closers = append(*closers, archivo)
+		// Se leen los primeros bytes para decidir el tipo real. El archivo
+		// queda posicionado donde estaba, así que sigue siendo legible.
+		contenido, err := io.ReadAll(io.LimitReader(archivo, limiteArchivo))
+		if err != nil {
+			_ = archivo.Close()
+			continue
+		}
+		if len(contenido) == 0 || !tipoCoincide(contenido, tipo) {
+			slog.Warn("adjunto descartado: el contenido no coincide con el tipo declarado",
+				"campo", campo, "detectado", http.DetectContentType(contenido))
+			_ = archivo.Close()
+			continue
+		}
+		*closers = append(*closers, io.NopCloser(bytes.NewReader(contenido)))
 		entradas = append(entradas, casosdeuso.EntradaAdjunto{
 			Tipo:      tipo,
-			Nombre:    cabecera.Filename,
-			Contenido: archivo,
+			Nombre:    nombreSeguro(cabecera.Filename, extensionPorTipo[tipo]),
+			Contenido: io.NopCloser(bytes.NewReader(contenido)),
 		})
 	}
 	return entradas
 }
 
-func leerFiltroCambios(w http.ResponseWriter, r *http.Request) (puertos.FiltroCambios, bool) {
-	consulta := r.URL.Query()
-	var filtro puertos.FiltroCambios
-	for _, campo := range []struct {
-		nombre  string
-		destino **time.Time
-	}{{"desde", &filtro.Desde}, {"hasta", &filtro.Hasta}} {
-		valor := consulta.Get(campo.nombre)
-		if valor == "" {
-			continue
-		}
-		fecha, err := time.Parse(formatoFecha, valor)
-		if err != nil {
-			escribirError(w, http.StatusBadRequest, "fecha_invalida", errFechaInvalida.Error())
-			return puertos.FiltroCambios{}, false
-		}
-		*campo.destino = &fecha
+// tipoCoincide contrasta los bytes iniciales con lo que se espera del tipo.
+func tipoCoincide(contenido []byte, tipo dominio.TipoAdjunto) bool {
+	detectado := http.DetectContentType(contenido)
+	switch tipo {
+	case dominio.TipoFoto:
+		return strings.HasPrefix(detectado, "image/")
+	case dominio.TipoAudio:
+		// DetectContentType no siempre identifica audio (m4a/aac no tienen
+		// firma conocida), así que también aceptamos los contenedores
+		//compressed más comunes de audio.
+		return strings.HasPrefix(detectado, "audio/") ||
+			strings.Contains(detectado, "application/octet-stream")
+	default:
+		return false
 	}
-	return filtro, true
+}
+
+// nombreSeguro conserva el nombre que manda el cliente solo como etiqueta para
+// mostrar, sin extensión y sin ruta.
+func nombreSeguro(original, extension string) string {
+	base := filepath.Base(filepath.FromSlash(original))
+	base = strings.TrimSuffix(base, filepath.Ext(base))
+	base = strings.Map(func(r rune) rune {
+		if r < 32 || r == '/' || r == '\\' || r == 0 {
+			return -1
+		}
+		return r
+	}, base)
+	if base == "" || base == "." {
+		return "adjunto" + extension
+	}
+	if len(base) > 80 {
+		base = base[:80]
+	}
+	return base + extension
+}
+
+func leerFiltroCambios(w http.ResponseWriter, r *http.Request) (puertos.FiltroCambios, bool) {
+	desde, hasta, ok := leerRangoFechas(w, r)
+	if !ok {
+		return puertos.FiltroCambios{}, false
+	}
+	return puertos.FiltroCambios{Desde: desde, Hasta: hasta}, true
 }
 
 func respuestaDeCambio(c dominio.Cambio) respuestaCambio {

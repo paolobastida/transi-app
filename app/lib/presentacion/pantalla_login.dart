@@ -19,6 +19,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
   final _email = TextEditingController();
   final _clave = TextEditingController();
   bool _cargando = false;
+  bool _verClave = false;
   String? _error;
 
   @override
@@ -75,9 +76,21 @@ class _PantallaLoginState extends State<PantallaLogin> {
                         const SizedBox(height: 12),
                         TextField(
                           controller: _clave,
-                          obscureText: true,
+                          obscureText: !_verClave,
                           onSubmitted: (_) => _entrar(),
-                          decoration: const InputDecoration(labelText: 'Contraseña'),
+                          decoration: InputDecoration(
+                            labelText: 'Contraseña',
+                            suffixIcon: IconButton(
+                              tooltip: _verClave
+                                  ? 'Ocultar contraseña'
+                                  : 'Mostrar contraseña',
+                              onPressed: () =>
+                                  setState(() => _verClave = !_verClave),
+                              icon: Icon(_verClave
+                                  ? Icons.visibility_off
+                                  : Icons.visibility),
+                            ),
+                          ),
                         ),
                         if (_error != null) ...[
                           const SizedBox(height: 12),

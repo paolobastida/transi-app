@@ -141,10 +141,11 @@ transi/
 │
 └── app/                   # app Flutter
     ├── lib/
+    │   ├── main.dart      # arranque y armado de dependencias
     │   ├── config.dart
-    │   ├── dominio/       # modelos (Usuario, Sesion)
-    │   ├── datos/         # ApiClient, AlmacenSesion, Autenticacion
-    │   └── presentacion/  # pantallas P1, P2 y de inicio
+    │   ├── dominio/       # modelos (Usuario, Tratamiento, Cambio, catálogos)
+    │   ├── datos/         # ApiClient, base local Drift, respaldo
+    │   └── presentacion/  # pantallas P1–P10 y widgets compartidos
     └── test/
 ```
 
@@ -165,11 +166,14 @@ Vive en `backend/internal/dominio/`.
 |---|---|---|
 | **Usuario** | id, email (único), contraseña (solo hash), fechaRegistro | Todo lo demás le pertenece |
 | **Sesion** | id, usuarioId, hash del refresh, expiraEn | La parte revocable del login |
-| **Profesional** | id, usuarioId, nombre, especialidad, activo | Ficha del equipo médico |
-| **Tratamiento** | id, usuarioId, nombre, dosis, frecuencia, fechaInicio, fechaFin, profesionalId, activo | `fechaFin` nulo = activo |
+| **Tratamiento** | id, usuarioId, nombre, dosis, frecuencia, fechaInicio, fechaFin, activo | `fechaFin` nulo = activo. Opcionales: via, presentacion, dosisCantidad, dosisUnidad, indicacion, **profesionalNombre, profesionalEspecialidad** |
 | **Cambio** | id, usuarioId, fecha, descripción, activo, adjuntos | Un hecho físico |
 | **Adjunto** | id, cambioId, tipo (foto/audio), archivo (referencia) | El contenido vive fuera de la BD |
 | **Respaldo** | id, usuarioId, archivo (referencia), creadoEn | "Foto" completa de los datos |
+
+> **El profesional ya no es una entidad.** Se guarda *dentro* del tratamiento
+> como nombre + especialidad (texto opcional). Motivo: registrar "quién me
+> atiende" en el propio tratamiento, sin gestionar una tabla aparte.
 
 ### 4.2 Las reglas de negocio (R1–R8)
 
@@ -181,7 +185,7 @@ Vive en `backend/internal/dominio/`.
 | R4 | Un cambio necesita descripción **o** ≥1 adjunto | `dominio/cambio.go` (`Validar`) |
 | R5 | **Nada del historial se borra físicamente** → borrado lógico | Columna `activo` en todas las tablas |
 | R6 | Un tratamiento requiere nombre, dosis, frecuencia y fecha de inicio | `dominio/tratamiento.go` |
-| R7 | El profesional es **opcional** en el tratamiento | `profesionalId` puede ser nulo |
+| R7 | El profesional es **opcional** y se guarda como texto en el tratamiento | `profesionalNombre`/`profesionalEspecialidad` pueden ser nulos |
 | R8 | La contraseña se guarda **solo como hash** | `adaptadores/seguridad/hasher_bcrypt.go` |
 
 **Principio aplicado:** *"estado derivado, no guardado"*. El estado
@@ -315,6 +319,23 @@ commit.
 > Lo que **no** se puede hacer desde acá: entrar a tu VPS y desplegar, y firmar
 > el APK. Eso requiere tus credenciales, un dominio y un keystore.
 
+### Fase 11 — Tratamientos libres y profesional integrado
+
+- El tratamiento es **libre y general**: sirve para cualquier medicamento. Se
+  cargan **varios medicamentos** de una; cada uno queda como un tratamiento que
+  comparte fechas y profesional.
+- Campos clínicos opcionales (via, presentacion, dosisCantidad, dosisUnidad,
+  indicacion) y sugerencias de fármacos comunes que rellenan vía/unidad/
+  indicación sin bloquear el texto libre.
+- El **profesional deja de ser una entidad**: se registra dentro del tratamiento
+  (nombre + especialidad). Se eliminaron su tabla local, su tabla del servidor,
+  la pantalla P5/P7 y los endpoints `/profesionales`. Los datos existentes se
+  migraron (migración local v3→v4 con `backfill`; migración SQL `007` en el
+  servidor).
+- Barra de **Guardar fija** en los formularios (ya no queda al final del scroll).
+- **Verificación:** tests de repositorio (profesional inline + sugerencias),
+  migración v3→v4, prueba madre del respaldo y CRUD HTTP con profesional inline.
+
 ---
 
 ## 6. La API del servidor
@@ -331,8 +352,6 @@ Los errores tienen la forma `{"error": {"codigo", "mensaje"}}`.
 | `POST` | `/auth/refresh` | no | Rotar el refresh token |
 | `POST` | `/auth/logout` | no | Cerrar sesión (revoca el refresh) |
 | `GET` | `/auth/yo` | sí | Datos de la cuenta |
-| `POST` · `GET` | `/profesionales` | sí | Crear / listar |
-| `PUT` · `DELETE` | `/profesionales/{id}` | sí | Editar / desactivar |
 | `POST` · `GET` | `/tratamientos` | sí | Crear / listar (`?desde&hasta&estado`) |
 | `PUT` · `DELETE` | `/tratamientos/{id}` | sí | Editar (incluye cerrar) / desactivar |
 | `POST` | `/cambios` | sí | Registrar (multipart: `fecha`, `descripcion`, `fotos`, `audios`) |
@@ -462,15 +481,17 @@ Estos son aprendizajes reales, no teoría:
 
 **Diseño (Fases A–D):** completo.
 
-**Construcción (Fases 0–10):** completas y verificadas. **MVP terminado.**
+**Construcción (Fases 0–11):** completas y verificadas. **MVP + Fase 11.**
 
-- ✅ Backend completo: identidad, profesionales, tratamientos, cambios con
-  archivos y respaldos.
-- ✅ App completa: registro/login, base local Drift (profesionales,
-  tratamientos, cambios con foto y voz), línea de tiempo y respaldar/restaurar.
+- ✅ Backend completo: identidad, tratamientos (con profesional inline), cambios
+  con archivos y respaldos.
+- ✅ App completa: registro/login, base local Drift (tratamientos libres y
+  multi-medicamento, cambios con foto y voz), línea de tiempo y
+  respaldar/restaurar.
 - ✅ Paquete de despliegue: Dockerfile, compose de producción con HTTPS (Caddy)
   y respaldos de PostgreSQL.
-- ✅ Tests verdes en backend y app; CI configurado (incluida la imagen Docker).
+- ✅ Tests verdes en backend y app (incluida la migración local v3→v4); CI
+  configurado (incluida la imagen Docker).
 - ✅ Sin credenciales en el repositorio ni en su historia.
 
 **Historial de commits:**
@@ -503,7 +524,8 @@ cafbd5c Fase 0: cimientos
 
 ## 12. Qué falta
 
-**El MVP (Fases 0–10) está completo.** No queda ninguna fase del plan.
+**El MVP (Fases 0–10) y la Fase 11 están completos.** No queda ninguna fase del
+plan.
 
 Lo que queda es **ponerlo en producción** (tu parte): desplegar en el VPS y
 firmar el APK, siguiendo `docs/despliegue.md`.
@@ -518,9 +540,8 @@ firmar el APK, siguiendo `docs/despliegue.md`.
 
 ### Ideas de mejora técnica
 
-- Migraciones de la app con un runner (hoy Drift migra solo, versión 2).
+- Migraciones de la app con un runner (hoy Drift migra solo, versión 4).
 - Sincronización incremental (hoy el respaldo es completo).
-- Reproducir las notas de voz en el detalle (hoy solo se listan).
 - Decidir el futuro del login (ver la discusión sobre cuenta opcional).
 
 ---
@@ -547,4 +568,4 @@ firmar el APK, siguiendo `docs/despliegue.md`.
 
 ---
 
-*Última actualización: Fase 10 completada — MVP terminado.*
+*Última actualización: Fase 11 — tratamientos libres, multi-medicamento y profesional integrado.*

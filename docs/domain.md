@@ -30,7 +30,7 @@ Otras personas hipotéticas (no se optimizan en el MVP, pero no las rompemos):
 | # | Flujo | Notas |
 |---|-------|-------|
 | F1 | **Registrar usuario** | Con autenticación (cuenta email + contraseña). Puerta de todo lo demás. |
-| F2 | **Registrar tratamiento** | Nombre, dosis, frecuencia, fechas, profesional (opcional). |
+| F2 | **Registrar tratamiento** | Nombre, dosis, frecuencia, fechas y profesional (opcional). Se pueden cargar **varios medicamentos** de una: cada uno se guarda como un tratamiento que comparte fechas y profesional. |
 | F3 | **Registrar cambios físicos** | Texto corto + adjuntos: **fotos** y **notas de voz**. Registro rápido (≤30 s). |
 | F4 | **Línea de tiempo** | Ver evolución: tratamientos + cambios ordenados por fecha, filtrable. |
 
@@ -52,8 +52,9 @@ conversaciones. Si cambia el significado, cambia el nombre.
 | Término | Significado único |
 |---------|-------------------|
 | **Usuario** | Persona con cuenta (email + contraseña) que usa Transi. Todo lo demás le pertenece a *un* usuario. |
-| **Tratamiento** | Lo que la persona consume/administra: nombre, dosis, frecuencia, fecha de inicio y opcionalmente fecha de fin. |
-| **Profesional de salud** | Ficha propia del equipo médico: nombre y especialidad. Un tratamiento puede apuntar a uno (opcional) o a ninguno. |
+| **Tratamiento** | Lo que la persona consume/administra: nombre, dosis, frecuencia, fecha de inicio y opcionalmente fecha de fin. Es **libre y general**: sirve para cualquier medicamento. |
+| **Medicamento** | Cada uno de los ítems que una persona carga de una vez al registrar un tratamiento: se guardan como **tratamientos separados** que comparten fechas y profesional. |
+| **Profesional de salud** | Quién indicó un tratamiento. Se guarda **dentro del tratamiento** (nombre + especialidad, texto opcional), sin ficha ni tabla aparte. |
 | **Cambio** | Un hecho **físico** documentado en una fecha, con una descripción de texto y adjuntos opcionales. |
 | **Descripción (del cambio)** | El único campo de texto del cambio. Aquí la persona puede escribir lo emocional si lo desea — no existe categoría "emotional". |
 | **Adjunto** | Archivo pegado a un cambio: **foto** o **nota de voz** (audio). |
@@ -69,34 +70,38 @@ conversaciones. Si cambia el significado, cambia el nombre.
 ### Entidades
 
 ```
-Usuario                           Profesional de salud
-├─ id (UUID)                      ├─ id (UUID)
-├─ email            (único)       ├─ usuarioId        ← cada quien lo suyo
-├─ contraseña (solo hash)         ├─ nombre
-└─ fechaRegistro                  └─ especialidad      (texto libre en el MVP)
+Usuario                                 Tratamiento
+├─ id (UUID)                            ├─ id (UUID)
+├─ email            (único)             ├─ usuarioId
+├─ contraseña (solo hash)               ├─ nombre            (ej: "Estradiol")
+└─ fechaRegistro                        ├─ dosis             (ej: "2 mg")
+        │                               ├─ frecuencia        (ej: "cada día")
+        │ 1                             ├─ fechaInicio
+        ├──────── N ─────────────────── ├─ fechaFin          (null = activo)
+        │                               ├─ via               (opcional)
+        │                               ├─ presentacion      (opcional)
+        │                               ├─ dosisCantidad     (opcional)
+        │                               ├─ dosisUnidad       (opcional)
+        │                               ├─ indicacion        (opcional)
+        │                               ├─ profesionalNombre (opcional)
+        │                               └─ profesionalEspecialidad (opcional)
         │
-        │ 1                       Tratamiento
-        ├──────── N ─────────────├─ id (UUID)
-        │                        ├─ usuarioId
-        │                        ├─ nombre            (ej: "Estradiol")
-        │                        ├─ dosis             (ej: "2 mg")
-        │                        ├─ frecuencia        (ej: "cada día")
-        │                        ├─ fechaInicio
-        │                        ├─ fechaFin          (null = activo)
-        │                        └─ profesionalId     ← opcional
-        │
-        │ 1                       Cambio
-        ├──────── N ─────────────├─ id (UUID)
-        │                        ├─ usuarioId
-        │                        ├─ fecha
-        │                        ├─ descripción       (texto; acá puede ir lo emocional)
-        │                        │
-        │                        │ 1
-        │                        └──────── N ──────── Adjunto
-        │                                            ├─ id (UUID)
-        │                                            ├─ tipo       (foto | audio)
-        │                                            └─ archivo    (referencia al contenido)
+        │ 1                             Cambio
+        ├──────── N ─────────────────── ├─ id (UUID)
+        │                               ├─ usuarioId
+        │                               ├─ fecha
+        │                               ├─ descripción       (texto; acá puede ir lo emocional)
+        │                               │
+        │                               │ 1
+        │                               └──────── N ──────── Adjunto
+        │                                                   ├─ id (UUID)
+        │                                                   ├─ tipo       (foto | audio)
+        │                                                   └─ archivo    (referencia al contenido)
 ```
+
+> **El profesional no es una entidad.** Vive *dentro* del tratamiento como
+> nombre + especialidad (texto opcional). Registrarlo ahí responde la pregunta
+> real ("¿quién me atiende?") sin obligar a gestionar una ficha aparte.
 
 ### Reglas de negocio
 
@@ -106,9 +111,9 @@ Usuario                           Profesional de salud
 | R2 | Un tratamiento con `fechaFin` exige `fechaFin ≥ fechaInicio` | Modelo (lugar de la verdad) + validación en formularios |
 | R3 | Un cambio no puede tener fecha futura | Modelo |
 | R4 | Un cambio necesita **al menos uno**: descripción no vacía **o** ≥1 adjunto | Modelo |
-| R5 | No se borran datos con historial: profesional con tratamientos → se **desactiva**, no se elimina | Borrado lógico |
+| R5 | Nada del historial se borra físicamente: los tratamientos y cambios se **desactivan**, no se eliminan | Borrado lógico (`activo`) |
 | R6 | Un tratamiento requiere nombre, dosis, frecuencia y fecha de inicio | Modelo |
-| R7 | Un profesional es **opcional** en el tratamiento | Modelo (alta sin fricción) |
+| R7 | El profesional es **opcional** y se guarda como texto dentro del tratamiento | Modelo (alta sin fricción) |
 | R8 | La contraseña se guarda **solo como hash** irreversiblemente; nunca en claro ni en logs | Adaptador de identidad |
 
 ### Principios de modelado aplicados
@@ -132,8 +137,8 @@ Usuario                           Profesional de salud
             ▼
 ┌─────────────────────────┐       ┌─────────────────────────┐
 │  ② Tratamientos         │       │  ③ Cambios              │
-│  Tratamiento,           │       │  Cambio, Adjunto        │
-│  Profesional de salud   │       │  (texto + fotos/audio)  │
+│  Tratamiento            │       │  Cambio, Adjunto        │
+│  (profesional como dato)│       │  (texto + fotos/audio)  │
 └───────────┬─────────────┘       └───────────┬─────────────┘
             │                                 │
             │        ┌─────────────────┐      │
@@ -163,12 +168,14 @@ razones distintas (ajustes médicos vs. registro diario) y crecen independientes
 | **A1** — Flujos MVP | Registrar usuario (con auth) · registrar tratamiento · registrar cambios con fotos y voz · línea de tiempo. Fuera: preparar cita, recordatorios. |
 | **A1** — Prioridad | Persona primaria: **quien recién empieza** (Tina). |
 | **A2** — Cambios | Solo **físicos**; lo emocional va opcionalmente en la descripción. No existe campo "categoría". |
-| **A2** — Profesional | **Entidad propia** con ficha (nombre, especialidad), no texto libre. |
+| **A2** — Profesional | ~~Entidad propia con ficha~~ → **revisado en A5**: pasa a ser un dato de texto del tratamiento. |
 | **A2** — Notas | **Un solo campo de texto** por cambio (descripción). |
 | **A3** — Validación | Un cambio requiere descripción no vacía **o** ≥1 adjunto. |
 | **A3** — Profesional en tratamiento | **Opcional** (R7). |
 | **A3** — Borrado | **Nada del historial se borra físicamente** → borrado lógico (R5). |
 | **A4** — Contextos | Mapa ①Identidad ②Tratamientos ③Cambios ④Línea de tiempo **aprobado tal cual**. |
+| **A5** — Tratamiento libre y general | El tratamiento sirve para **cualquier medicamento**. Se cargan **varios medicamentos** de una (uno por tratamiento, con fechas y profesional compartidos). Campos opcionales: vía, presentación, dosis estructurada e indicación. |
+| **A5** — Profesional | Deja de ser entidad: se registra **dentro del tratamiento** (nombre + especialidad en texto), sin tabla ni pantalla propia. |
 
 ---
 

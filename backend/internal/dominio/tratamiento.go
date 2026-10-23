@@ -17,16 +17,29 @@ var (
 //
 // El estado "activo/finalizado" NO se guarda: se deriva de FechaFin (nil = sigue
 // activo). Activo en false significa borrado lógico (R5).
+//
+// Nombre, Dosis y Frecuencia son texto y siguen obligatorios (R6). Todo lo
+// demás es opcional (punteros nil): vía, presentación, dosis estructurada,
+// indicación, y el profesional que lo indicó (nombre + especialidad como
+// texto, sin entidad aparte).
 type Tratamiento struct {
-	ID            string
-	UsuarioID     string
-	Nombre        string
-	Dosis         string
-	Frecuencia    string
-	FechaInicio   time.Time
-	FechaFin      *time.Time
-	ProfesionalID *string
-	Activo        bool
+	ID          string
+	UsuarioID   string
+	Nombre      string
+	Dosis       string
+	Frecuencia  string
+	FechaInicio time.Time
+	FechaFin    *time.Time
+	Activo      bool
+
+	// Opcionales.
+	Via                     *string
+	Presentacion            *string
+	DosisCantidad           *float64
+	DosisUnidad             *string
+	Indicacion              *string
+	ProfesionalNombre       *string
+	ProfesionalEspecialidad *string
 }
 
 func (t Tratamiento) Validar() error {

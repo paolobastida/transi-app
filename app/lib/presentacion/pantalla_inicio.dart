@@ -6,7 +6,6 @@ import 'formulario_cambio.dart';
 import 'pantalla_cuenta.dart';
 import 'pantalla_linea_de_tiempo.dart';
 import 'pantalla_login.dart';
-import 'pantalla_profesionales.dart';
 import 'pantalla_tratamientos.dart';
 import 'tema.dart';
 
@@ -22,6 +21,21 @@ class PantallaInicio extends StatefulWidget {
 
 class _PantallaInicioState extends State<PantallaInicio> {
   int _indice = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Si la app se abrió desde una notificación de recordatorio, ir directo
+    // a la pantalla de tratamientos.
+    final alcance = context
+        .getElementForInheritedWidgetOfExactType<Alcance>()
+        ?.widget as Alcance?;
+    final recordatorios = alcance?.dependencias.recordatorios;
+    if (recordatorios != null && recordatorios.pendienteIrATratamientos) {
+      recordatorios.pendienteIrATratamientos = false;
+      _indice = 1;
+    }
+  }
 
   Future<void> _salir() async {
     final dependencias = Alcance.de(context);
@@ -48,12 +62,17 @@ class _PantallaInicioState extends State<PantallaInicio> {
     final paginas = [
       PantallaLineaDeTiempo(usuarioId: widget.usuario.id),
       PantallaTratamientos(usuarioId: widget.usuario.id),
-      PantallaProfesionales(usuarioId: widget.usuario.id),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transi'),
+        title: Row(
+          children: [
+            const LogoTransi(size: 32),
+            const SizedBox(width: 10),
+            const Text('Transi'),
+          ],
+        ),
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(4),
           child: FranjaTrans(alto: 4),
@@ -92,7 +111,6 @@ class _PantallaInicioState extends State<PantallaInicio> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.timeline), label: 'Línea de tiempo'),
           NavigationDestination(icon: Icon(Icons.medication), label: 'Tratamientos'),
-          NavigationDestination(icon: Icon(Icons.people), label: 'Profesionales'),
         ],
       ),
     );

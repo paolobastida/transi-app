@@ -27,14 +27,16 @@ func nuevoServidorDePrueba(verificador verificadorFalso) *Servidor {
 		pruebas.NuevoSesionesFalso(),
 		pruebas.HasherFalso{},
 		pruebas.TokenizadorFalso{},
+		&pruebas.GeneradorRefrescoFalso{},
 		24*time.Hour,
 	)
-	profesionales := casosdeuso.NuevoProfesionales(pruebas.NuevoProfesionalesFalso())
-	tratamientos := casosdeuso.NuevoTratamientos(pruebas.NuevoTratamientosFalso(), pruebas.NuevoProfesionalesFalso())
+	tratamientos := casosdeuso.NuevoTratamientos(pruebas.NuevoTratamientosFalso())
 	cambios := casosdeuso.NuevosCambios(pruebas.NuevoCambiosFalso(), pruebas.NuevoArchivosFalso())
 	respaldos := casosdeuso.NuevosRespaldos(pruebas.NuevoRespaldosFalso(), pruebas.NuevoArchivosFalso())
 	salud := casosdeuso.NuevoVerificarSalud(verificador)
-	return NuevoServidor(salud, identidad, profesionales, tratamientos, cambios, respaldos, pruebas.TokenizadorFalso{})
+	// Sin límite de intentos en los tests: los casos legítimos hacen varios
+	// POST seguidos contra /auth y no queremos 429 en medio.
+	return NuevoServidor(salud, identidad, tratamientos, cambios, respaldos, pruebas.TokenizadorFalso{}, nil)
 }
 
 func pedir(t *testing.T, s *Servidor, metodo, ruta string, cuerpo []byte, token string) *httptest.ResponseRecorder {

@@ -49,7 +49,11 @@ class LineaDeTiempo {
           tipo: TipoEvento.tratamiento,
           fecha: tratamiento.fechaInicio,
           titulo: tratamiento.nombre,
-          detalle: '${tratamiento.dosis} · ${tratamiento.frecuencia}',
+          detalle: [
+            tratamiento.dosis,
+            if (tratamiento.via != null) tratamiento.via,
+            tratamiento.frecuencia,
+          ].join(' · '),
           referencia: tratamiento,
         ),
     ];

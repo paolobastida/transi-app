@@ -10,6 +10,12 @@
 	<string>Transi usa el micrófono para grabar notas de voz en tus cambios.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Transi accede a tus fotos para adjuntarlas a tus cambios.</string>
+	<!-- Desde iOS 14, sin esta clave iOS BLOQUEA en silencio cualquier conexión a
+	     la red local (por ejemplo http://192.168.0.15:8080 durante el desarrollo)
+	     y no muestra ningún aviso: la app simplemente no se conecta.
+	     En producción apunta a https://un-dominio, que no es red local. -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Transi usa la red local para conectarse a tu servidor durante el desarrollo.</string>
 	<!-- Solo en desarrollo: permite hablar con el servidor local por WiFi
 	     (http://192.168.x.x:8080). En producción se usa HTTPS. -->
 	<key>NSAppTransportSecurity</key>

@@ -42,6 +42,10 @@ dependencies:
   uuid: ^4.6.0
   image_picker: ^1.2.4
   record: ^7.1.1
+  audioplayers: ^6.8.1
+  flutter_local_notifications: ^19.4.0
+  timezone: ^0.10.1
+  flutter_timezone: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +59,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.35.1
   build_runner: ^2.16.1
+  sqlite3: ^3.5.2
 
 # build_runner 2.16.1 usa una API de `analyzer` que fue removida en 14.5.0.
 # Se fija `analyzer` por debajo de esa versión para que la generación de

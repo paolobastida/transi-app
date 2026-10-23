@@ -3,10 +3,28 @@
 Transi es una app para que personas transgénero registren sus tratamientos con
 distintos profesionales de salud y documenten su evolución en el tiempo.
 
-Este repositorio tiene dos partes:
+Este repositorio tiene tres partes:
 
 - `backend/` — el programa que guarda y entrega los datos (lenguaje **Go**).
-- `app/` — la aplicación que se usa en el celular (lenguaje **Dart/Flutter**).
+- `frontend/` — la aplicación multiplataforma nueva (**Tauri 2 + TypeScript**).
+  Es la implementación activa: desktop primero (macOS), iOS/Android después.
+- `app/` — la implementación anterior en **Dart/Flutter**. Se conserva hasta
+  completar la paridad con `frontend/`.
+
+## Frontend Tauri
+
+```sh
+cd frontend
+pnpm install
+pnpm tauri dev
+```
+
+La app es **offline-first**: SQLite local en Rust, sesión en el llavero del
+sistema y respaldos contra la API Go. Detalles, arquitectura y estado del port
+en [`frontend/README.md`](frontend/README.md).
+
+Variable de entorno: `TRANSIBASE_URL` (por defecto `http://localhost:8080`).
+En producción debe ser `https://…`.
 
 ## Estado actual
 
@@ -101,8 +119,21 @@ Este repositorio tiene dos partes:
 - Script de **respaldos de PostgreSQL** (`deploy/respaldar-postgres.sh`).
 - CI ampliado con la construcción de la imagen Docker.
 
-> **Todas las fases del MVP (0–10) están completas.** El despliegue real en un
+> **Todas las fases del MVP (0–10) están completas**, más una **Fase 11** de
+> tratamientos libres y profesionales integrados. El despliegue real en un
 > VPS y la firma del APK requieren tus credenciales y un dominio (ver la guía).
+
+**Fase 11 · Tratamientos libres y profesional integrado — completada:**
+
+- El tratamiento es **libre y general**: sirve para cualquier medicamento, con
+  sugerencias de vía/unidad/indicación que nunca obligan.
+- Se pueden cargar **varios medicamentos** de una: cada uno queda como un
+  tratamiento que comparte fechas y profesional.
+- El **profesional deja de ser una entidad aparte**: se registra dentro del
+  tratamiento (nombre + especialidad), con sugerencias de los ya usados. Se
+  eliminaron su tabla, pantalla y endpoints.
+- Barra de **Guardar fija** en todos los formularios; migración de datos que
+  conserva lo ya cargado.
 
 ### API disponible
 
@@ -114,8 +145,6 @@ Este repositorio tiene dos partes:
 | `POST` | `/auth/refresh` | Rotar el refresh token |
 | `POST` | `/auth/logout` | Cerrar sesión (revoca el refresh) |
 | `GET` | `/auth/yo` | Datos de la cuenta (requiere token) |
-| `POST` · `GET` | `/profesionales` | Crear / listar profesionales |
-| `PUT` · `DELETE` | `/profesionales/{id}` | Editar / desactivar profesional |
 | `POST` · `GET` | `/tratamientos` | Crear / listar (`?desde&hasta&estado`) |
 | `PUT` · `DELETE` | `/tratamientos/{id}` | Editar (incluye cerrar) / desactivar |
 | `POST` | `/cambios` | Registrar cambio (multipart: `fecha`, `descripcion`, `fotos`, `audios`) |

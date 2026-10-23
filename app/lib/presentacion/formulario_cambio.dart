@@ -7,6 +7,8 @@ import 'package:record/record.dart';
 
 import '../dependencias.dart';
 import '../dominio/cambio.dart';
+import 'formato_fecha.dart';
+import 'retroalimentacion.dart';
 
 /// P8 · Registrar cambio (U12). Descripción + foto + nota de voz.
 /// Guarda **solo en la base local**: nunca espera a la red.
@@ -25,7 +27,6 @@ class _FormularioCambioState extends State<FormularioCambio> {
   final _grabadora = AudioRecorder();
   final List<EntradaAdjunto> _adjuntos = [];
   DateTime _fecha = DateTime.now();
-  String? _error;
 
   bool _grabando = false;
   StreamSubscription<Uint8List>? _suscripcion;
@@ -72,7 +73,7 @@ class _FormularioCambioState extends State<FormularioCambio> {
 
   Future<void> _iniciarGrabacion() async {
     if (!await _grabadora.hasPermission()) {
-      setState(() => _error = 'Necesito permiso para usar el micrófono');
+      if (mounted) mostrarError(context, 'Necesito permiso para usar el micrófono');
       return;
     }
     _bufferAudio.clear();
@@ -90,7 +91,6 @@ class _FormularioCambioState extends State<FormularioCambio> {
     );
     setState(() {
       _grabando = true;
-      _error = null;
     });
   }
 
@@ -111,7 +111,7 @@ class _FormularioCambioState extends State<FormularioCambio> {
 
   Future<void> _guardar() async {
     if (_descripcion.text.trim().isEmpty && _adjuntos.isEmpty) {
-      setState(() => _error = 'Escribí algo o agregá una foto o nota de voz');
+      mostrarError(context, 'Escribí algo o agregá una foto o nota de voz');
       return;
     }
     await Alcance.de(context).cambios.crear(
@@ -128,12 +128,12 @@ class _FormularioCambioState extends State<FormularioCambio> {
     return Scaffold(
       appBar: AppBar(title: const Text('Nuevo cambio')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Fecha'),
-            subtitle: Text(_fechaTexto(_fecha)),
+            subtitle: Text(fechaTexto(_fecha)),
             trailing: const Icon(Icons.calendar_today),
             onTap: _elegirFecha,
           ),
@@ -181,19 +181,18 @@ class _FormularioCambioState extends State<FormularioCambio> {
                 onPressed: () => setState(() => _adjuntos.removeAt(i)),
               ),
             ),
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ],
-          const SizedBox(height: 24),
-          FilledButton(onPressed: _guardar, child: const Text('Guardar')),
         ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: FilledButton.icon(
+            onPressed: _guardar,
+            icon: const Icon(Icons.check),
+            label: const Text('Guardar'),
+          ),
+        ),
       ),
     );
   }
 }
-
-String _fechaTexto(DateTime fecha) =>
-    '${fecha.year.toString().padLeft(4, '0')}-'
-    '${fecha.month.toString().padLeft(2, '0')}-'
-    '${fecha.day.toString().padLeft(2, '0')}';

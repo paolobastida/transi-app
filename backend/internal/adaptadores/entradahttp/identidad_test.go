@@ -3,6 +3,7 @@ package entradahttp
 import (
 	"encoding/json"
 	"net/http"
+	"reflect"
 	"testing"
 )
 
@@ -53,15 +54,39 @@ func TestFlujoRegistroLoginYo(t *testing.T) {
 	}
 }
 
-func TestRegistroDuplicadoDevuelve409(t *testing.T) {
+func TestRegistroDuplicadoNoConfirmaQueElEmailExiste(t *testing.T) {
 	s := nuevoServidorDePrueba(verificadorFalso{})
 	cuerpo := []byte(`{"email":"tina@transi.test","clave":"secreto123"}`)
-	if rec := pedir(t, s, http.MethodPost, "/auth/registro", cuerpo, ""); rec.Code != http.StatusCreated {
-		t.Fatalf("primer registro: %d", rec.Code)
+	primero := pedir(t, s, http.MethodPost, "/auth/registro", cuerpo, "")
+	if primero.Code != http.StatusCreated {
+		t.Fatalf("primer registro: %d", primero.Code)
 	}
-	if rec := pedir(t, s, http.MethodPost, "/auth/registro", cuerpo, ""); rec.Code != http.StatusConflict {
-		t.Fatalf("registro duplicado: código = %d, esperaba 409", rec.Code)
+
+	// Registrar de nuevo el mismo email NO puede distinguirse del caso
+	// normal por el código ni por el mensaje: si lo distinguiera, cualquiera
+	// podría enumerar quién tiene cuenta (relevante en una app de salud).
+	segundo := pedir(t, s, http.MethodPost, "/auth/registro", cuerpo, "")
+	if segundo.Code != primero.Code {
+		t.Fatalf("el registro duplicado cambió el código: %d vs %d",
+			segundo.Code, primero.Code)
 	}
+	if !sonJSONIguales(primero.Body.Bytes(), segundo.Body.Bytes()) {
+		t.Fatalf("el cuerpo difiere entre un registro válido y uno duplicado:\n nuevo:     %s\n duplicado: %s",
+			primero.Body.String(), segundo.Body.String())
+	}
+}
+
+// sonJSONIguales compara dos cuerpos JSON por estructura, sin importar el
+// orden de las claves.
+func sonJSONIguales(a, b []byte) bool {
+	var x, y any
+	if err := json.Unmarshal(a, &x); err != nil {
+		return false
+	}
+	if err := json.Unmarshal(b, &y); err != nil {
+		return false
+	}
+	return reflect.DeepEqual(x, y)
 }
 
 func TestLoginCredencialesInvalidas(t *testing.T) {

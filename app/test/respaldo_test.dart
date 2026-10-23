@@ -4,7 +4,6 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:transi/datos/base_local.dart';
 import 'package:transi/datos/cambio_repositorio.dart';
-import 'package:transi/datos/profesional_repositorio.dart';
 import 'package:transi/datos/respaldo.dart';
 import 'package:transi/datos/tratamiento_repositorio.dart';
 import 'package:transi/dominio/cambio.dart';
@@ -35,18 +34,14 @@ void main() {
     });
 
     // 1. Datos en el dispositivo de origen.
-    final profesional = await ProfesionalRepositorio(origen).crear(
-      usuarioId: 'u1',
-      nombre: 'Dra. López',
-      especialidad: 'Endocrinología',
-    );
     await TratamientoRepositorio(origen).crear(
       usuarioId: 'u1',
       nombre: 'Estradiol',
       dosis: '2 mg',
       frecuencia: 'cada día',
       fechaInicio: DateTime(2026, 1, 10),
-      profesionalId: profesional.id,
+      profesionalNombre: 'Dra. López',
+      profesionalEspecialidad: 'Endocrinología',
     );
     await CambioRepositorio(origen).crear(
       usuarioId: 'u1',
@@ -64,23 +59,21 @@ void main() {
     // 2. Respaldar.
     final servicioOrigen = RespaldoServicio(origen, remoto);
     await servicioOrigen.respaldar('u1');
-    expect(await servicioOrigen.pendientes(), 0);
+    expect(await servicioOrigen.pendientes('u1'), 0);
     expect(await servicioOrigen.ultimoRespaldo(), isNotNull);
 
     // 3. Restaurar en un dispositivo nuevo.
     await RespaldoServicio(destino, remoto).restaurar('u1');
 
-    // 4. Todo igual.
-    final profesionales =
-        await ProfesionalRepositorio(destino).observar('u1').first;
+    // 4. Todo igual, incluido el profesional dentro del tratamiento.
     final tratamientos =
         await TratamientoRepositorio(destino).observar('u1').first;
     final cambios = await CambioRepositorio(destino).observar('u1').first;
 
-    expect(profesionales, hasLength(1));
-    expect(profesionales.first.nombre, 'Dra. López');
     expect(tratamientos, hasLength(1));
     expect(tratamientos.first.nombre, 'Estradiol');
+    expect(tratamientos.first.profesionalNombre, 'Dra. López');
+    expect(tratamientos.first.profesionalEspecialidad, 'Endocrinología');
     expect(cambios, hasLength(1));
     expect(cambios.first.descripcion, 'noté cambios en la voz');
     expect(cambios.first.adjuntos.first.contenido,
@@ -92,11 +85,16 @@ void main() {
     addTearDown(base.close);
     final servicio = RespaldoServicio(base, RespaldoRemotoFalso());
 
-    await ProfesionalRepositorio(base)
-        .crear(usuarioId: 'u1', nombre: 'Dra', especialidad: 'Endo');
-    expect(await servicio.pendientes(), 1);
+    await TratamientoRepositorio(base).crear(
+      usuarioId: 'u1',
+      nombre: 'Estradiol',
+      dosis: '2 mg',
+      frecuencia: 'cada día',
+      fechaInicio: DateTime(2026, 1, 1),
+    );
+    expect(await servicio.pendientes('u1'), 1);
 
     await servicio.respaldar('u1');
-    expect(await servicio.pendientes(), 0);
+    expect(await servicio.pendientes('u1'), 0);
   });
 }

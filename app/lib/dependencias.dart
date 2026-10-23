@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'datos/autenticacion.dart';
 import 'datos/cambio_repositorio.dart';
 import 'datos/linea_de_tiempo.dart';
-import 'datos/profesional_repositorio.dart';
+import 'datos/recordatorios.dart';
 import 'datos/respaldo.dart';
 import 'datos/tratamiento_repositorio.dart';
 
@@ -11,19 +11,19 @@ import 'datos/tratamiento_repositorio.dart';
 /// widgets. Evita pasar cada repositorio por constructor a cada pantalla.
 class Dependencias {
   final Autenticacion autenticacion;
-  final ProfesionalRepositorio profesionales;
   final TratamientoRepositorio tratamientos;
   final CambioRepositorio cambios;
   final LineaDeTiempo lineaDeTiempo;
   final RespaldoServicio respaldo;
+  final RecordatorioServicio recordatorios;
 
-  const Dependencias({
+  Dependencias({
     required this.autenticacion,
-    required this.profesionales,
     required this.tratamientos,
     required this.cambios,
     required this.lineaDeTiempo,
     required this.respaldo,
+    required this.recordatorios,
   });
 }
 

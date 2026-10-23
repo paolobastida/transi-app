@@ -3,471 +3,6 @@
 part of 'base_local.dart';
 
 // ignore_for_file: type=lint
-class $ProfesionalesTable extends Profesionales
-    with TableInfo<$ProfesionalesTable, FilaProfesional> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ProfesionalesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _usuarioIdMeta = const VerificationMeta(
-    'usuarioId',
-  );
-  @override
-  late final GeneratedColumn<String> usuarioId = GeneratedColumn<String>(
-    'usuario_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _nombreMeta = const VerificationMeta('nombre');
-  @override
-  late final GeneratedColumn<String> nombre = GeneratedColumn<String>(
-    'nombre',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _especialidadMeta = const VerificationMeta(
-    'especialidad',
-  );
-  @override
-  late final GeneratedColumn<String> especialidad = GeneratedColumn<String>(
-    'especialidad',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _activoMeta = const VerificationMeta('activo');
-  @override
-  late final GeneratedColumn<bool> activo = GeneratedColumn<bool>(
-    'activo',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("activo" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
-  static const VerificationMeta _pendienteMeta = const VerificationMeta(
-    'pendiente',
-  );
-  @override
-  late final GeneratedColumn<bool> pendiente = GeneratedColumn<bool>(
-    'pendiente',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("pendiente" IN (0, 1))',
-    ),
-    defaultValue: const Constant(true),
-  );
-  static const VerificationMeta _creadoEnMeta = const VerificationMeta(
-    'creadoEn',
-  );
-  @override
-  late final GeneratedColumn<DateTime> creadoEn = GeneratedColumn<DateTime>(
-    'creado_en',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    usuarioId,
-    nombre,
-    especialidad,
-    activo,
-    pendiente,
-    creadoEn,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'profesionales';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<FilaProfesional> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('usuario_id')) {
-      context.handle(
-        _usuarioIdMeta,
-        usuarioId.isAcceptableOrUnknown(data['usuario_id']!, _usuarioIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_usuarioIdMeta);
-    }
-    if (data.containsKey('nombre')) {
-      context.handle(
-        _nombreMeta,
-        nombre.isAcceptableOrUnknown(data['nombre']!, _nombreMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nombreMeta);
-    }
-    if (data.containsKey('especialidad')) {
-      context.handle(
-        _especialidadMeta,
-        especialidad.isAcceptableOrUnknown(
-          data['especialidad']!,
-          _especialidadMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_especialidadMeta);
-    }
-    if (data.containsKey('activo')) {
-      context.handle(
-        _activoMeta,
-        activo.isAcceptableOrUnknown(data['activo']!, _activoMeta),
-      );
-    }
-    if (data.containsKey('pendiente')) {
-      context.handle(
-        _pendienteMeta,
-        pendiente.isAcceptableOrUnknown(data['pendiente']!, _pendienteMeta),
-      );
-    }
-    if (data.containsKey('creado_en')) {
-      context.handle(
-        _creadoEnMeta,
-        creadoEn.isAcceptableOrUnknown(data['creado_en']!, _creadoEnMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  FilaProfesional map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return FilaProfesional(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      usuarioId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}usuario_id'],
-      )!,
-      nombre: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}nombre'],
-      )!,
-      especialidad: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}especialidad'],
-      )!,
-      activo: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}activo'],
-      )!,
-      pendiente: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}pendiente'],
-      )!,
-      creadoEn: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}creado_en'],
-      )!,
-    );
-  }
-
-  @override
-  $ProfesionalesTable createAlias(String alias) {
-    return $ProfesionalesTable(attachedDatabase, alias);
-  }
-}
-
-class FilaProfesional extends DataClass implements Insertable<FilaProfesional> {
-  final String id;
-  final String usuarioId;
-  final String nombre;
-  final String especialidad;
-  final bool activo;
-  final bool pendiente;
-  final DateTime creadoEn;
-  const FilaProfesional({
-    required this.id,
-    required this.usuarioId,
-    required this.nombre,
-    required this.especialidad,
-    required this.activo,
-    required this.pendiente,
-    required this.creadoEn,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['usuario_id'] = Variable<String>(usuarioId);
-    map['nombre'] = Variable<String>(nombre);
-    map['especialidad'] = Variable<String>(especialidad);
-    map['activo'] = Variable<bool>(activo);
-    map['pendiente'] = Variable<bool>(pendiente);
-    map['creado_en'] = Variable<DateTime>(creadoEn);
-    return map;
-  }
-
-  ProfesionalesCompanion toCompanion(bool nullToAbsent) {
-    return ProfesionalesCompanion(
-      id: Value(id),
-      usuarioId: Value(usuarioId),
-      nombre: Value(nombre),
-      especialidad: Value(especialidad),
-      activo: Value(activo),
-      pendiente: Value(pendiente),
-      creadoEn: Value(creadoEn),
-    );
-  }
-
-  factory FilaProfesional.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return FilaProfesional(
-      id: serializer.fromJson<String>(json['id']),
-      usuarioId: serializer.fromJson<String>(json['usuarioId']),
-      nombre: serializer.fromJson<String>(json['nombre']),
-      especialidad: serializer.fromJson<String>(json['especialidad']),
-      activo: serializer.fromJson<bool>(json['activo']),
-      pendiente: serializer.fromJson<bool>(json['pendiente']),
-      creadoEn: serializer.fromJson<DateTime>(json['creadoEn']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'usuarioId': serializer.toJson<String>(usuarioId),
-      'nombre': serializer.toJson<String>(nombre),
-      'especialidad': serializer.toJson<String>(especialidad),
-      'activo': serializer.toJson<bool>(activo),
-      'pendiente': serializer.toJson<bool>(pendiente),
-      'creadoEn': serializer.toJson<DateTime>(creadoEn),
-    };
-  }
-
-  FilaProfesional copyWith({
-    String? id,
-    String? usuarioId,
-    String? nombre,
-    String? especialidad,
-    bool? activo,
-    bool? pendiente,
-    DateTime? creadoEn,
-  }) => FilaProfesional(
-    id: id ?? this.id,
-    usuarioId: usuarioId ?? this.usuarioId,
-    nombre: nombre ?? this.nombre,
-    especialidad: especialidad ?? this.especialidad,
-    activo: activo ?? this.activo,
-    pendiente: pendiente ?? this.pendiente,
-    creadoEn: creadoEn ?? this.creadoEn,
-  );
-  FilaProfesional copyWithCompanion(ProfesionalesCompanion data) {
-    return FilaProfesional(
-      id: data.id.present ? data.id.value : this.id,
-      usuarioId: data.usuarioId.present ? data.usuarioId.value : this.usuarioId,
-      nombre: data.nombre.present ? data.nombre.value : this.nombre,
-      especialidad: data.especialidad.present
-          ? data.especialidad.value
-          : this.especialidad,
-      activo: data.activo.present ? data.activo.value : this.activo,
-      pendiente: data.pendiente.present ? data.pendiente.value : this.pendiente,
-      creadoEn: data.creadoEn.present ? data.creadoEn.value : this.creadoEn,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FilaProfesional(')
-          ..write('id: $id, ')
-          ..write('usuarioId: $usuarioId, ')
-          ..write('nombre: $nombre, ')
-          ..write('especialidad: $especialidad, ')
-          ..write('activo: $activo, ')
-          ..write('pendiente: $pendiente, ')
-          ..write('creadoEn: $creadoEn')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    usuarioId,
-    nombre,
-    especialidad,
-    activo,
-    pendiente,
-    creadoEn,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is FilaProfesional &&
-          other.id == this.id &&
-          other.usuarioId == this.usuarioId &&
-          other.nombre == this.nombre &&
-          other.especialidad == this.especialidad &&
-          other.activo == this.activo &&
-          other.pendiente == this.pendiente &&
-          other.creadoEn == this.creadoEn);
-}
-
-class ProfesionalesCompanion extends UpdateCompanion<FilaProfesional> {
-  final Value<String> id;
-  final Value<String> usuarioId;
-  final Value<String> nombre;
-  final Value<String> especialidad;
-  final Value<bool> activo;
-  final Value<bool> pendiente;
-  final Value<DateTime> creadoEn;
-  final Value<int> rowid;
-  const ProfesionalesCompanion({
-    this.id = const Value.absent(),
-    this.usuarioId = const Value.absent(),
-    this.nombre = const Value.absent(),
-    this.especialidad = const Value.absent(),
-    this.activo = const Value.absent(),
-    this.pendiente = const Value.absent(),
-    this.creadoEn = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  ProfesionalesCompanion.insert({
-    required String id,
-    required String usuarioId,
-    required String nombre,
-    required String especialidad,
-    this.activo = const Value.absent(),
-    this.pendiente = const Value.absent(),
-    this.creadoEn = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       usuarioId = Value(usuarioId),
-       nombre = Value(nombre),
-       especialidad = Value(especialidad);
-  static Insertable<FilaProfesional> custom({
-    Expression<String>? id,
-    Expression<String>? usuarioId,
-    Expression<String>? nombre,
-    Expression<String>? especialidad,
-    Expression<bool>? activo,
-    Expression<bool>? pendiente,
-    Expression<DateTime>? creadoEn,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (usuarioId != null) 'usuario_id': usuarioId,
-      if (nombre != null) 'nombre': nombre,
-      if (especialidad != null) 'especialidad': especialidad,
-      if (activo != null) 'activo': activo,
-      if (pendiente != null) 'pendiente': pendiente,
-      if (creadoEn != null) 'creado_en': creadoEn,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  ProfesionalesCompanion copyWith({
-    Value<String>? id,
-    Value<String>? usuarioId,
-    Value<String>? nombre,
-    Value<String>? especialidad,
-    Value<bool>? activo,
-    Value<bool>? pendiente,
-    Value<DateTime>? creadoEn,
-    Value<int>? rowid,
-  }) {
-    return ProfesionalesCompanion(
-      id: id ?? this.id,
-      usuarioId: usuarioId ?? this.usuarioId,
-      nombre: nombre ?? this.nombre,
-      especialidad: especialidad ?? this.especialidad,
-      activo: activo ?? this.activo,
-      pendiente: pendiente ?? this.pendiente,
-      creadoEn: creadoEn ?? this.creadoEn,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (usuarioId.present) {
-      map['usuario_id'] = Variable<String>(usuarioId.value);
-    }
-    if (nombre.present) {
-      map['nombre'] = Variable<String>(nombre.value);
-    }
-    if (especialidad.present) {
-      map['especialidad'] = Variable<String>(especialidad.value);
-    }
-    if (activo.present) {
-      map['activo'] = Variable<bool>(activo.value);
-    }
-    if (pendiente.present) {
-      map['pendiente'] = Variable<bool>(pendiente.value);
-    }
-    if (creadoEn.present) {
-      map['creado_en'] = Variable<DateTime>(creadoEn.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ProfesionalesCompanion(')
-          ..write('id: $id, ')
-          ..write('usuarioId: $usuarioId, ')
-          ..write('nombre: $nombre, ')
-          ..write('especialidad: $especialidad, ')
-          ..write('activo: $activo, ')
-          ..write('pendiente: $pendiente, ')
-          ..write('creadoEn: $creadoEn, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $TratamientosTable extends Tratamientos
     with TableInfo<$TratamientosTable, FilaTratamiento> {
   @override
@@ -545,17 +80,82 @@ class $TratamientosTable extends Tratamientos
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _profesionalIdMeta = const VerificationMeta(
-    'profesionalId',
-  );
+  static const VerificationMeta _viaMeta = const VerificationMeta('via');
   @override
-  late final GeneratedColumn<String> profesionalId = GeneratedColumn<String>(
-    'profesional_id',
+  late final GeneratedColumn<String> via = GeneratedColumn<String>(
+    'via',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _presentacionMeta = const VerificationMeta(
+    'presentacion',
+  );
+  @override
+  late final GeneratedColumn<String> presentacion = GeneratedColumn<String>(
+    'presentacion',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dosisCantidadMeta = const VerificationMeta(
+    'dosisCantidad',
+  );
+  @override
+  late final GeneratedColumn<double> dosisCantidad = GeneratedColumn<double>(
+    'dosis_cantidad',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dosisUnidadMeta = const VerificationMeta(
+    'dosisUnidad',
+  );
+  @override
+  late final GeneratedColumn<String> dosisUnidad = GeneratedColumn<String>(
+    'dosis_unidad',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _indicacionMeta = const VerificationMeta(
+    'indicacion',
+  );
+  @override
+  late final GeneratedColumn<String> indicacion = GeneratedColumn<String>(
+    'indicacion',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _profesionalNombreMeta = const VerificationMeta(
+    'profesionalNombre',
+  );
+  @override
+  late final GeneratedColumn<String> profesionalNombre =
+      GeneratedColumn<String>(
+        'profesional_nombre',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _profesionalEspecialidadMeta =
+      const VerificationMeta('profesionalEspecialidad');
+  @override
+  late final GeneratedColumn<String> profesionalEspecialidad =
+      GeneratedColumn<String>(
+        'profesional_especialidad',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _activoMeta = const VerificationMeta('activo');
   @override
   late final GeneratedColumn<bool> activo = GeneratedColumn<bool>(
@@ -584,6 +184,18 @@ class $TratamientosTable extends Tratamientos
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _recordatorioHorasMeta = const VerificationMeta(
+    'recordatorioHoras',
+  );
+  @override
+  late final GeneratedColumn<String> recordatorioHoras =
+      GeneratedColumn<String>(
+        'recordatorio_horas',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _creadoEnMeta = const VerificationMeta(
     'creadoEn',
   );
@@ -605,9 +217,16 @@ class $TratamientosTable extends Tratamientos
     frecuencia,
     fechaInicio,
     fechaFin,
-    profesionalId,
+    via,
+    presentacion,
+    dosisCantidad,
+    dosisUnidad,
+    indicacion,
+    profesionalNombre,
+    profesionalEspecialidad,
     activo,
     pendiente,
+    recordatorioHoras,
     creadoEn,
   ];
   @override
@@ -676,12 +295,60 @@ class $TratamientosTable extends Tratamientos
         fechaFin.isAcceptableOrUnknown(data['fecha_fin']!, _fechaFinMeta),
       );
     }
-    if (data.containsKey('profesional_id')) {
+    if (data.containsKey('via')) {
       context.handle(
-        _profesionalIdMeta,
-        profesionalId.isAcceptableOrUnknown(
-          data['profesional_id']!,
-          _profesionalIdMeta,
+        _viaMeta,
+        via.isAcceptableOrUnknown(data['via']!, _viaMeta),
+      );
+    }
+    if (data.containsKey('presentacion')) {
+      context.handle(
+        _presentacionMeta,
+        presentacion.isAcceptableOrUnknown(
+          data['presentacion']!,
+          _presentacionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('dosis_cantidad')) {
+      context.handle(
+        _dosisCantidadMeta,
+        dosisCantidad.isAcceptableOrUnknown(
+          data['dosis_cantidad']!,
+          _dosisCantidadMeta,
+        ),
+      );
+    }
+    if (data.containsKey('dosis_unidad')) {
+      context.handle(
+        _dosisUnidadMeta,
+        dosisUnidad.isAcceptableOrUnknown(
+          data['dosis_unidad']!,
+          _dosisUnidadMeta,
+        ),
+      );
+    }
+    if (data.containsKey('indicacion')) {
+      context.handle(
+        _indicacionMeta,
+        indicacion.isAcceptableOrUnknown(data['indicacion']!, _indicacionMeta),
+      );
+    }
+    if (data.containsKey('profesional_nombre')) {
+      context.handle(
+        _profesionalNombreMeta,
+        profesionalNombre.isAcceptableOrUnknown(
+          data['profesional_nombre']!,
+          _profesionalNombreMeta,
+        ),
+      );
+    }
+    if (data.containsKey('profesional_especialidad')) {
+      context.handle(
+        _profesionalEspecialidadMeta,
+        profesionalEspecialidad.isAcceptableOrUnknown(
+          data['profesional_especialidad']!,
+          _profesionalEspecialidadMeta,
         ),
       );
     }
@@ -695,6 +362,15 @@ class $TratamientosTable extends Tratamientos
       context.handle(
         _pendienteMeta,
         pendiente.isAcceptableOrUnknown(data['pendiente']!, _pendienteMeta),
+      );
+    }
+    if (data.containsKey('recordatorio_horas')) {
+      context.handle(
+        _recordatorioHorasMeta,
+        recordatorioHoras.isAcceptableOrUnknown(
+          data['recordatorio_horas']!,
+          _recordatorioHorasMeta,
+        ),
       );
     }
     if (data.containsKey('creado_en')) {
@@ -740,9 +416,33 @@ class $TratamientosTable extends Tratamientos
         DriftSqlType.dateTime,
         data['${effectivePrefix}fecha_fin'],
       ),
-      profesionalId: attachedDatabase.typeMapping.read(
+      via: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}profesional_id'],
+        data['${effectivePrefix}via'],
+      ),
+      presentacion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}presentacion'],
+      ),
+      dosisCantidad: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}dosis_cantidad'],
+      ),
+      dosisUnidad: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dosis_unidad'],
+      ),
+      indicacion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}indicacion'],
+      ),
+      profesionalNombre: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profesional_nombre'],
+      ),
+      profesionalEspecialidad: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profesional_especialidad'],
       ),
       activo: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -752,6 +452,10 @@ class $TratamientosTable extends Tratamientos
         DriftSqlType.bool,
         data['${effectivePrefix}pendiente'],
       )!,
+      recordatorioHoras: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recordatorio_horas'],
+      ),
       creadoEn: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}creado_en'],
@@ -773,9 +477,18 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
   final String frecuencia;
   final DateTime fechaInicio;
   final DateTime? fechaFin;
-  final String? profesionalId;
+  final String? via;
+  final String? presentacion;
+  final double? dosisCantidad;
+  final String? dosisUnidad;
+  final String? indicacion;
+  final String? profesionalNombre;
+  final String? profesionalEspecialidad;
   final bool activo;
   final bool pendiente;
+
+  /// Horas de recordatorio diario, como texto "08:00,20:00" (null = sin aviso).
+  final String? recordatorioHoras;
   final DateTime creadoEn;
   const FilaTratamiento({
     required this.id,
@@ -785,9 +498,16 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
     required this.frecuencia,
     required this.fechaInicio,
     this.fechaFin,
-    this.profesionalId,
+    this.via,
+    this.presentacion,
+    this.dosisCantidad,
+    this.dosisUnidad,
+    this.indicacion,
+    this.profesionalNombre,
+    this.profesionalEspecialidad,
     required this.activo,
     required this.pendiente,
+    this.recordatorioHoras,
     required this.creadoEn,
   });
   @override
@@ -802,11 +522,34 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
     if (!nullToAbsent || fechaFin != null) {
       map['fecha_fin'] = Variable<DateTime>(fechaFin);
     }
-    if (!nullToAbsent || profesionalId != null) {
-      map['profesional_id'] = Variable<String>(profesionalId);
+    if (!nullToAbsent || via != null) {
+      map['via'] = Variable<String>(via);
+    }
+    if (!nullToAbsent || presentacion != null) {
+      map['presentacion'] = Variable<String>(presentacion);
+    }
+    if (!nullToAbsent || dosisCantidad != null) {
+      map['dosis_cantidad'] = Variable<double>(dosisCantidad);
+    }
+    if (!nullToAbsent || dosisUnidad != null) {
+      map['dosis_unidad'] = Variable<String>(dosisUnidad);
+    }
+    if (!nullToAbsent || indicacion != null) {
+      map['indicacion'] = Variable<String>(indicacion);
+    }
+    if (!nullToAbsent || profesionalNombre != null) {
+      map['profesional_nombre'] = Variable<String>(profesionalNombre);
+    }
+    if (!nullToAbsent || profesionalEspecialidad != null) {
+      map['profesional_especialidad'] = Variable<String>(
+        profesionalEspecialidad,
+      );
     }
     map['activo'] = Variable<bool>(activo);
     map['pendiente'] = Variable<bool>(pendiente);
+    if (!nullToAbsent || recordatorioHoras != null) {
+      map['recordatorio_horas'] = Variable<String>(recordatorioHoras);
+    }
     map['creado_en'] = Variable<DateTime>(creadoEn);
     return map;
   }
@@ -822,11 +565,30 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
       fechaFin: fechaFin == null && nullToAbsent
           ? const Value.absent()
           : Value(fechaFin),
-      profesionalId: profesionalId == null && nullToAbsent
+      via: via == null && nullToAbsent ? const Value.absent() : Value(via),
+      presentacion: presentacion == null && nullToAbsent
           ? const Value.absent()
-          : Value(profesionalId),
+          : Value(presentacion),
+      dosisCantidad: dosisCantidad == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dosisCantidad),
+      dosisUnidad: dosisUnidad == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dosisUnidad),
+      indicacion: indicacion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(indicacion),
+      profesionalNombre: profesionalNombre == null && nullToAbsent
+          ? const Value.absent()
+          : Value(profesionalNombre),
+      profesionalEspecialidad: profesionalEspecialidad == null && nullToAbsent
+          ? const Value.absent()
+          : Value(profesionalEspecialidad),
       activo: Value(activo),
       pendiente: Value(pendiente),
+      recordatorioHoras: recordatorioHoras == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordatorioHoras),
       creadoEn: Value(creadoEn),
     );
   }
@@ -844,9 +606,22 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
       frecuencia: serializer.fromJson<String>(json['frecuencia']),
       fechaInicio: serializer.fromJson<DateTime>(json['fechaInicio']),
       fechaFin: serializer.fromJson<DateTime?>(json['fechaFin']),
-      profesionalId: serializer.fromJson<String?>(json['profesionalId']),
+      via: serializer.fromJson<String?>(json['via']),
+      presentacion: serializer.fromJson<String?>(json['presentacion']),
+      dosisCantidad: serializer.fromJson<double?>(json['dosisCantidad']),
+      dosisUnidad: serializer.fromJson<String?>(json['dosisUnidad']),
+      indicacion: serializer.fromJson<String?>(json['indicacion']),
+      profesionalNombre: serializer.fromJson<String?>(
+        json['profesionalNombre'],
+      ),
+      profesionalEspecialidad: serializer.fromJson<String?>(
+        json['profesionalEspecialidad'],
+      ),
       activo: serializer.fromJson<bool>(json['activo']),
       pendiente: serializer.fromJson<bool>(json['pendiente']),
+      recordatorioHoras: serializer.fromJson<String?>(
+        json['recordatorioHoras'],
+      ),
       creadoEn: serializer.fromJson<DateTime>(json['creadoEn']),
     );
   }
@@ -861,9 +636,18 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
       'frecuencia': serializer.toJson<String>(frecuencia),
       'fechaInicio': serializer.toJson<DateTime>(fechaInicio),
       'fechaFin': serializer.toJson<DateTime?>(fechaFin),
-      'profesionalId': serializer.toJson<String?>(profesionalId),
+      'via': serializer.toJson<String?>(via),
+      'presentacion': serializer.toJson<String?>(presentacion),
+      'dosisCantidad': serializer.toJson<double?>(dosisCantidad),
+      'dosisUnidad': serializer.toJson<String?>(dosisUnidad),
+      'indicacion': serializer.toJson<String?>(indicacion),
+      'profesionalNombre': serializer.toJson<String?>(profesionalNombre),
+      'profesionalEspecialidad': serializer.toJson<String?>(
+        profesionalEspecialidad,
+      ),
       'activo': serializer.toJson<bool>(activo),
       'pendiente': serializer.toJson<bool>(pendiente),
+      'recordatorioHoras': serializer.toJson<String?>(recordatorioHoras),
       'creadoEn': serializer.toJson<DateTime>(creadoEn),
     };
   }
@@ -876,9 +660,16 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
     String? frecuencia,
     DateTime? fechaInicio,
     Value<DateTime?> fechaFin = const Value.absent(),
-    Value<String?> profesionalId = const Value.absent(),
+    Value<String?> via = const Value.absent(),
+    Value<String?> presentacion = const Value.absent(),
+    Value<double?> dosisCantidad = const Value.absent(),
+    Value<String?> dosisUnidad = const Value.absent(),
+    Value<String?> indicacion = const Value.absent(),
+    Value<String?> profesionalNombre = const Value.absent(),
+    Value<String?> profesionalEspecialidad = const Value.absent(),
     bool? activo,
     bool? pendiente,
+    Value<String?> recordatorioHoras = const Value.absent(),
     DateTime? creadoEn,
   }) => FilaTratamiento(
     id: id ?? this.id,
@@ -888,11 +679,24 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
     frecuencia: frecuencia ?? this.frecuencia,
     fechaInicio: fechaInicio ?? this.fechaInicio,
     fechaFin: fechaFin.present ? fechaFin.value : this.fechaFin,
-    profesionalId: profesionalId.present
-        ? profesionalId.value
-        : this.profesionalId,
+    via: via.present ? via.value : this.via,
+    presentacion: presentacion.present ? presentacion.value : this.presentacion,
+    dosisCantidad: dosisCantidad.present
+        ? dosisCantidad.value
+        : this.dosisCantidad,
+    dosisUnidad: dosisUnidad.present ? dosisUnidad.value : this.dosisUnidad,
+    indicacion: indicacion.present ? indicacion.value : this.indicacion,
+    profesionalNombre: profesionalNombre.present
+        ? profesionalNombre.value
+        : this.profesionalNombre,
+    profesionalEspecialidad: profesionalEspecialidad.present
+        ? profesionalEspecialidad.value
+        : this.profesionalEspecialidad,
     activo: activo ?? this.activo,
     pendiente: pendiente ?? this.pendiente,
+    recordatorioHoras: recordatorioHoras.present
+        ? recordatorioHoras.value
+        : this.recordatorioHoras,
     creadoEn: creadoEn ?? this.creadoEn,
   );
   FilaTratamiento copyWithCompanion(TratamientosCompanion data) {
@@ -908,11 +712,30 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
           ? data.fechaInicio.value
           : this.fechaInicio,
       fechaFin: data.fechaFin.present ? data.fechaFin.value : this.fechaFin,
-      profesionalId: data.profesionalId.present
-          ? data.profesionalId.value
-          : this.profesionalId,
+      via: data.via.present ? data.via.value : this.via,
+      presentacion: data.presentacion.present
+          ? data.presentacion.value
+          : this.presentacion,
+      dosisCantidad: data.dosisCantidad.present
+          ? data.dosisCantidad.value
+          : this.dosisCantidad,
+      dosisUnidad: data.dosisUnidad.present
+          ? data.dosisUnidad.value
+          : this.dosisUnidad,
+      indicacion: data.indicacion.present
+          ? data.indicacion.value
+          : this.indicacion,
+      profesionalNombre: data.profesionalNombre.present
+          ? data.profesionalNombre.value
+          : this.profesionalNombre,
+      profesionalEspecialidad: data.profesionalEspecialidad.present
+          ? data.profesionalEspecialidad.value
+          : this.profesionalEspecialidad,
       activo: data.activo.present ? data.activo.value : this.activo,
       pendiente: data.pendiente.present ? data.pendiente.value : this.pendiente,
+      recordatorioHoras: data.recordatorioHoras.present
+          ? data.recordatorioHoras.value
+          : this.recordatorioHoras,
       creadoEn: data.creadoEn.present ? data.creadoEn.value : this.creadoEn,
     );
   }
@@ -927,9 +750,16 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
           ..write('frecuencia: $frecuencia, ')
           ..write('fechaInicio: $fechaInicio, ')
           ..write('fechaFin: $fechaFin, ')
-          ..write('profesionalId: $profesionalId, ')
+          ..write('via: $via, ')
+          ..write('presentacion: $presentacion, ')
+          ..write('dosisCantidad: $dosisCantidad, ')
+          ..write('dosisUnidad: $dosisUnidad, ')
+          ..write('indicacion: $indicacion, ')
+          ..write('profesionalNombre: $profesionalNombre, ')
+          ..write('profesionalEspecialidad: $profesionalEspecialidad, ')
           ..write('activo: $activo, ')
           ..write('pendiente: $pendiente, ')
+          ..write('recordatorioHoras: $recordatorioHoras, ')
           ..write('creadoEn: $creadoEn')
           ..write(')'))
         .toString();
@@ -944,9 +774,16 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
     frecuencia,
     fechaInicio,
     fechaFin,
-    profesionalId,
+    via,
+    presentacion,
+    dosisCantidad,
+    dosisUnidad,
+    indicacion,
+    profesionalNombre,
+    profesionalEspecialidad,
     activo,
     pendiente,
+    recordatorioHoras,
     creadoEn,
   );
   @override
@@ -960,9 +797,16 @@ class FilaTratamiento extends DataClass implements Insertable<FilaTratamiento> {
           other.frecuencia == this.frecuencia &&
           other.fechaInicio == this.fechaInicio &&
           other.fechaFin == this.fechaFin &&
-          other.profesionalId == this.profesionalId &&
+          other.via == this.via &&
+          other.presentacion == this.presentacion &&
+          other.dosisCantidad == this.dosisCantidad &&
+          other.dosisUnidad == this.dosisUnidad &&
+          other.indicacion == this.indicacion &&
+          other.profesionalNombre == this.profesionalNombre &&
+          other.profesionalEspecialidad == this.profesionalEspecialidad &&
           other.activo == this.activo &&
           other.pendiente == this.pendiente &&
+          other.recordatorioHoras == this.recordatorioHoras &&
           other.creadoEn == this.creadoEn);
 }
 
@@ -974,9 +818,16 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
   final Value<String> frecuencia;
   final Value<DateTime> fechaInicio;
   final Value<DateTime?> fechaFin;
-  final Value<String?> profesionalId;
+  final Value<String?> via;
+  final Value<String?> presentacion;
+  final Value<double?> dosisCantidad;
+  final Value<String?> dosisUnidad;
+  final Value<String?> indicacion;
+  final Value<String?> profesionalNombre;
+  final Value<String?> profesionalEspecialidad;
   final Value<bool> activo;
   final Value<bool> pendiente;
+  final Value<String?> recordatorioHoras;
   final Value<DateTime> creadoEn;
   final Value<int> rowid;
   const TratamientosCompanion({
@@ -987,9 +838,16 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     this.frecuencia = const Value.absent(),
     this.fechaInicio = const Value.absent(),
     this.fechaFin = const Value.absent(),
-    this.profesionalId = const Value.absent(),
+    this.via = const Value.absent(),
+    this.presentacion = const Value.absent(),
+    this.dosisCantidad = const Value.absent(),
+    this.dosisUnidad = const Value.absent(),
+    this.indicacion = const Value.absent(),
+    this.profesionalNombre = const Value.absent(),
+    this.profesionalEspecialidad = const Value.absent(),
     this.activo = const Value.absent(),
     this.pendiente = const Value.absent(),
+    this.recordatorioHoras = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1001,9 +859,16 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     required String frecuencia,
     required DateTime fechaInicio,
     this.fechaFin = const Value.absent(),
-    this.profesionalId = const Value.absent(),
+    this.via = const Value.absent(),
+    this.presentacion = const Value.absent(),
+    this.dosisCantidad = const Value.absent(),
+    this.dosisUnidad = const Value.absent(),
+    this.indicacion = const Value.absent(),
+    this.profesionalNombre = const Value.absent(),
+    this.profesionalEspecialidad = const Value.absent(),
     this.activo = const Value.absent(),
     this.pendiente = const Value.absent(),
+    this.recordatorioHoras = const Value.absent(),
     this.creadoEn = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1020,9 +885,16 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     Expression<String>? frecuencia,
     Expression<DateTime>? fechaInicio,
     Expression<DateTime>? fechaFin,
-    Expression<String>? profesionalId,
+    Expression<String>? via,
+    Expression<String>? presentacion,
+    Expression<double>? dosisCantidad,
+    Expression<String>? dosisUnidad,
+    Expression<String>? indicacion,
+    Expression<String>? profesionalNombre,
+    Expression<String>? profesionalEspecialidad,
     Expression<bool>? activo,
     Expression<bool>? pendiente,
+    Expression<String>? recordatorioHoras,
     Expression<DateTime>? creadoEn,
     Expression<int>? rowid,
   }) {
@@ -1034,9 +906,17 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
       if (frecuencia != null) 'frecuencia': frecuencia,
       if (fechaInicio != null) 'fecha_inicio': fechaInicio,
       if (fechaFin != null) 'fecha_fin': fechaFin,
-      if (profesionalId != null) 'profesional_id': profesionalId,
+      if (via != null) 'via': via,
+      if (presentacion != null) 'presentacion': presentacion,
+      if (dosisCantidad != null) 'dosis_cantidad': dosisCantidad,
+      if (dosisUnidad != null) 'dosis_unidad': dosisUnidad,
+      if (indicacion != null) 'indicacion': indicacion,
+      if (profesionalNombre != null) 'profesional_nombre': profesionalNombre,
+      if (profesionalEspecialidad != null)
+        'profesional_especialidad': profesionalEspecialidad,
       if (activo != null) 'activo': activo,
       if (pendiente != null) 'pendiente': pendiente,
+      if (recordatorioHoras != null) 'recordatorio_horas': recordatorioHoras,
       if (creadoEn != null) 'creado_en': creadoEn,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1050,9 +930,16 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     Value<String>? frecuencia,
     Value<DateTime>? fechaInicio,
     Value<DateTime?>? fechaFin,
-    Value<String?>? profesionalId,
+    Value<String?>? via,
+    Value<String?>? presentacion,
+    Value<double?>? dosisCantidad,
+    Value<String?>? dosisUnidad,
+    Value<String?>? indicacion,
+    Value<String?>? profesionalNombre,
+    Value<String?>? profesionalEspecialidad,
     Value<bool>? activo,
     Value<bool>? pendiente,
+    Value<String?>? recordatorioHoras,
     Value<DateTime>? creadoEn,
     Value<int>? rowid,
   }) {
@@ -1064,9 +951,17 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
       frecuencia: frecuencia ?? this.frecuencia,
       fechaInicio: fechaInicio ?? this.fechaInicio,
       fechaFin: fechaFin ?? this.fechaFin,
-      profesionalId: profesionalId ?? this.profesionalId,
+      via: via ?? this.via,
+      presentacion: presentacion ?? this.presentacion,
+      dosisCantidad: dosisCantidad ?? this.dosisCantidad,
+      dosisUnidad: dosisUnidad ?? this.dosisUnidad,
+      indicacion: indicacion ?? this.indicacion,
+      profesionalNombre: profesionalNombre ?? this.profesionalNombre,
+      profesionalEspecialidad:
+          profesionalEspecialidad ?? this.profesionalEspecialidad,
       activo: activo ?? this.activo,
       pendiente: pendiente ?? this.pendiente,
+      recordatorioHoras: recordatorioHoras ?? this.recordatorioHoras,
       creadoEn: creadoEn ?? this.creadoEn,
       rowid: rowid ?? this.rowid,
     );
@@ -1096,14 +991,37 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
     if (fechaFin.present) {
       map['fecha_fin'] = Variable<DateTime>(fechaFin.value);
     }
-    if (profesionalId.present) {
-      map['profesional_id'] = Variable<String>(profesionalId.value);
+    if (via.present) {
+      map['via'] = Variable<String>(via.value);
+    }
+    if (presentacion.present) {
+      map['presentacion'] = Variable<String>(presentacion.value);
+    }
+    if (dosisCantidad.present) {
+      map['dosis_cantidad'] = Variable<double>(dosisCantidad.value);
+    }
+    if (dosisUnidad.present) {
+      map['dosis_unidad'] = Variable<String>(dosisUnidad.value);
+    }
+    if (indicacion.present) {
+      map['indicacion'] = Variable<String>(indicacion.value);
+    }
+    if (profesionalNombre.present) {
+      map['profesional_nombre'] = Variable<String>(profesionalNombre.value);
+    }
+    if (profesionalEspecialidad.present) {
+      map['profesional_especialidad'] = Variable<String>(
+        profesionalEspecialidad.value,
+      );
     }
     if (activo.present) {
       map['activo'] = Variable<bool>(activo.value);
     }
     if (pendiente.present) {
       map['pendiente'] = Variable<bool>(pendiente.value);
+    }
+    if (recordatorioHoras.present) {
+      map['recordatorio_horas'] = Variable<String>(recordatorioHoras.value);
     }
     if (creadoEn.present) {
       map['creado_en'] = Variable<DateTime>(creadoEn.value);
@@ -1124,9 +1042,16 @@ class TratamientosCompanion extends UpdateCompanion<FilaTratamiento> {
           ..write('frecuencia: $frecuencia, ')
           ..write('fechaInicio: $fechaInicio, ')
           ..write('fechaFin: $fechaFin, ')
-          ..write('profesionalId: $profesionalId, ')
+          ..write('via: $via, ')
+          ..write('presentacion: $presentacion, ')
+          ..write('dosisCantidad: $dosisCantidad, ')
+          ..write('dosisUnidad: $dosisUnidad, ')
+          ..write('indicacion: $indicacion, ')
+          ..write('profesionalNombre: $profesionalNombre, ')
+          ..write('profesionalEspecialidad: $profesionalEspecialidad, ')
           ..write('activo: $activo, ')
           ..write('pendiente: $pendiente, ')
+          ..write('recordatorioHoras: $recordatorioHoras, ')
           ..write('creadoEn: $creadoEn, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2217,7 +2142,6 @@ class AjustesCompanion extends UpdateCompanion<FilaAjuste> {
 abstract class _$BaseLocal extends GeneratedDatabase {
   _$BaseLocal(QueryExecutor e) : super(e);
   $BaseLocalManager get managers => $BaseLocalManager(this);
-  late final $ProfesionalesTable profesionales = $ProfesionalesTable(this);
   late final $TratamientosTable tratamientos = $TratamientosTable(this);
   late final $CambiosTable cambios = $CambiosTable(this);
   late final $AdjuntosTable adjuntos = $AdjuntosTable(this);
@@ -2227,7 +2151,6 @@ abstract class _$BaseLocal extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-    profesionales,
     tratamientos,
     cambios,
     adjuntos,
@@ -2235,255 +2158,6 @@ abstract class _$BaseLocal extends GeneratedDatabase {
   ];
 }
 
-typedef $$ProfesionalesTableCreateCompanionBuilder =
-    ProfesionalesCompanion Function({
-      required String id,
-      required String usuarioId,
-      required String nombre,
-      required String especialidad,
-      Value<bool> activo,
-      Value<bool> pendiente,
-      Value<DateTime> creadoEn,
-      Value<int> rowid,
-    });
-typedef $$ProfesionalesTableUpdateCompanionBuilder =
-    ProfesionalesCompanion Function({
-      Value<String> id,
-      Value<String> usuarioId,
-      Value<String> nombre,
-      Value<String> especialidad,
-      Value<bool> activo,
-      Value<bool> pendiente,
-      Value<DateTime> creadoEn,
-      Value<int> rowid,
-    });
-
-class $$ProfesionalesTableFilterComposer
-    extends Composer<_$BaseLocal, $ProfesionalesTable> {
-  $$ProfesionalesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get usuarioId => $composableBuilder(
-    column: $table.usuarioId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get nombre => $composableBuilder(
-    column: $table.nombre,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get especialidad => $composableBuilder(
-    column: $table.especialidad,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get activo => $composableBuilder(
-    column: $table.activo,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get pendiente => $composableBuilder(
-    column: $table.pendiente,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get creadoEn => $composableBuilder(
-    column: $table.creadoEn,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$ProfesionalesTableOrderingComposer
-    extends Composer<_$BaseLocal, $ProfesionalesTable> {
-  $$ProfesionalesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get usuarioId => $composableBuilder(
-    column: $table.usuarioId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get nombre => $composableBuilder(
-    column: $table.nombre,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get especialidad => $composableBuilder(
-    column: $table.especialidad,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get activo => $composableBuilder(
-    column: $table.activo,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get pendiente => $composableBuilder(
-    column: $table.pendiente,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get creadoEn => $composableBuilder(
-    column: $table.creadoEn,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$ProfesionalesTableAnnotationComposer
-    extends Composer<_$BaseLocal, $ProfesionalesTable> {
-  $$ProfesionalesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get usuarioId =>
-      $composableBuilder(column: $table.usuarioId, builder: (column) => column);
-
-  GeneratedColumn<String> get nombre =>
-      $composableBuilder(column: $table.nombre, builder: (column) => column);
-
-  GeneratedColumn<String> get especialidad => $composableBuilder(
-    column: $table.especialidad,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<bool> get activo =>
-      $composableBuilder(column: $table.activo, builder: (column) => column);
-
-  GeneratedColumn<bool> get pendiente =>
-      $composableBuilder(column: $table.pendiente, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get creadoEn =>
-      $composableBuilder(column: $table.creadoEn, builder: (column) => column);
-}
-
-class $$ProfesionalesTableTableManager
-    extends
-        RootTableManager<
-          _$BaseLocal,
-          $ProfesionalesTable,
-          FilaProfesional,
-          $$ProfesionalesTableFilterComposer,
-          $$ProfesionalesTableOrderingComposer,
-          $$ProfesionalesTableAnnotationComposer,
-          $$ProfesionalesTableCreateCompanionBuilder,
-          $$ProfesionalesTableUpdateCompanionBuilder,
-          (
-            FilaProfesional,
-            BaseReferences<_$BaseLocal, $ProfesionalesTable, FilaProfesional>,
-          ),
-          FilaProfesional,
-          PrefetchHooks Function()
-        > {
-  $$ProfesionalesTableTableManager(_$BaseLocal db, $ProfesionalesTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ProfesionalesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ProfesionalesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ProfesionalesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> usuarioId = const Value.absent(),
-                Value<String> nombre = const Value.absent(),
-                Value<String> especialidad = const Value.absent(),
-                Value<bool> activo = const Value.absent(),
-                Value<bool> pendiente = const Value.absent(),
-                Value<DateTime> creadoEn = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => ProfesionalesCompanion(
-                id: id,
-                usuarioId: usuarioId,
-                nombre: nombre,
-                especialidad: especialidad,
-                activo: activo,
-                pendiente: pendiente,
-                creadoEn: creadoEn,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String usuarioId,
-                required String nombre,
-                required String especialidad,
-                Value<bool> activo = const Value.absent(),
-                Value<bool> pendiente = const Value.absent(),
-                Value<DateTime> creadoEn = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => ProfesionalesCompanion.insert(
-                id: id,
-                usuarioId: usuarioId,
-                nombre: nombre,
-                especialidad: especialidad,
-                activo: activo,
-                pendiente: pendiente,
-                creadoEn: creadoEn,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$ProfesionalesTable, FilaProfesional>(table),
-                  BaseReferences<
-                    _$BaseLocal,
-                    $ProfesionalesTable,
-                    FilaProfesional
-                  >(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$ProfesionalesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$BaseLocal,
-      $ProfesionalesTable,
-      FilaProfesional,
-      $$ProfesionalesTableFilterComposer,
-      $$ProfesionalesTableOrderingComposer,
-      $$ProfesionalesTableAnnotationComposer,
-      $$ProfesionalesTableCreateCompanionBuilder,
-      $$ProfesionalesTableUpdateCompanionBuilder,
-      (
-        FilaProfesional,
-        BaseReferences<_$BaseLocal, $ProfesionalesTable, FilaProfesional>,
-      ),
-      FilaProfesional,
-      PrefetchHooks Function()
-    >;
 typedef $$TratamientosTableCreateCompanionBuilder =
     TratamientosCompanion Function({
       required String id,
@@ -2493,9 +2167,16 @@ typedef $$TratamientosTableCreateCompanionBuilder =
       required String frecuencia,
       required DateTime fechaInicio,
       Value<DateTime?> fechaFin,
-      Value<String?> profesionalId,
+      Value<String?> via,
+      Value<String?> presentacion,
+      Value<double?> dosisCantidad,
+      Value<String?> dosisUnidad,
+      Value<String?> indicacion,
+      Value<String?> profesionalNombre,
+      Value<String?> profesionalEspecialidad,
       Value<bool> activo,
       Value<bool> pendiente,
+      Value<String?> recordatorioHoras,
       Value<DateTime> creadoEn,
       Value<int> rowid,
     });
@@ -2508,9 +2189,16 @@ typedef $$TratamientosTableUpdateCompanionBuilder =
       Value<String> frecuencia,
       Value<DateTime> fechaInicio,
       Value<DateTime?> fechaFin,
-      Value<String?> profesionalId,
+      Value<String?> via,
+      Value<String?> presentacion,
+      Value<double?> dosisCantidad,
+      Value<String?> dosisUnidad,
+      Value<String?> indicacion,
+      Value<String?> profesionalNombre,
+      Value<String?> profesionalEspecialidad,
       Value<bool> activo,
       Value<bool> pendiente,
+      Value<String?> recordatorioHoras,
       Value<DateTime> creadoEn,
       Value<int> rowid,
     });
@@ -2559,8 +2247,38 @@ class $$TratamientosTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get profesionalId => $composableBuilder(
-    column: $table.profesionalId,
+  ColumnFilters<String> get via => $composableBuilder(
+    column: $table.via,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get presentacion => $composableBuilder(
+    column: $table.presentacion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get dosisCantidad => $composableBuilder(
+    column: $table.dosisCantidad,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dosisUnidad => $composableBuilder(
+    column: $table.dosisUnidad,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get indicacion => $composableBuilder(
+    column: $table.indicacion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get profesionalNombre => $composableBuilder(
+    column: $table.profesionalNombre,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get profesionalEspecialidad => $composableBuilder(
+    column: $table.profesionalEspecialidad,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2571,6 +2289,11 @@ class $$TratamientosTableFilterComposer
 
   ColumnFilters<bool> get pendiente => $composableBuilder(
     column: $table.pendiente,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recordatorioHoras => $composableBuilder(
+    column: $table.recordatorioHoras,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2624,8 +2347,38 @@ class $$TratamientosTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get profesionalId => $composableBuilder(
-    column: $table.profesionalId,
+  ColumnOrderings<String> get via => $composableBuilder(
+    column: $table.via,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get presentacion => $composableBuilder(
+    column: $table.presentacion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get dosisCantidad => $composableBuilder(
+    column: $table.dosisCantidad,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dosisUnidad => $composableBuilder(
+    column: $table.dosisUnidad,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get indicacion => $composableBuilder(
+    column: $table.indicacion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get profesionalNombre => $composableBuilder(
+    column: $table.profesionalNombre,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get profesionalEspecialidad => $composableBuilder(
+    column: $table.profesionalEspecialidad,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2636,6 +2389,11 @@ class $$TratamientosTableOrderingComposer
 
   ColumnOrderings<bool> get pendiente => $composableBuilder(
     column: $table.pendiente,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recordatorioHoras => $composableBuilder(
+    column: $table.recordatorioHoras,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2679,8 +2437,36 @@ class $$TratamientosTableAnnotationComposer
   GeneratedColumn<DateTime> get fechaFin =>
       $composableBuilder(column: $table.fechaFin, builder: (column) => column);
 
-  GeneratedColumn<String> get profesionalId => $composableBuilder(
-    column: $table.profesionalId,
+  GeneratedColumn<String> get via =>
+      $composableBuilder(column: $table.via, builder: (column) => column);
+
+  GeneratedColumn<String> get presentacion => $composableBuilder(
+    column: $table.presentacion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get dosisCantidad => $composableBuilder(
+    column: $table.dosisCantidad,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dosisUnidad => $composableBuilder(
+    column: $table.dosisUnidad,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get indicacion => $composableBuilder(
+    column: $table.indicacion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get profesionalNombre => $composableBuilder(
+    column: $table.profesionalNombre,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get profesionalEspecialidad => $composableBuilder(
+    column: $table.profesionalEspecialidad,
     builder: (column) => column,
   );
 
@@ -2689,6 +2475,11 @@ class $$TratamientosTableAnnotationComposer
 
   GeneratedColumn<bool> get pendiente =>
       $composableBuilder(column: $table.pendiente, builder: (column) => column);
+
+  GeneratedColumn<String> get recordatorioHoras => $composableBuilder(
+    column: $table.recordatorioHoras,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get creadoEn =>
       $composableBuilder(column: $table.creadoEn, builder: (column) => column);
@@ -2732,9 +2523,16 @@ class $$TratamientosTableTableManager
                 Value<String> frecuencia = const Value.absent(),
                 Value<DateTime> fechaInicio = const Value.absent(),
                 Value<DateTime?> fechaFin = const Value.absent(),
-                Value<String?> profesionalId = const Value.absent(),
+                Value<String?> via = const Value.absent(),
+                Value<String?> presentacion = const Value.absent(),
+                Value<double?> dosisCantidad = const Value.absent(),
+                Value<String?> dosisUnidad = const Value.absent(),
+                Value<String?> indicacion = const Value.absent(),
+                Value<String?> profesionalNombre = const Value.absent(),
+                Value<String?> profesionalEspecialidad = const Value.absent(),
                 Value<bool> activo = const Value.absent(),
                 Value<bool> pendiente = const Value.absent(),
+                Value<String?> recordatorioHoras = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TratamientosCompanion(
@@ -2745,9 +2543,16 @@ class $$TratamientosTableTableManager
                 frecuencia: frecuencia,
                 fechaInicio: fechaInicio,
                 fechaFin: fechaFin,
-                profesionalId: profesionalId,
+                via: via,
+                presentacion: presentacion,
+                dosisCantidad: dosisCantidad,
+                dosisUnidad: dosisUnidad,
+                indicacion: indicacion,
+                profesionalNombre: profesionalNombre,
+                profesionalEspecialidad: profesionalEspecialidad,
                 activo: activo,
                 pendiente: pendiente,
+                recordatorioHoras: recordatorioHoras,
                 creadoEn: creadoEn,
                 rowid: rowid,
               ),
@@ -2760,9 +2565,16 @@ class $$TratamientosTableTableManager
                 required String frecuencia,
                 required DateTime fechaInicio,
                 Value<DateTime?> fechaFin = const Value.absent(),
-                Value<String?> profesionalId = const Value.absent(),
+                Value<String?> via = const Value.absent(),
+                Value<String?> presentacion = const Value.absent(),
+                Value<double?> dosisCantidad = const Value.absent(),
+                Value<String?> dosisUnidad = const Value.absent(),
+                Value<String?> indicacion = const Value.absent(),
+                Value<String?> profesionalNombre = const Value.absent(),
+                Value<String?> profesionalEspecialidad = const Value.absent(),
                 Value<bool> activo = const Value.absent(),
                 Value<bool> pendiente = const Value.absent(),
+                Value<String?> recordatorioHoras = const Value.absent(),
                 Value<DateTime> creadoEn = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TratamientosCompanion.insert(
@@ -2773,9 +2585,16 @@ class $$TratamientosTableTableManager
                 frecuencia: frecuencia,
                 fechaInicio: fechaInicio,
                 fechaFin: fechaFin,
-                profesionalId: profesionalId,
+                via: via,
+                presentacion: presentacion,
+                dosisCantidad: dosisCantidad,
+                dosisUnidad: dosisUnidad,
+                indicacion: indicacion,
+                profesionalNombre: profesionalNombre,
+                profesionalEspecialidad: profesionalEspecialidad,
                 activo: activo,
                 pendiente: pendiente,
+                recordatorioHoras: recordatorioHoras,
                 creadoEn: creadoEn,
                 rowid: rowid,
               ),
@@ -3623,8 +3442,6 @@ typedef $$AjustesTableProcessedTableManager =
 class $BaseLocalManager {
   final _$BaseLocal _db;
   $BaseLocalManager(this._db);
-  $$ProfesionalesTableTableManager get profesionales =>
-      $$ProfesionalesTableTableManager(_db, _db.profesionales);
   $$TratamientosTableTableManager get tratamientos =>
       $$TratamientosTableTableManager(_db, _db.tratamientos);
   $$CambiosTableTableManager get cambios =>

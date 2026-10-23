@@ -21,9 +21,8 @@ type respuestaRespaldo struct {
 // manejarCrearRespaldo guarda una "foto" completa de los datos del usuario.
 // El cuerpo es el snapshot (el servidor no lo interpreta).
 func (s *Servidor) manejarCrearRespaldo(w http.ResponseWriter, r *http.Request) {
-	actual, ok := usuarioDesdeContexto(r.Context())
+	actual, ok := usuarioActual(w, r)
 	if !ok {
-		escribirError(w, http.StatusUnauthorized, "no_autenticado", "sesión no válida")
 		return
 	}
 	datos, err := io.ReadAll(http.MaxBytesReader(w, r.Body, limiteRespaldo))
@@ -45,9 +44,8 @@ func (s *Servidor) manejarCrearRespaldo(w http.ResponseWriter, r *http.Request) 
 
 // manejarRestaurarRespaldo devuelve el contenido del último respaldo tal cual.
 func (s *Servidor) manejarRestaurarRespaldo(w http.ResponseWriter, r *http.Request) {
-	actual, ok := usuarioDesdeContexto(r.Context())
+	actual, ok := usuarioActual(w, r)
 	if !ok {
-		escribirError(w, http.StatusUnauthorized, "no_autenticado", "sesión no válida")
 		return
 	}
 	lector, respaldo, err := s.respaldos.Restaurar(r.Context(), actual.ID)
@@ -69,9 +67,8 @@ func (s *Servidor) manejarRestaurarRespaldo(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *Servidor) manejarListarRespaldos(w http.ResponseWriter, r *http.Request) {
-	actual, ok := usuarioDesdeContexto(r.Context())
+	actual, ok := usuarioActual(w, r)
 	if !ok {
-		escribirError(w, http.StatusUnauthorized, "no_autenticado", "sesión no válida")
 		return
 	}
 	respaldos, err := s.respaldos.Historial(r.Context(), actual.ID)

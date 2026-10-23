@@ -168,6 +168,16 @@ flutter run --dart-define=API_BASE_URL=http://192.168.1.68:8080
 Cambiá la IP por la de tu Mac (`ipconfig getifaddr en0`). El iPhone y la Mac
 deben estar en el **mismo WiFi**.
 
+Al entrar por la IP (no por `localhost`), iOS pide permiso de **red local** la
+primera vez. Aceptalo cuando aparezca el aviso ("quiere buscar y conectarse a
+dispositivos de tu red local"). Está en
+**Ajustes → Privacidad y seguridad → Red local**.
+
+> Sin ese permiso la app **no se conecta y no avisa nada**: iOS bloquea la
+> conexión en silencio. Si te pasa, revisá que `NSLocalNetworkUsageDescription`
+> esté en `app/ios/Runner/Info.plist` y que el permiso esté activado en el
+> teléfono. El simulador no suffer esto (usa `localhost`).
+
 La primera vez, en el iPhone puede aparecer un aviso de desarrollador no
 confiable: **Ajustes → General → VPN y administración de dispositivos → confiar**
 en tu Apple ID.
@@ -184,6 +194,7 @@ en tu Apple ID.
 |---|---|---|
 | El teléfono no aparece en `flutter devices` | SDK/depuración USB | Instalar SDK; activar depuración USB; autorizar el equipo |
 | La app dice "No se pudo conectar" | IP equivocada o red distinta | Verificar que el teléfono y la computadora estén en el **mismo WiFi**; usar la IP correcta |
+| En el iPhone no conecta y **no muestra aviso** | Falta el permiso de **red local** (iOS 14+) | Ajustes → Privacidad y seguridad → Red local → activar. Verificar `NSLocalNetworkUsageDescription` en `Info.plist` |
 | `http://…/salud` no abre en el teléfono | Firewall o aislamiento de red | Permitir el puerto 8080; desactivar "aislamiento de clientes" en el router |
 | La IP cambió | DHCP | Volver a averiguar la IP, o reservarla en el router |
 | Error de "cleartext not permitted" | HTTP en Android/iOS | Ya resuelto para **debug** (ver `AndroidManifest.xml` de debug y `Info.plist`) |

@@ -18,6 +18,7 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
   final _email = TextEditingController();
   final _clave = TextEditingController();
   bool _cargando = false;
+  bool _verClave = false;
   String? _error;
 
   @override
@@ -85,11 +86,21 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
                         const SizedBox(height: 12),
                         TextField(
                           controller: _clave,
-                          obscureText: true,
+                          obscureText: !_verClave,
                           onSubmitted: (_) => _crear(),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Contraseña',
                             helperText: 'Al menos 8 caracteres',
+                            suffixIcon: IconButton(
+                              tooltip: _verClave
+                                  ? 'Ocultar contraseña'
+                                  : 'Mostrar contraseña',
+                              onPressed: () =>
+                                  setState(() => _verClave = !_verClave),
+                              icon: Icon(_verClave
+                                  ? Icons.visibility_off
+                                  : Icons.visibility),
+                            ),
                           ),
                         ),
                         if (_error != null) ...[

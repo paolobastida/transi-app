@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  La base local (transi.sqlite) contiene datos clínicos, fotos y notas de voz
+  SIN cifrar. Si el respaldo del sistema la copiara, esos datos viajarían a la
+  cuenta de Google del usuario en claro. Por eso se desactiva por completo y
+  además se excluyen las rutas de forma explícita como segunda barrera.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

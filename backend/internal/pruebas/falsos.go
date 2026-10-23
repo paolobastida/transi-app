@@ -104,55 +104,17 @@ func (TokenizadorFalso) ValidarAcceso(token string) (puertos.UsuarioAutenticado,
 	return puertos.UsuarioAutenticado{ID: partes[1], Email: partes[2]}, nil
 }
 
-// ProfesionalesFalso es un puertos.ProfesionalRepositorio en memoria.
-type ProfesionalesFalso struct {
-	PorID map[string]dominio.Profesional
+// GeneradorRefrescoFalso emite refresh tokens deterministas ("refresco-1",
+// "refresco-2", …) con su hash para los tests.
+type GeneradorRefrescoFalso struct{ contador int }
+
+func (g *GeneradorRefrescoFalso) Generar() (string, string, error) {
+	g.contador++
+	token := fmt.Sprintf("refresco-%d", g.contador)
+	return token, g.Hash(token), nil
 }
 
-func NuevoProfesionalesFalso() *ProfesionalesFalso {
-	return &ProfesionalesFalso{PorID: map[string]dominio.Profesional{}}
-}
-
-func (r *ProfesionalesFalso) Crear(_ context.Context, p dominio.Profesional) error {
-	r.PorID[p.ID] = p
-	return nil
-}
-
-func (r *ProfesionalesFalso) ListarPorUsuario(_ context.Context, usuarioID string) ([]dominio.Profesional, error) {
-	var resultado []dominio.Profesional
-	for _, p := range r.PorID {
-		if p.UsuarioID == usuarioID && p.Activo {
-			resultado = append(resultado, p)
-		}
-	}
-	return resultado, nil
-}
-
-func (r *ProfesionalesFalso) BuscarPorID(_ context.Context, id, usuarioID string) (*dominio.Profesional, error) {
-	p, ok := r.PorID[id]
-	if !ok || p.UsuarioID != usuarioID {
-		return nil, puertos.ErrNoEncontrado
-	}
-	return &p, nil
-}
-
-func (r *ProfesionalesFalso) Actualizar(_ context.Context, p dominio.Profesional) error {
-	if _, ok := r.PorID[p.ID]; !ok {
-		return puertos.ErrNoEncontrado
-	}
-	r.PorID[p.ID] = p
-	return nil
-}
-
-func (r *ProfesionalesFalso) Desactivar(_ context.Context, id, usuarioID string) error {
-	p, ok := r.PorID[id]
-	if !ok || p.UsuarioID != usuarioID || !p.Activo {
-		return puertos.ErrNoEncontrado
-	}
-	p.Activo = false
-	r.PorID[id] = p
-	return nil
-}
+func (g *GeneradorRefrescoFalso) Hash(token string) string { return "hash:" + token }
 
 // TratamientosFalso es un puertos.TratamientoRepositorio en memoria.
 type TratamientosFalso struct {

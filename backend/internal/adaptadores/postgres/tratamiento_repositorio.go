@@ -21,15 +21,21 @@ func NuevoTratamientoRepositorio(c *Conexion) *TratamientoRepositorio {
 }
 
 const columnasTratamiento = `id, usuario_id, nombre, dosis, frecuencia,
-	fecha_inicio, fecha_fin, profesional_id, activo`
+	fecha_inicio, fecha_fin, via, presentacion,
+	dosis_cantidad, dosis_unidad, indicacion,
+	profesional_nombre, profesional_especialidad, activo`
 
 func (r *TratamientoRepositorio) Crear(ctx context.Context, t dominio.Tratamiento) error {
 	_, err := r.conexion.pool.Exec(ctx,
 		`INSERT INTO tratamientos
-		 (id, usuario_id, nombre, dosis, frecuencia, fecha_inicio, fecha_fin, profesional_id, activo)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		 (id, usuario_id, nombre, dosis, frecuencia, fecha_inicio, fecha_fin,
+		  via, presentacion, dosis_cantidad, dosis_unidad, indicacion,
+		  profesional_nombre, profesional_especialidad, activo)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
 		t.ID, t.UsuarioID, t.Nombre, t.Dosis, t.Frecuencia,
-		t.FechaInicio, t.FechaFin, t.ProfesionalID, t.Activo,
+		t.FechaInicio, t.FechaFin,
+		t.Via, t.Presentacion, t.DosisCantidad, t.DosisUnidad, t.Indicacion,
+		t.ProfesionalNombre, t.ProfesionalEspecialidad, t.Activo,
 	)
 	return err
 }
@@ -75,7 +81,7 @@ func (r *TratamientoRepositorio) ListarPorUsuario(ctx context.Context, usuarioID
 func (r *TratamientoRepositorio) BuscarPorID(ctx context.Context, id, usuarioID string) (*dominio.Tratamiento, error) {
 	fila := r.conexion.pool.QueryRow(ctx,
 		`SELECT `+columnasTratamiento+`
-		 FROM tratamientos WHERE id = $1 AND usuario_id = $2`,
+		 FROM tratamientos WHERE id = $1 AND usuario_id = $2 AND activo = true`,
 		id, usuarioID,
 	)
 	t, err := escanearTratamiento(fila)
@@ -92,10 +98,15 @@ func (r *TratamientoRepositorio) Actualizar(ctx context.Context, t dominio.Trata
 	etiqueta, err := r.conexion.pool.Exec(ctx,
 		`UPDATE tratamientos
 		 SET nombre = $1, dosis = $2, frecuencia = $3,
-		     fecha_inicio = $4, fecha_fin = $5, profesional_id = $6
-		 WHERE id = $7 AND usuario_id = $8`,
+		     fecha_inicio = $4, fecha_fin = $5,
+		     via = $6, presentacion = $7, dosis_cantidad = $8,
+		     dosis_unidad = $9, indicacion = $10,
+		     profesional_nombre = $11, profesional_especialidad = $12
+		 WHERE id = $13 AND usuario_id = $14 AND activo = true`,
 		t.Nombre, t.Dosis, t.Frecuencia, t.FechaInicio, t.FechaFin,
-		t.ProfesionalID, t.ID, t.UsuarioID,
+		t.Via, t.Presentacion, t.DosisCantidad, t.DosisUnidad, t.Indicacion,
+		t.ProfesionalNombre, t.ProfesionalEspecialidad,
+		t.ID, t.UsuarioID,
 	)
 	if err != nil {
 		return err
@@ -126,7 +137,10 @@ func escanearTratamiento(fila pgx.Row) (dominio.Tratamiento, error) {
 	var t dominio.Tratamiento
 	err := fila.Scan(
 		&t.ID, &t.UsuarioID, &t.Nombre, &t.Dosis, &t.Frecuencia,
-		&t.FechaInicio, &t.FechaFin, &t.ProfesionalID, &t.Activo,
+		&t.FechaInicio, &t.FechaFin,
+		&t.Via, &t.Presentacion, &t.DosisCantidad, &t.DosisUnidad, &t.Indicacion,
+		&t.ProfesionalNombre, &t.ProfesionalEspecialidad,
+		&t.Activo,
 	)
 	return t, err
 }

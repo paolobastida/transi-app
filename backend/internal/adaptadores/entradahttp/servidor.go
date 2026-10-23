@@ -15,64 +15,83 @@ import (
 
 // Servidor arma las rutas de la API.
 type Servidor struct {
-	salud         casosdeuso.VerificarSalud
-	identidad     casosdeuso.Identidad
-	profesionales casosdeuso.Profesionales
-	tratamientos  casosdeuso.Tratamientos
-	cambios       casosdeuso.Cambios
-	respaldos     casosdeuso.Respaldos
-	tokens        puertos.Tokenizador
-	mux           *http.ServeMux
+	salud        casosdeuso.VerificarSalud
+	identidad    casosdeuso.Identidad
+	tratamientos casosdeuso.Tratamientos
+	cambios      casosdeuso.Cambios
+	respaldos    casosdeuso.Respaldos
+	tokens       puertos.Tokenizador
+	mux          *http.ServeMux
+	limites      *Limitador
 }
 
 func NuevoServidor(
 	salud casosdeuso.VerificarSalud,
 	identidad casosdeuso.Identidad,
-	profesionales casosdeuso.Profesionales,
 	tratamientos casosdeuso.Tratamientos,
 	cambios casosdeuso.Cambios,
 	respaldos casosdeuso.Respaldos,
 	tokens puertos.Tokenizador,
+	limites *Limitador,
 ) *Servidor {
 	s := &Servidor{
-		salud:         salud,
-		identidad:     identidad,
-		profesionales: profesionales,
-		tratamientos:  tratamientos,
-		cambios:       cambios,
-		respaldos:     respaldos,
-		tokens:        tokens,
-		mux:           http.NewServeMux(),
+		salud:        salud,
+		identidad:    identidad,
+		tratamientos: tratamientos,
+		cambios:      cambios,
+		respaldos:    respaldos,
+		tokens:       tokens,
+		mux:          http.NewServeMux(),
+		limites:      limites,
 	}
 	s.rutas()
 	return s
 }
 
 // Handler expone el enrutador listo para http.Server.
-func (s *Servidor) Handler() http.Handler { return s.mux }
+func (s *Servidor) Handler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Encabezados de endurecimiento en todas las respuestas. Las de
+		// /cambios, /tratamientos y /respaldos llevan datos de salud: no deben
+		// quedar cacheadas ni reinterpretarse como otro tipo de contenido.
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Referrer-Policy", "no-referrer")
+		s.mux.ServeHTTP(w, r)
+	})
+}
 
 func (s *Servidor) rutas() {
 	s.mux.HandleFunc("GET /salud", s.manejarSalud)
 
-	s.mux.HandleFunc("POST /auth/registro", s.manejarRegistro)
-	s.mux.HandleFunc("POST /auth/login", s.manejarLogin)
-	s.mux.HandleFunc("POST /auth/refresh", s.manejarRefresh)
-	s.mux.HandleFunc("POST /auth/logout", s.manejarLogout)
+	// /auth/* lleva límite de intentos: sin esto cada login dispara un bcrypt
+	// y alcanza tanto para fuerza bruta como para tumbar el servicio por CPU.
+	s.mux.HandleFunc("POST /auth/registro",
+		conLimiteIntentos(s.limites,
+			conLimiteCuerpo(limiteCuerpoJSON, s.manejarRegistro)))
+	s.mux.HandleFunc("POST /auth/login",
+		conLimiteIntentos(s.limites,
+			conLimiteCuerpo(limiteCuerpoJSON, s.manejarLogin)))
+	s.mux.HandleFunc("POST /auth/refresh",
+		conLimiteIntentos(s.limites,
+			conLimiteCuerpo(limiteCuerpoJSON, s.manejarRefresh)))
+	s.mux.HandleFunc("POST /auth/logout",
+		conLimiteCuerpo(limiteCuerpoJSON, s.manejarLogout))
 	s.mux.HandleFunc("GET /auth/yo", s.conAuth(s.manejarYo))
 
-	s.mux.HandleFunc("POST /profesionales", s.conAuth(s.manejarCrearProfesional))
-	s.mux.HandleFunc("GET /profesionales", s.conAuth(s.manejarListarProfesionales))
-	s.mux.HandleFunc("PUT /profesionales/{id}", s.conAuth(s.manejarEditarProfesional))
-	s.mux.HandleFunc("DELETE /profesionales/{id}", s.conAuth(s.manejarDesactivarProfesional))
-
-	s.mux.HandleFunc("POST /tratamientos", s.conAuth(s.manejarCrearTratamiento))
+	s.mux.HandleFunc("POST /tratamientos",
+		s.conAuth(conLimiteCuerpo(limiteCuerpoJSON, s.manejarCrearTratamiento)))
 	s.mux.HandleFunc("GET /tratamientos", s.conAuth(s.manejarListarTratamientos))
-	s.mux.HandleFunc("PUT /tratamientos/{id}", s.conAuth(s.manejarEditarTratamiento))
+	s.mux.HandleFunc("PUT /tratamientos/{id}",
+		s.conAuth(conLimiteCuerpo(limiteCuerpoJSON, s.manejarEditarTratamiento)))
 	s.mux.HandleFunc("DELETE /tratamientos/{id}", s.conAuth(s.manejarDesactivarTratamiento))
 
-	s.mux.HandleFunc("POST /cambios", s.conAuth(s.manejarCrearCambio))
+	// multipart: el límite va en el body, antes de ParseMultipartForm.
+	s.mux.HandleFunc("POST /cambios",
+		s.conAuth(conLimiteCuerpo(limiteCuerpoMultipart, s.manejarCrearCambio)))
 	s.mux.HandleFunc("GET /cambios", s.conAuth(s.manejarListarCambios))
-	s.mux.HandleFunc("PUT /cambios/{id}", s.conAuth(s.manejarEditarCambio))
+	s.mux.HandleFunc("PUT /cambios/{id}",
+		s.conAuth(conLimiteCuerpo(limiteCuerpoMultipart, s.manejarEditarCambio)))
 	s.mux.HandleFunc("DELETE /cambios/{id}", s.conAuth(s.manejarDesactivarCambio))
 
 	s.mux.HandleFunc("PUT /respaldos", s.conAuth(s.manejarCrearRespaldo))
@@ -100,36 +119,44 @@ func escribirError(w http.ResponseWriter, codigo int, clave, mensaje string) {
 	})
 }
 
+// traduccionError describe a qué respuesta HTTP se traduce un error del núcleo.
+type traduccionError struct {
+	err     error
+	estado  int
+	codigo  string
+	mensaje string // vacío = usar err.Error()
+}
+
+// traduccionesError es la tabla de traducción error → HTTP. Una tabla (en vez
+// de un switch) mantiene la función **cerrada a modificación** y **abierta a
+// extensión**: agregar un error nuevo es agregar una fila, sin tocar la lógica.
+var traduccionesError = []traduccionError{
+	{dominio.ErrEmailInvalido, http.StatusBadRequest, "email_invalido", ""},
+	{dominio.ErrContrasenaCorta, http.StatusBadRequest, "contrasena_corta", ""},
+	{dominio.ErrContrasenaLarga, http.StatusBadRequest, "contrasena_larga", ""},
+	{dominio.ErrTratamientoIncompleto, http.StatusBadRequest, "tratamiento_incompleto", ""},
+	{dominio.ErrFechasInvalidas, http.StatusBadRequest, "fechas_invalidas", ""},
+	{dominio.ErrFechaFutura, http.StatusBadRequest, "fecha_futura", ""},
+	{dominio.ErrCambioVacio, http.StatusBadRequest, "cambio_vacio", ""},
+	{puertos.ErrConflicto, http.StatusConflict, "email_duplicado", "ese email ya está registrado"},
+	{casosdeuso.ErrCredencialesInvalidas, http.StatusUnauthorized, "credenciales_invalidas", ""},
+	{casosdeuso.ErrNoAutenticado, http.StatusUnauthorized, "no_autenticado", ""},
+	{puertos.ErrNoEncontrado, http.StatusNotFound, "no_encontrado", "el recurso no existe"},
+}
+
 // manejarError traduce los errores del núcleo a códigos HTTP. Vive en un solo
 // lugar para que todos los handlers respondan igual.
 func (s *Servidor) manejarError(w http.ResponseWriter, err error) {
-	switch {
-	case errors.Is(err, dominio.ErrEmailInvalido):
-		escribirError(w, http.StatusBadRequest, "email_invalido", err.Error())
-	case errors.Is(err, dominio.ErrContrasenaCorta):
-		escribirError(w, http.StatusBadRequest, "contrasena_corta", err.Error())
-	case errors.Is(err, dominio.ErrProfesionalIncompleto):
-		escribirError(w, http.StatusBadRequest, "profesional_incompleto", err.Error())
-	case errors.Is(err, dominio.ErrTratamientoIncompleto):
-		escribirError(w, http.StatusBadRequest, "tratamiento_incompleto", err.Error())
-	case errors.Is(err, dominio.ErrFechasInvalidas):
-		escribirError(w, http.StatusBadRequest, "fechas_invalidas", err.Error())
-	case errors.Is(err, dominio.ErrFechaFutura):
-		escribirError(w, http.StatusBadRequest, "fecha_futura", err.Error())
-	case errors.Is(err, dominio.ErrCambioVacio):
-		escribirError(w, http.StatusBadRequest, "cambio_vacio", err.Error())
-	case errors.Is(err, casosdeuso.ErrProfesionalInvalido):
-		escribirError(w, http.StatusBadRequest, "profesional_invalido", err.Error())
-	case errors.Is(err, puertos.ErrConflicto):
-		escribirError(w, http.StatusConflict, "email_duplicado", "ese email ya está registrado")
-	case errors.Is(err, casosdeuso.ErrCredencialesInvalidas):
-		escribirError(w, http.StatusUnauthorized, "credenciales_invalidas", err.Error())
-	case errors.Is(err, casosdeuso.ErrNoAutenticado):
-		escribirError(w, http.StatusUnauthorized, "no_autenticado", err.Error())
-	case errors.Is(err, puertos.ErrNoEncontrado):
-		escribirError(w, http.StatusNotFound, "no_encontrado", "el recurso no existe")
-	default:
-		slog.Error("error interno", "error", err)
-		escribirError(w, http.StatusInternalServerError, "error_interno", "ocurrió un error inesperado")
+	for _, t := range traduccionesError {
+		if errors.Is(err, t.err) {
+			mensaje := t.mensaje
+			if mensaje == "" {
+				mensaje = err.Error()
+			}
+			escribirError(w, t.estado, t.codigo, mensaje)
+			return
+		}
 	}
+	slog.Error("error interno", "error", err)
+	escribirError(w, http.StatusInternalServerError, "error_interno", "ocurrió un error inesperado")
 }

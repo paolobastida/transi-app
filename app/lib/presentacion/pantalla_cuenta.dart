@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../dependencias.dart';
+import 'formato_fecha.dart';
+import 'retroalimentacion.dart';
 
 /// P10 · Cuenta y respaldo (U3 + U16).
 class PantallaCuenta extends StatefulWidget {
@@ -31,25 +33,16 @@ class _PantallaCuentaState extends State<PantallaCuenta> {
   void _asignarFuturos() {
     final servicio = Alcance.de(context).respaldo;
     _ultimo = servicio.ultimoRespaldo();
-    _pendientes = servicio.pendientes();
+    _pendientes = servicio.pendientes(widget.usuarioId);
   }
 
   void _recargar() => setState(_asignarFuturos);
 
-  Future<void> _respaldar() async {
-    setState(() => _ocupado = true);
-    try {
-      await Alcance.de(context).respaldo.respaldar(widget.usuarioId);
-      if (mounted) _avisar('Respaldo listo');
-    } catch (e) {
-      if (mounted) _avisar('No se pudo respaldar: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _ocupado = false);
-        _recargar();
-      }
-    }
-  }
+  Future<void> _respaldar() => _ejecutar(
+        () => Alcance.de(context).respaldo.respaldar(widget.usuarioId),
+        exito: 'Respaldo listo',
+        error: 'No se pudo respaldar',
+      );
 
   Future<void> _restaurar() async {
     final confirmar = await showDialog<bool>(
@@ -74,12 +67,26 @@ class _PantallaCuentaState extends State<PantallaCuenta> {
     );
     if (!mounted || confirmar != true) return;
 
+    await _ejecutar(
+      () => Alcance.de(context).respaldo.restaurar(widget.usuarioId),
+      exito: 'Datos restaurados',
+      error: 'No se pudo restaurar',
+    );
+  }
+
+  /// Corre una acción de respaldo con el estado "ocupado" y su aviso. Evita
+  /// repetir el mismo try/catch/finally en respaldar y restaurar.
+  Future<void> _ejecutar(
+    Future<void> Function() accion, {
+    required String exito,
+    required String error,
+  }) async {
     setState(() => _ocupado = true);
     try {
-      await Alcance.de(context).respaldo.restaurar(widget.usuarioId);
-      if (mounted) _avisar('Datos restaurados');
+      await accion();
+      if (mounted) mostrarMensaje(context, exito);
     } catch (e) {
-      if (mounted) _avisar('No se pudo restaurar: $e');
+      if (mounted) mostrarError(context, '$error: $e');
     } finally {
       if (mounted) {
         setState(() => _ocupado = false);
@@ -87,10 +94,6 @@ class _PantallaCuentaState extends State<PantallaCuenta> {
       }
     }
   }
-
-  void _avisar(String mensaje) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(mensaje)),
-      );
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +118,7 @@ class _PantallaCuentaState extends State<PantallaCuenta> {
                 leading: const Icon(Icons.history),
                 title: const Text('Último respaldo'),
                 subtitle: Text(
-                  ultimo == null ? 'Todavía no respaldaste' : _fechaHora(ultimo),
+                  ultimo == null ? 'Todavía no respaldaste' : fechaHoraTexto(ultimo),
                 ),
               );
             },
@@ -155,10 +158,3 @@ class _PantallaCuentaState extends State<PantallaCuenta> {
     );
   }
 }
-
-String _fechaHora(DateTime fecha) =>
-    '${fecha.year.toString().padLeft(4, '0')}-'
-    '${fecha.month.toString().padLeft(2, '0')}-'
-    '${fecha.day.toString().padLeft(2, '0')} '
-    '${fecha.hour.toString().padLeft(2, '0')}:'
-    '${fecha.minute.toString().padLeft(2, '0')}';
