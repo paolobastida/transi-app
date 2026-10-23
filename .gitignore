@@ -1,16 +1,11 @@
-# Cosas privadas: nunca subir al repositorio
+# Dependencias y builds
+node_modules/
+dist/
+
+# Variables privadas
 .env
 *.env
 
-# Cosas generadas por las herramientas (no hace falta guardarlas)
-backend/bin/
-backend/transi-api
-
-# Archivos subidos en desarrollo (fotos/audios/respaldos locales)
-backend/datos/
-
-# Respaldos de la base de datos de producción
-respaldos-db/
-
-# Archivos temporales del sistema operativo
+# Sistema
 .DS_Store
+*.log

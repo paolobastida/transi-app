@@ -1,236 +1,173 @@
 # Transi
 
-Transi es una app para que personas transgénero registren sus tratamientos con
-distintos profesionales de salud y documenten su evolución en el tiempo.
+**Registrá tus tratamientos y tus cambios en un solo lugar. Simple, privado y sin cuentas.**
 
-Este repositorio tiene tres partes:
+Transi es una app para personas trans que quieren llevar un registro de sus
+tratamientos de salud y documentar cómo van cambiando en el tiempo. Nació como
+un proyecto real y quedó como pieza de portafolio: una app chica, terminada y
+con una decisión de producto clara — **tus datos son tuyos y no salen de tu
+dispositivo**.
 
-- `backend/` — el programa que guarda y entrega los datos (lenguaje **Go**).
-- `frontend/` — la aplicación multiplataforma nueva (**Tauri 2 + TypeScript**).
-  Es la implementación activa: desktop primero (macOS), iOS/Android después.
-- `app/` — la implementación anterior en **Dart/Flutter**. Se conserva hasta
-  completar la paridad con `frontend/`.
+> **Demo:** `https://TU-USUARIO.github.io/transi/`
+> _(reemplazá el link cuando actives GitHub Pages; el workflow ya está incluido)_
 
-## Frontend Tauri
+[![Pantalla de inicio de Transi](docs/capturas/inicio-desktop.jpg)](docs/capturas/inicio-desktop.jpg)
+
+## La idea
+
+Un tratamiento oncológico, hormonal o de cualquier tipo genera fechas, dosis y
+profesionales que se pierden entre mensajes, recetas y memoria. Y los cambios
+—físicos, emocionales, los que sean— tampoco suelen quedar registrados en ningún
+lado.
+
+Transi resuelve dos cosas y nada más:
+
+1. **Qué estás tomando** y desde cuándo.
+2. **Qué cambió** y cómo te sentís al respecto.
+
+Todo en una línea de tiempo, sin planillas ni formularios infinitos.
+
+## Qué podés hacer
+
+- **Línea de tiempo** con tratamientos y cambios, ordenada por fecha y agrupada
+  por mes. Filtros por tipo.
+- **Tratamientos en curso** siempre visibles arriba, con dosis, frecuencia y
+  hace cuánto empezaste.
+- **Registrar y editar tratamientos**: medicamento, dosis, frecuencia, fechas y
+  profesional (opcional).
+- **Registrar cambios** con una nota y una foto opcional. La foto se comprime en
+  el navegador antes de guardarse.
+- **Exportar e importar** todo como un archivo JSON.
+- **Datos de ejemplo** en un clic para ver la app funcionando sin cargar nada.
+- **Borrar todo** sin dejar rastros.
+
+## Qué quedó afuera (a propósito)
+
+La versión anterior de Transi tenía backend en Go, app Flutter, app Tauri,
+cuentas, respaldos en la nube, recordatorios, notas de voz y varios
+medicamentos por tratamiento. Para el portafolio recorté todo lo que no se
+puede mostrar en 30 segundos:
+
+| Quedó afuera | Por qué |
+|---|---|
+| Cuentas y servidor | El valor está en los datos, no en el login. Sin servidor, la privacidad es real y no hay nada que mantener. |
+| Respaldos en la nube | Se reemplazaron por exportar/importar un JSON. |
+| Recordatorios y audio | Funciones útiles, pero no hacen falta para entender el producto. |
+| Flutter + Tauri | Una sola app web corre en cualquier lado y se prueba con un link. |
+
+La versión completa sigue disponible en el tag
+[`v1-completa`](https://github.com/TU-USUARIO/transi/tree/v1-completa):
+`git checkout v1-completa`.
+
+## Cómo está hecha
+
+- **TypeScript puro + Vite**, sin frameworks de UI. 2.800 líneas entre app,
+  estilos y pruebas.
+- **localStorage** como única base de datos (`transi.datos`). No hay API, no
+  hay cookies, no hay analytics.
+- **Fotos comprimidas** con `<canvas>` a un máximo de 1200 px y JPEG 0.78.
+- **Rutas por hash** (`#/detalle/cambio/123`), así funciona en cualquier hosting
+  estático y el botón Atrás hace lo que esperás.
+- **20 pruebas** con Vitest sobre el modelo, la persistencia, las fechas y las
+  rutas.
+
+```
+.
+├── src/
+│   ├── main.ts            # router y arranque
+│   ├── rutas.ts           # rutas por hash
+│   ├── modelo.ts          # entidades, reglas, demo y línea de tiempo
+│   ├── almacen.ts         # localStorage + validación de respaldos
+│   ├── formato.ts         # fechas sin zonas horarias
+│   ├── imagen.ts          # compresión de fotos
+│   ├── ui.ts              # helpers de DOM
+│   ├── styles.css
+│   └── vistas/            # inicio, registrar, formularios, detalles, ajustes
+├── pruebas/               # Vitest
+├── public/                # ícono
+└── docs/capturas/         # capturas del README
+```
+
+### Modelo de datos
+
+```ts
+type Tratamiento = {
+  id: string;
+  nombre: string;
+  dosis: string;
+  frecuencia: string;
+  inicio: string;              // AAAA-MM-DD
+  fin: string | null;
+  profesional: string | null;
+};
+
+type Cambio = {
+  id: string;
+  fecha: string;               // AAAA-MM-DD
+  descripcion: string;
+  foto: string | null;         // data URL comprimida
+};
+```
+
+El estado *en curso* no se guarda: se deriva de la fecha de fin. Una sola fuente
+de verdad, menos cosas que puedan quedar inconsistentes.
+
+## Probarla
 
 ```sh
-cd frontend
 pnpm install
-pnpm tauri dev
+pnpm dev
 ```
 
-La app es **offline-first**: SQLite local en Rust, sesión en el llavero del
-sistema y respaldos contra la API Go. Detalles, arquitectura y estado del port
-en [`frontend/README.md`](frontend/README.md).
+Abrí `http://localhost:5173` y elegí **“Ver la app con datos de ejemplo”**.
 
-Variable de entorno: `TRANSIBASE_URL` (por defecto `http://localhost:8080`).
-En producción debe ser `https://…`.
+```sh
+pnpm test     # 20 pruebas
+pnpm build    # dist/ listo para publicar
+```
 
-## Estado actual
+### Publicar la demo
 
-**Diseño (Fases A–D) completado:**
+El repositorio incluye `.github/workflows/paginas.yml`. En GitHub:
 
-- **A · Dominio:** [`docs/domain.md`](docs/domain.md) — glosario, modelo, reglas, contextos.
-- **B · Arquitectura:** [`docs/architecture.md`](docs/architecture.md) — puertos/adaptadores, U1–U16, offline-first, pruebas, "NO hacer".
-- **C · Stack:** 6 ADRs en [`docs/adr/`](docs/adr/) — Flutter · Go · PostgreSQL+Drift · JWT · Firebase Storage · VPS.
-- **D · Plan:** [`docs/plan.md`](docs/plan.md) — pantallas P1–P10, API, 11 fases de construcción.
+1. **Settings → Pages → Source: GitHub Actions**.
+2. Hacé push a `main`.
+3. Copiá la URL publicada en la primera línea de este README.
 
-**Fase 0 · Cimientos — completada:**
+## Capturas
 
-- Backend Go con arquitectura hexagonal, PostgreSQL en `docker-compose.yml`.
-- Migración `001_users`, `GET /salud` con *ping* real a la base, tests y CI.
-- Proyecto Flutter en `app/`.
-
-**Fase 1 · Identidad — completada (U1–U3):**
-
-- Registro, login, refresco de sesión y logout.
-- Contraseña con **bcrypt** (R8); **JWT** de acceso + **refresh revocable** con
-  rotación (tabla `sessions`, ADR 004); middleware `Authorization: Bearer`.
-
-**Fase 2 · Tratamientos y profesionales — completada (U4–U11):**
-
-- CRUD de ambos, con R1 (solo lo propio), R2 (fechas), R5 (borrado lógico),
-  R6 (campos obligatorios) y R7 (profesional opcional).
-- El estado *activo/finalizado* se **deriva** de la fecha de fin.
-
-**Fase 3 · Cambios y archivos — completada (U12–U14):**
-
-- Cambios con foto/nota de voz (`multipart`) y R3/R4.
-- Subida al puerto `ArchivoAlmacen` (disco local en desarrollo, ADR 005) con
-  **compensación** para no dejar archivos huérfanos.
-
-**Fase 4 · Respaldos del servidor — completada (U16):**
-
-- Subir respaldo completo, recuperar el último y ver el historial.
-- El servidor **no interpreta** el respaldo: lo guarda y lo devuelve tal cual.
-
-**Fase 5 · App: cimientos y pantallas de acceso — completada (P1–P2):**
-
-- Estructura `dominio/ · datos/ · presentacion/`.
-- Cliente de API con **auto-refresco** del token (401 → renovar → reintentar),
-  implementado una sola vez (ADR 004).
-- Sesión guardada en el **almacenamiento seguro** del dispositivo.
-- Pantallas **P1 Registro** y **P2 Login**, y pantalla de inicio provisional.
-- Backend con **CORS** configurable (`CORS_ORIGENES`) para poder previsualizar
-  la app en el navegador.
-
-**Fase 6 · App: profesionales y tratamientos local-first — completada (P4–P7):**
-
-- Base de datos local con **Drift** (SQLite) en el teléfono: es la **fuente de
-  verdad** de la interfaz.
-- Pantallas **P4 Tratamientos** (activos/finalizados/todos), **P5 Profesionales**
-  y sus formularios **P6/P7**, que guardan **solo en la base local**.
-- El arranque de la app **ya no necesita internet** (la sesión guardada alcanza).
-- Pruebas de repositorio con base en memoria.
-
-**Fase 7 · App: cambios con foto y voz — completada (P8–P9):**
-
-- Registrar un cambio con **descripción, foto (cámara) y nota de voz
-  (micrófono)**. Guarda **solo en la base local**, sin esperar a la red.
-- Pantalla **P9 Detalle** para ver el cambio y sus adjuntos.
-- Permisos de cámara y micrófono configurados (Android e iOS).
-- El contenido de los archivos se guarda en la base local, así funciona igual
-  en el teléfono y en el navegador.
-
-**Fase 8 · Línea de tiempo — completada (P3):**
-
-- La pestaña principal une **tratamientos y cambios** ordenados por fecha
-  (más reciente primero).
-- **Filtro por rango de fechas** (desde / hasta).
-- No es una tabla: es una **consulta de lectura** que junta las dos listas.
-
-**Fase 9 · Respaldos desde la app — completada (P10):**
-
-- Pantalla **P10 Cuenta y respaldo**: email, último respaldo, cuántos registros
-  quedan pendientes, y botones **Respaldar ahora** y **Restaurar**.
-- El respaldo es un **snapshot completo** de los datos locales (incluidos los
-  archivos, en base64) que se sube con `PUT /respaldos`.
-- Restaurar reemplaza los datos del dispositivo con el último respaldo.
-- Cada cambio local marca el registro como *pendiente*; respaldar los marca como
-  *respaldados*.
-- **Prueba madre** (test con servidor falso): respaldar → restaurar en otra base
-  → todo idéntico.
-
-**Fase 10 · Pulido y despliegue — completada:**
-
-- `backend/Dockerfile` (imagen mínima, usuario sin privilegios).
-- `docker-compose.prod.yml` con PostgreSQL, servidor y **Caddy** (HTTPS
-  automático) — ver [`docs/despliegue.md`](docs/despliegue.md).
-- Script de **respaldos de PostgreSQL** (`deploy/respaldar-postgres.sh`).
-- CI ampliado con la construcción de la imagen Docker.
-
-> **Todas las fases del MVP (0–10) están completas**, más una **Fase 11** de
-> tratamientos libres y profesionales integrados. El despliegue real en un
-> VPS y la firma del APK requieren tus credenciales y un dominio (ver la guía).
-
-**Fase 11 · Tratamientos libres y profesional integrado — completada:**
-
-- El tratamiento es **libre y general**: sirve para cualquier medicamento, con
-  sugerencias de vía/unidad/indicación que nunca obligan.
-- Se pueden cargar **varios medicamentos** de una: cada uno queda como un
-  tratamiento que comparte fechas y profesional.
-- El **profesional deja de ser una entidad aparte**: se registra dentro del
-  tratamiento (nombre + especialidad), con sugerencias de los ya usados. Se
-  eliminaron su tabla, pantalla y endpoints.
-- Barra de **Guardar fija** en todos los formularios; migración de datos que
-  conserva lo ya cargado.
-
-### API disponible
-
-| Método | Ruta | Qué hace |
+| Inicio | Registrar un cambio | Ajustes |
 |---|---|---|
-| `GET` | `/salud` | Chequeo de servidor + base de datos |
-| `POST` | `/auth/registro` | Crear cuenta (`email`, `clave`) |
-| `POST` | `/auth/login` | Iniciar sesión → `acceso` + `refresco` |
-| `POST` | `/auth/refresh` | Rotar el refresh token |
-| `POST` | `/auth/logout` | Cerrar sesión (revoca el refresh) |
-| `GET` | `/auth/yo` | Datos de la cuenta (requiere token) |
-| `POST` · `GET` | `/tratamientos` | Crear / listar (`?desde&hasta&estado`) |
-| `PUT` · `DELETE` | `/tratamientos/{id}` | Editar (incluye cerrar) / desactivar |
-| `POST` | `/cambios` | Registrar cambio (multipart: `fecha`, `descripcion`, `fotos`, `audios`) |
-| `GET` | `/cambios` | Listar cambios (`?desde&hasta`) |
-| `PUT` · `DELETE` | `/cambios/{id}` | Editar / desactivar cambio |
-| `PUT` | `/respaldos` | Subir un respaldo completo |
-| `GET` | `/respaldos` | Historial de respaldos |
-| `GET` | `/respaldos/ultimo` | Recuperar el último respaldo |
+| <img src="docs/capturas/inicio.jpg" width="240" alt="Línea de tiempo con tratamientos en curso"> | <img src="docs/capturas/formulario-cambio.jpg" width="240" alt="Formulario de un cambio con foto"> | <img src="docs/capturas/ajustes.jpg" width="240" alt="Pantalla de ajustes y datos locales"> |
 
-> Salvo `/salud` y `/auth/*`, todos requieren `Authorization: Bearer <access JWT>`.
+| Detalle de un cambio | Primer arranque |
+|---|---|
+| <img src="docs/capturas/detalle-cambio.jpg" width="240" alt="Detalle de un cambio con foto"> | <img src="docs/capturas/bienvenida.jpg" width="240" alt="Pantalla de bienvenida con datos de ejemplo"> |
 
-## Cómo correrlo
+## Decisiones que vale la pena contar
 
-Necesitás tener instalados **Docker** y **Go** (y **Flutter** para la app).
+- **Sin backend como feature, no como limitación.** Al no haber servidor no hay
+  base de datos que filtrar, ni sesiones que roten, ni respaldos que se filtren.
+  El costo es que los datos viven en un navegador; por eso existen exportar e
+  importar.
+- **localStorage en vez de IndexedDB.** El modelo entra en unos pocos KB. Las
+  fotos se comprimen para que decenas de registros sigan entrando. Si el
+  navegador se queda sin espacio, la app avisa en vez de fallar en silencio.
+- **TypeScript puro.** Para seis pantallas, un framework agrega más ceremonia
+  que ayuda. El router son 40 líneas y cada vista devuelve un nodo del DOM.
+- **Datos de ejemplo, no un video.** Quien abre el link puede tocar la app en
+  diez segundos, sin registrarse ni cargar nada.
 
-1. Levantar la base de datos y esperar a que esté lista:
+## Privacidad
 
-   ```sh
-   docker compose up -d --wait
-   ```
+Transi no envía datos a ningún servidor. No usa cookies, analytics ni fuentes
+externas. Todo lo que cargás se guarda en el `localStorage` de tu navegador y
+podés borrarlo desde **Ajustes → Borrar todos mis datos**.
 
-   La base de **desarrollo** no usa contraseña y escucha solo en `127.0.0.1`.
-   La primera vez se aplican solas las migraciones de `backend/migrations`.
+Esto es una app de registro personal: **no reemplaza un historial clínico ni es
+consejo médico**.
 
-2. (Opcional) Copiar `.env.example` a `.env` y completar `JWT_SECRET`. Si no lo
-   hacés, el servidor genera un secreto aleatorio en cada arranque (las sesiones
-   no sobreviven a un reinicio). `.env` no se sube al repositorio.
+---
 
-3. Arrancar el backend:
-
-   ```sh
-   cd backend
-   make run
-   ```
-
-4. Abrir en el navegador:
-
-   ```
-   http://localhost:8080/salud
-   ```
-
-   Vas a ver: `{"estado":"ok"}` (si la base está viva).
-
-5. Correr las pruebas del backend:
-
-   ```sh
-   cd backend
-   make test
-   ```
-
-6. Arrancar la app (en el navegador o en un emulador):
-
-   ```sh
-   cd app
-   flutter run -d chrome
-   ```
-
-   Para apuntar a otra dirección del servidor:
-
-   ```sh
-   flutter run -d chrome --dart-define=API_BASE_URL=http://192.168.0.10:8080
-   ```
-
-   Para probarla en un **teléfono real**, ver
-   [`docs/probar-en-dispositivo.md`](docs/probar-en-dispositivo.md).
-
-7. Para apagar la base de datos:
-
-   ```sh
-   docker compose down
-   ```
-
-## Estructura
-
-```
-backend/
-├── cmd/api/                          # punto de entrada (main.go)
-├── internal/
-│   ├── dominio/                      # el centro: entidades y reglas
-│   ├── puertos/                      # contratos (interfaces)
-│   ├── casosdeuso/                   # orquestación (U1–U16)
-│   └── adaptadores/
-│       ├── entradahttp/              # HTTP (entrada)
-│       └── postgres/                 # PostgreSQL (salida)
-├── migrations/                       # migraciones SQL
-└── Makefile
-app/                                  # app Flutter
-docs/                                 # diseño (dominio, arquitectura, ADRs, plan)
-```
+Hecho con foco en lo simple. Si te sirve la idea, usala, cambiá los textos y
+adaptala a lo que necesites.
