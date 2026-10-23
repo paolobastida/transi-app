@@ -2,11 +2,16 @@
 
 import { hoy, restarMeses, sumarDias } from "./formato";
 
-export interface Tratamiento {
+export interface Medicamento {
   id: string;
   nombre: string;
   dosis: string;
   frecuencia: string;
+}
+
+export interface Tratamiento {
+  id: string;
+  medicamentos: Medicamento[];
   inicio: string;
   fin: string | null;
   profesional: string | null;
@@ -20,7 +25,7 @@ export interface Cambio {
 }
 
 export interface Datos {
-  version: 2;
+  version: 3;
   tratamientos: Tratamiento[];
   cambios: Cambio[];
 }
@@ -31,10 +36,14 @@ export type Evento =
   | { tipo: "tratamiento"; fecha: string; tratamiento: Tratamiento }
   | { tipo: "cambio"; fecha: string; cambio: Cambio };
 
-export interface EntradaTratamiento {
+export interface EntradaMedicamento {
   nombre: string;
   dosis: string;
   frecuencia: string;
+}
+
+export interface EntradaTratamiento {
+  medicamentos: EntradaMedicamento[];
   inicio: string;
   fin: string | null;
   profesional: string | null;
@@ -46,10 +55,10 @@ export interface EntradaCambio {
   foto: string | null;
 }
 
-export const DATOS_VACIOS: Datos = { version: 2, tratamientos: [], cambios: [] };
+export const DATOS_VACIOS: Datos = { version: 3, tratamientos: [], cambios: [] };
 
 export function datosVacios(): Datos {
-  return { version: 2, tratamientos: [], cambios: [] };
+  return { version: 3, tratamientos: [], cambios: [] };
 }
 
 export function nuevoId(): string {
@@ -67,16 +76,38 @@ export function tratamientoActivo(tratamiento: Tratamiento, referencia = hoy()):
   return !tratamiento.fin || tratamiento.fin >= referencia;
 }
 
-/** Texto corto: "50 mg · cada 7 días". Omite lo que no se completó. */
-export function resumenTratamiento(tratamiento: Tratamiento): string {
-  return [tratamiento.dosis, tratamiento.frecuencia]
+/** "50 mg · cada 7 días" para un medicamento. */
+export function descripcionMedicamento(medicamento: Medicamento): string {
+  return [medicamento.dosis, medicamento.frecuencia]
     .map((parte) => parte.trim())
     .filter(Boolean)
     .join(" · ");
 }
 
+/** Nombre visible del tratamiento: un medicamento o varios. */
+export function tituloTratamiento(tratamiento: Tratamiento): string {
+  const nombres = tratamiento.medicamentos.map((medicamento) => medicamento.nombre);
+  if (nombres.length === 0) return "Tratamiento";
+  if (nombres.length === 1) return nombres[0] ?? "Tratamiento";
+  if (nombres.length === 2) return nombres.join(" + ");
+  return `${nombres[0]} + ${nombres.length - 1} más`;
+}
+
+/** Texto corto para tarjetas: dosis y frecuencia, o cuántos medicamentos. */
+export function resumenTratamiento(tratamiento: Tratamiento): string {
+  const cantidad = tratamiento.medicamentos.length;
+  if (cantidad === 0) return "";
+  if (cantidad === 1) {
+    return descripcionMedicamento(tratamiento.medicamentos[0] as Medicamento) || "Tratamiento";
+  }
+  return `${cantidad} medicamentos`;
+}
+
 export function validarTratamiento(entrada: EntradaTratamiento): string | null {
-  if (!entrada.nombre.trim()) return "Escribí el nombre del medicamento.";
+  if (entrada.medicamentos.length === 0) return "Agregá al menos un medicamento.";
+  if (entrada.medicamentos.some((medicamento) => !medicamento.nombre.trim())) {
+    return "Cada medicamento necesita un nombre.";
+  }
   if (!entrada.inicio) return "Elegí la fecha de inicio.";
   if (entrada.fin && entrada.fin < entrada.inicio) {
     return "La fecha de fin no puede ser anterior al inicio.";
@@ -98,9 +129,12 @@ function limpiar(valor: string | null): string | null {
 export function crearTratamiento(entrada: EntradaTratamiento): Tratamiento {
   return {
     id: nuevoId(),
-    nombre: entrada.nombre.trim(),
-    dosis: entrada.dosis.trim(),
-    frecuencia: entrada.frecuencia.trim(),
+    medicamentos: entrada.medicamentos.map((medicamento) => ({
+      id: nuevoId(),
+      nombre: medicamento.nombre.trim(),
+      dosis: medicamento.dosis.trim(),
+      frecuencia: medicamento.frecuencia.trim(),
+    })),
     inicio: entrada.inicio,
     fin: entrada.fin || null,
     profesional: limpiar(entrada.profesional),
@@ -181,31 +215,32 @@ export function datosDemo(referencia = hoy()): Datos {
   const hace = (meses: number) => restarMeses(referencia, meses);
 
   return {
-    version: 2,
+    version: 3,
     tratamientos: [
       {
         id: nuevoId(),
-        nombre: "Testosterona",
-        dosis: "50 mg",
-        frecuencia: "cada 7 días",
+        medicamentos: [
+          { id: nuevoId(), nombre: "Testosterona", dosis: "50 mg", frecuencia: "cada 7 días" },
+          { id: nuevoId(), nombre: "Espironolactona", dosis: "50 mg", frecuencia: "cada 12 horas" },
+        ],
         inicio: hace(8),
         fin: null,
         profesional: "Dra. Paz Ruiz · Endocrinología",
       },
       {
         id: nuevoId(),
-        nombre: "Espironolactona",
-        dosis: "50 mg",
-        frecuencia: "cada 12 horas",
-        inicio: hace(11),
+        medicamentos: [
+          { id: nuevoId(), nombre: "Progesterona", dosis: "100 mg", frecuencia: "cada 24 horas" },
+        ],
+        inicio: hace(3),
         fin: null,
         profesional: "Dra. Paz Ruiz · Endocrinología",
       },
       {
         id: nuevoId(),
-        nombre: "Estradiol",
-        dosis: "1 mg",
-        frecuencia: "cada 24 horas",
+        medicamentos: [
+          { id: nuevoId(), nombre: "Estradiol", dosis: "1 mg", frecuencia: "cada 24 horas" },
+        ],
         inicio: hace(11),
         fin: sumarDias(hace(11), 90),
         profesional: null,

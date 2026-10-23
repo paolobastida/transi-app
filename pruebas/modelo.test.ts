@@ -7,31 +7,49 @@ import {
   guardarEnLista,
   lineaDeTiempo,
   resumenTratamiento,
+  tituloTratamiento,
   tratamientoActivo,
   tratamientosEnCurso,
   validarCambio,
   validarTratamiento,
+  type EntradaTratamiento,
 } from "../src/modelo";
 
-const base = {
-  nombre: "  Testosterona ",
-  dosis: "50 mg",
-  frecuencia: "cada 7 días",
+const base: EntradaTratamiento = {
+  medicamentos: [{ nombre: "  Testosterona ", dosis: "50 mg", frecuencia: "cada 7 días" }],
   inicio: "2026-01-10",
   fin: null,
   profesional: "  ",
 };
 
+const dosMedicamentos: EntradaTratamiento = {
+  ...base,
+  medicamentos: [
+    { nombre: "Testosterona", dosis: "50 mg", frecuencia: "cada 7 días" },
+    { nombre: "Espironolactona", dosis: "50 mg", frecuencia: "cada 12 horas" },
+  ],
+};
+
 describe("tratamientos", () => {
   it("limpia los espacios y guarda el profesional vacío como null", () => {
     const tratamiento = crearTratamiento(base);
-    expect(tratamiento.nombre).toBe("Testosterona");
+    expect(tratamiento.medicamentos[0]?.nombre).toBe("Testosterona");
     expect(tratamiento.profesional).toBeNull();
     expect(tratamiento.fin).toBeNull();
   });
 
-  it("exige nombre y fecha de inicio", () => {
-    expect(validarTratamiento({ ...base, nombre: "  " })).toMatch(/medicamento/i);
+  it("permite varios medicamentos con ids distintos", () => {
+    const tratamiento = crearTratamiento(dosMedicamentos);
+    expect(tratamiento.medicamentos).toHaveLength(2);
+    expect(tratamiento.medicamentos[0]?.id).not.toBe(tratamiento.medicamentos[1]?.id);
+    expect(tratamiento.medicamentos[1]?.nombre).toBe("Espironolactona");
+  });
+
+  it("exige al menos un medicamento y un nombre en cada uno", () => {
+    expect(validarTratamiento({ ...base, medicamentos: [] })).toMatch(/al menos un medicamento/i);
+    expect(
+      validarTratamiento({ ...dosMedicamentos, medicamentos: [{ nombre: " ", dosis: "", frecuencia: "" }] }),
+    ).toMatch(/nombre/i);
     expect(validarTratamiento({ ...base, inicio: "" })).toMatch(/inicio/i);
   });
 
@@ -49,18 +67,34 @@ describe("tratamientos", () => {
     expect(tratamientoActivo(cerrado, "2026-03-02")).toBe(false);
   });
 
-  it("resume dosis y frecuencia sin dejar separadores sueltos", () => {
+  it("arma un título legible según la cantidad de medicamentos", () => {
+    expect(tituloTratamiento(crearTratamiento(base))).toBe("Testosterona");
+    expect(tituloTratamiento(crearTratamiento(dosMedicamentos))).toBe("Testosterona + Espironolactona");
+
+    const tres = crearTratamiento({
+      ...base,
+      medicamentos: [...dosMedicamentos.medicamentos, { nombre: "Progesterona", dosis: "", frecuencia: "" }],
+    });
+    expect(tituloTratamiento(tres)).toBe("Testosterona + 2 más");
+  });
+
+  it("resume dosis y frecuencia cuando hay un solo medicamento", () => {
     expect(resumenTratamiento(crearTratamiento(base))).toBe("50 mg · cada 7 días");
-    expect(resumenTratamiento(crearTratamiento({ ...base, dosis: "", frecuencia: "" }))).toBe("");
+    expect(resumenTratamiento(crearTratamiento(dosMedicamentos))).toBe("2 medicamentos");
+    expect(
+      resumenTratamiento(
+        crearTratamiento({ ...base, medicamentos: [{ nombre: "Testosterona", dosis: "", frecuencia: "" }] }),
+      ),
+    ).toBe("Tratamiento");
   });
 
   it("agrega un tratamiento nuevo o reemplaza el existente", () => {
     const uno = crearTratamiento(base);
     expect(guardarEnLista([], uno)).toHaveLength(1);
-    const editado = { ...uno, dosis: "100 mg" };
+    const editado = { ...uno, medicamentos: crearTratamiento(dosMedicamentos).medicamentos };
     const lista = guardarEnLista([uno], editado);
     expect(lista).toHaveLength(1);
-    expect(lista[0]?.dosis).toBe("100 mg");
+    expect(lista[0]?.medicamentos).toHaveLength(2);
   });
 });
 
@@ -108,5 +142,9 @@ describe("línea de tiempo", () => {
     expect(enCurso.every((tratamiento) => tratamientoActivo(tratamiento, "2026-10-22"))).toBe(true);
     const inicios = enCurso.map((tratamiento) => tratamiento.inicio);
     expect(inicios).toEqual([...inicios].sort().reverse());
+  });
+
+  it("los datos de ejemplo incluyen un tratamiento con varios medicamentos", () => {
+    expect(datos.tratamientos.some((tratamiento) => tratamiento.medicamentos.length > 1)).toBe(true);
   });
 });

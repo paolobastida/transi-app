@@ -3,6 +3,7 @@ import {
   agruparPorMes,
   lineaDeTiempo,
   resumenTratamiento,
+  tituloTratamiento,
   tratamientoActivo,
   type Datos,
   type Evento,
@@ -41,7 +42,7 @@ function filaEvento(evento: Evento): HTMLElement {
     return fila({
       clase: "tratamiento",
       icono: "💊",
-      titulo: tratamiento.nombre,
+      titulo: tituloTratamiento(tratamiento),
       detalle: `${resumenTratamiento(tratamiento) || "Tratamiento"} · desde ${fechaCorta(tratamiento.inicio)}`,
       etiqueta: activo ? { texto: "En curso", clase: "activo" } : { texto: "Finalizado", clase: "cerrado" },
       alAbrir: () => navegar(`/detalle/tratamiento/${tratamiento.id}`),

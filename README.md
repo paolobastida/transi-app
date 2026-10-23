@@ -33,8 +33,8 @@ Todo en una línea de tiempo, sin planillas ni formularios infinitos.
   por mes. Filtros por tipo.
 - **Tratamientos en curso** siempre visibles arriba, con dosis, frecuencia y
   hace cuánto empezaste.
-- **Registrar y editar tratamientos**: medicamento, dosis, frecuencia, fechas y
-  profesional (opcional).
+- **Registrar y editar tratamientos** con **uno o varios medicamentos**. Todos
+  comparten las fechas y el profesional, y cada uno tiene su dosis y frecuencia.
 - **Registrar cambios** con una nota y una foto opcional. La foto se comprime en
   el navegador antes de guardarse.
 - **Exportar e importar** todo como un archivo JSON.
@@ -44,9 +44,8 @@ Todo en una línea de tiempo, sin planillas ni formularios infinitos.
 ## Qué quedó afuera (a propósito)
 
 La versión anterior de Transi tenía backend en Go, app Flutter, app Tauri,
-cuentas, respaldos en la nube, recordatorios, notas de voz y varios
-medicamentos por tratamiento. Para el portafolio recorté todo lo que no se
-puede mostrar en 30 segundos:
+cuentas, respaldos en la nube, recordatorios y notas de voz. Para el portafolio
+recorté todo lo que no se puede mostrar en 30 segundos:
 
 | Quedó afuera | Por qué |
 |---|---|
@@ -61,14 +60,14 @@ La versión completa sigue disponible en el tag
 
 ## Cómo está hecha
 
-- **TypeScript puro + Vite**, sin frameworks de UI. 2.800 líneas entre app,
+- **TypeScript puro + Vite**, sin frameworks de UI. 3.100 líneas entre app,
   estilos y pruebas.
 - **localStorage** como única base de datos (`transi.datos`). No hay API, no
   hay cookies, no hay analytics.
 - **Fotos comprimidas** con `<canvas>` a un máximo de 1200 px y JPEG 0.78.
 - **Rutas por hash** (`#/detalle/cambio/123`), así funciona en cualquier hosting
   estático y el botón Atrás hace lo que esperás.
-- **20 pruebas** con Vitest sobre el modelo, la persistencia, las fechas y las
+- **24 pruebas** con Vitest sobre el modelo, la persistencia, las fechas y las
   rutas.
 
 ```
@@ -93,9 +92,12 @@ La versión completa sigue disponible en el tag
 ```ts
 type Tratamiento = {
   id: string;
-  nombre: string;
-  dosis: string;
-  frecuencia: string;
+  medicamentos: {
+    id: string;
+    nombre: string;
+    dosis: string;
+    frecuencia: string;
+  }[];
   inicio: string;              // AAAA-MM-DD
   fin: string | null;
   profesional: string | null;
@@ -112,6 +114,10 @@ type Cambio = {
 El estado *en curso* no se guarda: se deriva de la fecha de fin. Una sola fuente
 de verdad, menos cosas que puedan quedar inconsistentes.
 
+Los datos de la versión anterior se migran solos al abrir la app: cada
+tratamiento viejo se convierte en un tratamiento con un medicamento, sin perder
+nada.
+
 ## Probarla
 
 ```sh
@@ -122,7 +128,7 @@ pnpm dev
 Abrí `http://localhost:5173` y elegí **“Ver la app con datos de ejemplo”**.
 
 ```sh
-pnpm test     # 20 pruebas
+pnpm test     # 24 pruebas
 pnpm build    # dist/ listo para publicar
 ```
 
@@ -136,13 +142,13 @@ El repositorio incluye `.github/workflows/paginas.yml`. En GitHub:
 
 ## Capturas
 
-| Inicio | Registrar un cambio | Ajustes |
+| Inicio | Tratamiento con varios medicamentos | Registrar un cambio |
 |---|---|---|
-| <img src="docs/capturas/inicio.jpg" width="240" alt="Línea de tiempo con tratamientos en curso"> | <img src="docs/capturas/formulario-cambio.jpg" width="240" alt="Formulario de un cambio con foto"> | <img src="docs/capturas/ajustes.jpg" width="240" alt="Pantalla de ajustes y datos locales"> |
+| <img src="docs/capturas/inicio.jpg" width="240" alt="Línea de tiempo con tratamientos en curso"> | <img src="docs/capturas/formulario-tratamiento.jpg" width="240" alt="Formulario de tratamiento con dos medicamentos"> | <img src="docs/capturas/formulario-cambio.jpg" width="240" alt="Formulario de un cambio con foto"> |
 
-| Detalle de un cambio | Primer arranque |
-|---|---|
-| <img src="docs/capturas/detalle-cambio.jpg" width="240" alt="Detalle de un cambio con foto"> | <img src="docs/capturas/bienvenida.jpg" width="240" alt="Pantalla de bienvenida con datos de ejemplo"> |
+| Detalle de un cambio | Ajustes | Primer arranque |
+|---|---|---|
+| <img src="docs/capturas/detalle-cambio.jpg" width="240" alt="Detalle de un cambio con foto"> | <img src="docs/capturas/ajustes.jpg" width="240" alt="Pantalla de ajustes y datos locales"> | <img src="docs/capturas/bienvenida.jpg" width="240" alt="Pantalla de bienvenida con datos de ejemplo"> |
 
 ## Decisiones que vale la pena contar
 

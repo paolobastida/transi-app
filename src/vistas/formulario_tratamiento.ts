@@ -5,11 +5,21 @@ import {
   guardarEnLista,
   validarTratamiento,
   type EntradaTratamiento,
+  type Medicamento,
   type Tratamiento,
 } from "../modelo";
 import { navegar } from "../rutas";
 import { aviso, h } from "../ui";
 import { barraGuardar, cabeceraFormulario, campo } from "./comunes";
+
+interface FilaMedicamento {
+  nodo: HTMLElement;
+  titulo: HTMLElement;
+  nombre: HTMLInputElement;
+  dosis: HTMLInputElement;
+  frecuencia: HTMLInputElement;
+  quitar: HTMLButtonElement;
+}
 
 export function vistaFormularioTratamiento(id?: string): HTMLElement {
   const datos = cargar();
@@ -23,39 +33,93 @@ export function vistaFormularioTratamiento(id?: string): HTMLElement {
   const volver = (): void =>
     existente ? navegar(`/detalle/tratamiento/${existente.id}`) : navegar("/");
 
-  const nombre = h("input", {
-    type: "text",
-    value: existente?.nombre ?? "",
-    placeholder: "Testosterona",
-    autocomplete: "off",
-    required: true,
-  });
+  const lista = h("div", { class: "medicamentos" });
+  const filas: FilaMedicamento[] = [];
 
-  const dosis = h("input", {
-    type: "text",
-    value: existente?.dosis ?? "",
-    placeholder: "50 mg",
-    autocomplete: "off",
-  });
+  const reindexar = (): void => {
+    filas.forEach((fila, indice) => {
+      fila.titulo.textContent = `Medicamento ${indice + 1}`;
+      fila.quitar.classList.toggle("oculto", filas.length === 1);
+    });
+  };
 
-  const frecuencia = h("input", {
-    type: "text",
-    value: existente?.frecuencia ?? "",
-    placeholder: "cada 7 días",
-    autocomplete: "off",
-  });
+  const agregar = (medicamento?: Medicamento): FilaMedicamento => {
+    const nombre = h("input", {
+      type: "text",
+      value: medicamento?.nombre ?? "",
+      placeholder: "Testosterona",
+      autocomplete: "off",
+      required: true,
+    });
+
+    const dosis = h("input", {
+      type: "text",
+      value: medicamento?.dosis ?? "",
+      placeholder: "50 mg",
+      autocomplete: "off",
+    });
+
+    const frecuencia = h("input", {
+      type: "text",
+      value: medicamento?.frecuencia ?? "",
+      placeholder: "cada 7 días",
+      autocomplete: "off",
+    });
+
+    const titulo = h("h3", {}, "Medicamento");
+    const quitar = h(
+      "button",
+      {
+        class: "btn peligro chico",
+        type: "button",
+        onClick: () => quitarFila(fila),
+      },
+      "Quitar",
+    );
+
+    const nodo = h(
+      "section",
+      { class: "medicamento" },
+      h("div", { class: "medicamento-cabecera" }, titulo, quitar),
+      campo("Nombre", nombre),
+      h(
+        "div",
+        { class: "fila-campos" },
+        campo("Dosis", dosis),
+        campo("Frecuencia", frecuencia),
+      ),
+    );
+
+    const fila: FilaMedicamento = {
+      nodo,
+      titulo,
+      nombre,
+      dosis,
+      frecuencia,
+      quitar,
+    };
+
+    filas.push(fila);
+    lista.append(nodo);
+    reindexar();
+    return fila;
+  };
+
+  const quitarFila = (fila: FilaMedicamento): void => {
+    if (filas.length === 1) return;
+    const indice = filas.indexOf(fila);
+    if (indice === -1) return;
+    filas.splice(indice, 1);
+    fila.nodo.remove();
+    reindexar();
+  };
 
   const inicio = h("input", {
     type: "date",
     value: existente?.inicio ?? hoy(),
     required: true,
   });
-
-  const fin = h("input", {
-    type: "date",
-    value: existente?.fin ?? "",
-  });
-
+  const fin = h("input", { type: "date", value: existente?.fin ?? "" });
   const profesional = h("input", {
     type: "text",
     value: existente?.profesional ?? "",
@@ -63,13 +127,24 @@ export function vistaFormularioTratamiento(id?: string): HTMLElement {
     autocomplete: "off",
   });
 
+  for (const medicamento of existente?.medicamentos ?? []) agregar(medicamento);
+  if (filas.length === 0) agregar();
+
+  const agregarMedicamento = (): void => {
+    const fila = agregar();
+    fila.nombre.focus();
+    fila.nodo.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+
   const alGuardar = (evento: SubmitEvent): void => {
     evento.preventDefault();
 
     const entrada: EntradaTratamiento = {
-      nombre: nombre.value,
-      dosis: dosis.value,
-      frecuencia: frecuencia.value,
+      medicamentos: filas.map((fila) => ({
+        nombre: fila.nombre.value,
+        dosis: fila.dosis.value,
+        frecuencia: fila.frecuencia.value,
+      })),
       inicio: inicio.value,
       fin: fin.value || null,
       profesional: profesional.value || null,
@@ -104,13 +179,23 @@ export function vistaFormularioTratamiento(id?: string): HTMLElement {
     h(
       "main",
       { class: "contenido" },
-      campo("Medicamento", nombre, "El nombre que te resulte más claro."),
       h(
         "div",
-        { class: "fila-campos" },
-        campo("Dosis", dosis, "Opcional."),
-        campo("Frecuencia", frecuencia, "Opcional."),
+        { class: "seccion-formulario" },
+        h("h2", {}, "Medicamentos"),
+        h(
+          "p",
+          { class: "ayuda" },
+          "Podés cargar varios. Todos comparten las fechas y el profesional del tratamiento.",
+        ),
       ),
+      lista,
+      h(
+        "button",
+        { class: "btn agregar-medicamento", type: "button", onClick: agregarMedicamento },
+        "＋ Agregar otro medicamento",
+      ),
+      h("h2", { class: "seccion-formulario" }, "Fechas y profesional"),
       h(
         "div",
         { class: "fila-campos" },

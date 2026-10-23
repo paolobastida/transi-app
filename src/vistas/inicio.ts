@@ -3,6 +3,7 @@ import { duracionTexto } from "../formato";
 import {
   datosDemo,
   resumenTratamiento,
+  tituloTratamiento,
   tratamientosEnCurso,
   type Datos,
   type Filtro,
@@ -182,7 +183,7 @@ function enCurso(datos: Datos): HTMLElement {
             h("span", { class: "icono-tarjeta", "aria-hidden": "true" }, "💊"),
             h("span", { class: "etiqueta activo" }, "En curso"),
           ),
-          h("strong", {}, tratamiento.nombre),
+          h("strong", {}, tituloTratamiento(tratamiento)),
           h("span", { class: "en-curso-detalle" }, resumenTratamiento(tratamiento) || "Tratamiento"),
           h("span", { class: "tenue" }, duracionTexto(tratamiento.inicio)),
         ),

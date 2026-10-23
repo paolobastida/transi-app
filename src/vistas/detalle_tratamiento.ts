@@ -1,6 +1,6 @@
 import { cargar, guardar } from "../almacen";
 import { fechaLarga } from "../formato";
-import { tratamientoActivo } from "../modelo";
+import { descripcionMedicamento, tituloTratamiento, tratamientoActivo } from "../modelo";
 import { navegar } from "../rutas";
 import { aviso, confirmar, h } from "../ui";
 import { cabeceraVista } from "./comunes";
@@ -17,7 +17,7 @@ export function vistaDetalleTratamiento(id: string): HTMLElement {
   const activo = tratamientoActivo(tratamiento);
 
   const eliminar = (): void => {
-    if (!confirmar(`¿Borrar "${tratamiento.nombre}"? No se puede deshacer.`)) return;
+    if (!confirmar(`¿Borrar "${tituloTratamiento(tratamiento)}"? No se puede deshacer.`)) return;
     const nuevos = {
       ...datos,
       tratamientos: datos.tratamientos.filter((item) => item.id !== tratamiento.id),
@@ -43,14 +43,38 @@ export function vistaDetalleTratamiento(id: string): HTMLElement {
         h(
           "div",
           { class: "ficha-cabecera" },
-          h("div", {}, h("h2", {}, tratamiento.nombre), h("p", { class: "sub" }, "Registrado en tu historia")),
+          h("div", {}, h("h2", {}, tituloTratamiento(tratamiento)), h("p", { class: "sub" }, "Registrado en tu historia")),
           h("span", { class: `etiqueta ${activo ? "activo" : "cerrado"}` }, activo ? "En curso" : "Finalizado"),
+        ),
+        h(
+          "div",
+          { class: "medicamentos-detalle" },
+          h(
+            "h3",
+            { class: "seccion-titulo" },
+            tratamiento.medicamentos.length === 1 ? "Medicamento" : "Medicamentos",
+          ),
+          h(
+            "ul",
+            { class: "lista-medicamentos" },
+            ...tratamiento.medicamentos.map((medicamento) =>
+              h(
+                "li",
+                { class: "medicamento-item" },
+                h("span", { class: "icono-tarjeta", "aria-hidden": "true" }, "💊"),
+                h(
+                  "div",
+                  { class: "medicamento-item-texto" },
+                  h("strong", {}, medicamento.nombre),
+                  h("span", {}, descripcionMedicamento(medicamento) || "Sin dosis indicada"),
+                ),
+              ),
+            ),
+          ),
         ),
         h(
           "dl",
           { class: "datos" },
-          dato("Dosis", tratamiento.dosis || "—"),
-          dato("Frecuencia", tratamiento.frecuencia || "—"),
           dato("Inicio", fechaLarga(tratamiento.inicio)),
           dato("Fin", tratamiento.fin ? fechaLarga(tratamiento.fin) : "Sin fecha de fin"),
           dato("Profesional", tratamiento.profesional ?? "—"),
