@@ -7,6 +7,7 @@ export type Pantalla =
   | { nombre: "cambio"; id?: string }
   | { nombre: "detalle"; tipo: "tratamiento" | "cambio"; id: string }
   | { nombre: "aplicaciones" }
+  | { nombre: "entrada" }
   | { nombre: "ajustes" }
   | { nombre: "ayuda" }
   | { nombre: "desconocida" };
@@ -31,6 +32,8 @@ export function analizarRuta(ruta: string): Pantalla {
       return { nombre: "desconocida" };
     case "aplicaciones":
       return { nombre: "aplicaciones" };
+    case "entrar":
+      return { nombre: "entrada" };
     case "ajustes":
       return { nombre: "ajustes" };
     case "ayuda":

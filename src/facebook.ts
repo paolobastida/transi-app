@@ -93,8 +93,13 @@ export async function entrarConFacebook(): Promise<Perfil> {
   if (!fb) throw new Error("Facebook no terminó de cargar.");
 
   await new Promise<RespuestaLoginFacebook>((resolver, rechazar) => {
+    const limite = window.setTimeout(() => {
+      rechazar(new Error("Facebook no respondió. Revisá si el navegador bloqueó la ventana."));
+    }, 60_000);
+
     fb.login(
       (respuesta) => {
+        clearTimeout(limite);
         if (respuesta.status === "connected" && respuesta.authResponse) {
           resolver(respuesta);
         } else {

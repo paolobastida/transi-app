@@ -66,7 +66,7 @@ export function montarProveedores(
     opciones,
   );
 
-  contenedor.replaceChildren(
+  const nodos: Array<Node | null> = [
     google,
     apple,
     facebook,
@@ -75,7 +75,17 @@ export function montarProveedores(
       { class: "ayuda" },
       "Opcional. Solo guardamos tu nombre y email en este dispositivo; tus registros no se envían.",
     ),
-  );
+    !googleConfigurado() && !appleConfigurado() && !facebookConfigurado()
+      ? h(
+          "p",
+          { class: "ayuda" },
+          "Los proveedores todavía no están configurados. Podés seguir sin cuenta; " +
+            "la guía para activarlos está en docs/cuentas.md.",
+        )
+      : null,
+  ];
+
+  contenedor.replaceChildren(...nodos.filter((nodo): nodo is Node => nodo !== null));
 
   // Deja los SDK listos para que el clic abra la ventana sin perder el gesto del usuario.
   if (appleConfigurado()) void cargarApple().catch(() => {});

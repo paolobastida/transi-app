@@ -39,7 +39,9 @@ Todo en una línea de tiempo, sin planillas ni formularios infinitos.
   Transi te avisa a la hora de la toma. En las apps nativas de **macOS e iOS**
   quedan programados en el sistema y suenan **aunque la app esté cerrada**; en
   el navegador funcionan mientras esté abierta. No se repiten en el día. Los de
-  hoy se ven en **Inicio**, ordenados por hora y con el próximo resaltado.
+  hoy se ven en **Inicio**, ordenados por hora y con el próximo resaltado; si
+  dos medicamentos comparten hora, sale un solo aviso. Si faltan permisos,
+  Inicio ofrece activarlos sin salir de la pantalla.
 - **Registrar cambios** con una nota, una foto opcional y una **nota de voz**
   (hasta 60 segundos). La foto se comprime en el navegador y la voz se graba a
   32 kbps, para que decenas de registros sigan entrando sin problema.
@@ -129,6 +131,9 @@ La app funciona completa sin configurar nada.
 cp .env.example .env      # y completar las variables que quieras usar
 ```
 
+Guía paso a paso, con los permisos y dominios de cada proveedor:
+**[docs/cuentas.md](docs/cuentas.md)**.
+
 | Variable | Para qué | Dónde se consigue |
 |---|---|---|
 | `VITE_GOOGLE_CLIENT_ID` | Google | Console → APIs y servicios → Credenciales → ID de cliente OAuth (tipo *Aplicación web*) |
@@ -163,7 +168,7 @@ recibe los registros de salud.
 
 ## Cómo está hecha
 
-- **TypeScript puro + Vite**, sin frameworks de UI. 9.500 líneas entre app,
+- **TypeScript puro + Vite**, sin frameworks de UI. 9.900 líneas entre app,
   estilos y pruebas.
 - **localStorage** como única base de datos (`transi.datos`). No hay API, no
   hay cookies, no hay analytics.
@@ -182,7 +187,7 @@ recibe los registros de salud.
   `UNUserNotificationCenter` (`UNCalendarNotificationTrigger` diario) y suenan
   con la app cerrada. En el navegador usan `Notification` y un timer cada 20 s
   mientras está abierta. Sin servidor ni push en ningún caso.
-- **121 pruebas** con Vitest sobre el modelo, la persistencia, las fechas, la
+- **125 pruebas** con Vitest sobre el modelo, la persistencia, las fechas, la
   grabadora, la cámara, las rutas y los recordatorios.
 
 ```
@@ -272,10 +277,13 @@ pnpm install
 pnpm dev
 ```
 
-Abrí `http://localhost:5173` y elegí **“Ver la app con datos de ejemplo”**.
+Abrí `http://localhost:5173`. La primera vez vas a ver la **pantalla de
+entrada**: podés probar Google, Apple o Facebook, o tocar **“Seguir sin
+cuenta”** y usar la app como siempre. Después, en el inicio, elegí **“Probar con
+datos de ejemplo”** si querés recorrerla con contenido.
 
 ```sh
-pnpm test     # 121 pruebas
+pnpm test     # 125 pruebas
 pnpm build    # dist/ listo para publicar
 pnpm preview  # servir dist/ en local
 ```
@@ -313,13 +321,13 @@ El repositorio incluye `.github/workflows/paginas.yml`. En GitHub:
 
 ## Capturas
 
-| Inicio | Tratamiento con varios medicamentos | Registrar un cambio |
+| Entrada | Inicio | Tratamiento con varios medicamentos |
 |---|---|---|
-| <img src="docs/capturas/inicio.jpg" width="240" alt="Línea de tiempo con tratamientos en curso"> | <img src="docs/capturas/formulario-tratamiento.jpg" width="240" alt="Formulario de tratamiento con dos medicamentos"> | <img src="docs/capturas/formulario-cambio.jpg" width="240" alt="Formulario de un cambio con foto y nota de voz"> |
+| <img src="docs/capturas/entrada.jpg" width="240" alt="Pantalla de entrada con Google, Apple y Facebook"> | <img src="docs/capturas/inicio.jpg" width="240" alt="Línea de tiempo con tratamientos en curso"> | <img src="docs/capturas/formulario-tratamiento.jpg" width="240" alt="Formulario de tratamiento con dos medicamentos"> |
 
-| Detalle de un cambio | Ajustes | Primer arranque |
+| Registrar un cambio | Detalle de un cambio | Ajustes |
 |---|---|---|
-| <img src="docs/capturas/detalle-cambio.jpg" width="240" alt="Detalle de un cambio con foto y nota de voz"> | <img src="docs/capturas/ajustes.jpg" width="240" alt="Pantalla de ajustes y datos locales"> | <img src="docs/capturas/bienvenida.jpg" width="240" alt="Pantalla de bienvenida con datos de ejemplo"> |
+| <img src="docs/capturas/formulario-cambio.jpg" width="240" alt="Formulario de un cambio con foto y nota de voz"> | <img src="docs/capturas/detalle-cambio.jpg" width="240" alt="Detalle de un cambio con foto y nota de voz"> | <img src="docs/capturas/ajustes.jpg" width="240" alt="Pantalla de ajustes y datos locales"> |
 
 ## Decisiones que vale la pena contar
 

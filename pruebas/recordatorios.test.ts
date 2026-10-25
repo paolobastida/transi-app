@@ -5,8 +5,10 @@ import {
   GRACIA_MINUTOS,
   avisosPendientes,
   horaActual,
+  mensajeGrupo,
   recordatoriosDeHoy,
   recordatoriosProgramados,
+  type Aviso,
 } from "../src/recordatorios";
 
 /**
@@ -303,5 +305,46 @@ describe("recordatorios de hoy", () => {
     // Inicio 2026-01-16: el 23 de octubre es día de toma, el 24 no.
     expect(recordatoriosDeHoy(datosCon(["08:00"]), AHORA)).toHaveLength(1);
     expect(recordatoriosDeHoy(datosCon(["08:00"]), new Date(2026, 9, 24))).toEqual([]);
+  });
+});
+
+describe("mensaje agrupado", () => {
+  const avisoDe = (nombre: string, dosis: string, horario: string): Aviso => ({
+    clave: `${nombre}|${horario}`,
+    horario,
+    medicamento: { id: nombre, nombre, dosis, frecuencia: "cada 1 día", horarios: [horario] },
+  });
+
+  it("un solo aviso mantiene el texto de siempre", () => {
+    expect(mensajeGrupo([avisoDe("Testosterona", "50 mg", "08:00")])).toEqual({
+      titulo: "Toma de Testosterona",
+      cuerpo: "50 mg · a las 08:00",
+    });
+  });
+
+  it("dos tomas a la misma hora salen en un solo aviso", () => {
+    const mensaje = mensajeGrupo([
+      avisoDe("Testosterona", "50 mg", "08:00"),
+      avisoDe("Espironolactona", "50 mg", "08:00"),
+    ]);
+
+    expect(mensaje.titulo).toBe("2 tomas a las 08:00");
+    expect(mensaje.cuerpo).toBe("Testosterona · 50 mg + Espironolactona · 50 mg");
+  });
+
+  it("los medicamentos sin dosis salen solo con el nombre", () => {
+    const mensaje = mensajeGrupo([avisoDe("A", "", "10:00"), avisoDe("B", "", "10:00")]);
+    expect(mensaje.titulo).toBe("2 tomas a las 10:00");
+    expect(mensaje.cuerpo).toBe("A + B");
+  });
+
+  it("agrupa tres tomas y nombra la cantidad", () => {
+    const mensaje = mensajeGrupo([
+      avisoDe("A", "1 mg", "22:00"),
+      avisoDe("B", "2 mg", "22:00"),
+      avisoDe("C", "3 mg", "22:00"),
+    ]);
+    expect(mensaje.titulo).toBe("3 tomas a las 22:00");
+    expect(mensaje.cuerpo).toBe("A · 1 mg + B · 2 mg + C · 3 mg");
   });
 });

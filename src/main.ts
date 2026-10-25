@@ -1,5 +1,5 @@
 import { claveActiva, configurarPerfil, invalidarMemoria, respaldoRoto } from "./almacen";
-import { leerPerfil } from "./auth";
+import { accesoOmitido, leerPerfil } from "./auth";
 import { limpiarVista } from "./ciclo_vida";
 import { clavePerfil } from "./perfil";
 import { registrarServiceWorker } from "./pwa";
@@ -11,6 +11,7 @@ import { vistaAjustes } from "./vistas/ajustes";
 import { vistaAyuda } from "./vistas/ayuda";
 import { vistaDetalleCambio } from "./vistas/detalle_cambio";
 import { vistaDetalleTratamiento } from "./vistas/detalle_tratamiento";
+import { vistaEntrada } from "./vistas/entrada";
 import { vistaFormularioCambio } from "./vistas/formulario_cambio";
 import { vistaFormularioTratamiento } from "./vistas/formulario_tratamiento";
 import { vistaInicio } from "./vistas/inicio";
@@ -23,6 +24,9 @@ function render(): void {
   switch (pantalla.nombre) {
     case "inicio":
       montar(vistaInicio());
+      return;
+    case "entrada":
+      montar(vistaEntrada());
       return;
     case "registrar":
       montar(vistaRegistrar());
@@ -57,6 +61,11 @@ function render(): void {
 // Restaura el perfil (anónimo o de Google, Apple o Facebook) antes del primer render.
 const perfilInicial = leerPerfil();
 configurarPerfil(perfilInicial ? clavePerfil(perfilInicial) : null);
+
+// Primera visita: ofrecer cuenta (opcional) antes de la app.
+if (!perfilInicial && !accesoOmitido()) {
+  window.location.hash = "/entrar";
+}
 
 window.addEventListener("hashchange", render);
 render();

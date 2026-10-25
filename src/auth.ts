@@ -7,8 +7,25 @@ import { clavePerfil, esProveedor, type Perfil } from "./perfil";
 export type { Perfil };
 
 const CLAVE_SESION = "transi.sesion";
+const CLAVE_ACCESO = "transi.acceso_omitido";
 
 let cache: Perfil | null | undefined;
+
+export function accesoOmitido(): boolean {
+  try {
+    return localStorage.getItem(CLAVE_ACCESO) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function omitirAcceso(): void {
+  try {
+    localStorage.setItem(CLAVE_ACCESO, "1");
+  } catch {
+    // Si no se puede guardar, se vuelve a preguntar la próxima vez.
+  }
+}
 
 function normalizarPerfil(valor: unknown): Perfil | null {
   if (!valor || typeof valor !== "object") return null;
@@ -40,6 +57,7 @@ export function perfilActual(): Perfil | null {
 export function entrarConPerfil(perfil: Perfil): { cuentaVacia: boolean; hayAnonimos: boolean } {
   try {
     localStorage.setItem(CLAVE_SESION, JSON.stringify(perfil));
+    localStorage.removeItem(CLAVE_ACCESO);
   } catch {
     // Sin sesión persistente la cuenta dura hasta recargar; los datos siguen accesibles.
   }

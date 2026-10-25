@@ -162,6 +162,11 @@ function fila(aplicacion: Aplicacion): HTMLElement {
   const detalle = [horario ?? "Sin hora", medicamento.dosis.trim()].filter(Boolean).join(" · ");
   const dia = String(Number(aplicacion.fecha.slice(8, 10)));
 
+  // Con un solo medicamento el nombre del tratamiento es el mismo: repetirlo
+  // solo alarga la fila sin aportar nada.
+  const nombreTratamiento = tituloTratamiento(tratamiento);
+  const contexto = nombreTratamiento === medicamento.nombre ? null : nombreTratamiento;
+
   return h(
     "div",
     { class: "evento-fila" },
@@ -183,7 +188,7 @@ function fila(aplicacion: Aplicacion): HTMLElement {
         { class: "fila-texto" },
         h("strong", {}, medicamento.nombre),
         h("span", {}, detalle),
-        h("span", { class: "aplicacion-tratamiento" }, tituloTratamiento(tratamiento)),
+        contexto ? h("span", { class: "aplicacion-tratamiento" }, contexto) : null,
       ),
     ),
   );

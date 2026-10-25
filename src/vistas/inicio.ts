@@ -13,7 +13,12 @@ import { navegar } from "../rutas";
 import { icono, type NombreIcono } from "../iconos";
 import { perfilActual } from "../auth";
 import { iniciales, nombreVisible } from "../perfil";
-import { recordatoriosDeHoy } from "../recordatorios";
+import {
+  estadoRecordatorios,
+  recordatoriosDeHoy,
+  sincronizarRecordatorios,
+  solicitarPermiso,
+} from "../recordatorios";
 import { aviso, h } from "../ui";
 import { vistaLineaDeTiempo } from "./linea_de_tiempo";
 
@@ -155,11 +160,13 @@ export function vistaInicio(filtroInicial: Filtro = "todo"): HTMLElement {
           { class: "btn enlace", type: "button", onClick: () => navegar("/ayuda") },
           "¿Cómo funciona?",
         ),
-        h(
-          "button",
-          { class: "btn enlace", type: "button", onClick: () => navegar("/ajustes") },
-          "Entrar con Google, Apple o Facebook",
-        ),
+        perfil
+          ? null
+          : h(
+              "button",
+              { class: "btn enlace", type: "button", onClick: () => navegar("/entrar") },
+              "Entrar con Google, Apple o Facebook",
+            ),
       ),
       h(
         "div",
@@ -202,6 +209,17 @@ export function vistaInicio(filtroInicial: Filtro = "todo"): HTMLElement {
               },
               iniciales(perfil),
             )
+          : h(
+              "button",
+              {
+                class: "btn entrar-boton",
+                type: "button",
+                onClick: () => navegar("/entrar"),
+              },
+              "Entrar",
+            ),
+        perfil
+          ? null
           : h(
               "span",
               { class: "insignia-local", title: "Los datos se guardan en este navegador" },
@@ -304,6 +322,38 @@ function recordatoriosDeInicio(datos: Datos): HTMLElement[] {
 
   const proximo = delDia.find((item) => !item.pasado);
 
+  // Pide el permiso sin llevar a Ajustes. Oculto hasta saber el estado real
+  // (en la app nativa la consulta al sistema tarda unos milisegundos más).
+  const permiso = h(
+    "div",
+    { class: "recordatorio-permiso oculto" },
+    h("p", {}, "Activá las notificaciones para no depender de mirar la pantalla."),
+    h(
+      "button",
+      {
+        class: "btn secundario chico",
+        type: "button",
+        onClick: () => {
+          void (async () => {
+            const estado = await solicitarPermiso();
+            permiso.classList.toggle("oculto", estado !== "sin-solicitar");
+            if (estado === "concedido") {
+              sincronizarRecordatorios();
+              aviso("Notificaciones activadas.");
+            } else if (estado === "denegado") {
+              aviso("Las notificaciones están bloqueadas. Activalas desde la configuración.", true);
+            }
+          })();
+        },
+      },
+      icono("reloj"),
+      "Activar",
+    ),
+  );
+  void estadoRecordatorios().then((estado) =>
+    permiso.classList.toggle("oculto", estado.permiso !== "sin-solicitar"),
+  );
+
   return [
     h(
       "section",
@@ -349,6 +399,7 @@ function recordatoriosDeInicio(datos: Datos): HTMLElement[] {
           ),
         ),
       ),
+      permiso,
     ),
   ];
 }

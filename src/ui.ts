@@ -48,9 +48,14 @@ export function montar(vista: HTMLElement): void {
   window.scrollTo({ top: 0 });
 }
 
-export function aviso(mensaje: string, esError = false): void {
+export function aviso(mensaje: string, esError = false, duracion?: number): void {
   const contenedor = document.querySelector<HTMLDivElement>("#avisos");
   if (!contenedor) return;
+
+  // Un mensaje repetido se refresca en vez de apilarse dos veces.
+  for (const repetido of contenedor.querySelectorAll<HTMLElement>(".aviso")) {
+    if (repetido.querySelector(".aviso-texto")?.textContent === mensaje) repetido.remove();
+  }
 
   const texto = h("span", { class: "aviso-texto" }, mensaje);
   const nodo = h(
@@ -76,7 +81,7 @@ export function aviso(mensaje: string, esError = false): void {
   contenedor.append(nodo);
 
   // Los errores necesitan más tiempo para poder leerse con calma.
-  setTimeout(() => nodo.remove(), esError ? 8000 : 4600);
+  setTimeout(() => nodo.remove(), duracion ?? (esError ? 8000 : 4600));
 }
 
 export function confirmar(mensaje: string): boolean {

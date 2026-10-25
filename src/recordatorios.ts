@@ -18,6 +18,8 @@ export const GRACIA_MINUTOS = 3;
 const INTERVALO_MS = 20_000;
 const RECONCILIACION_MS = 30_000;
 const CLAVE_AVISADAS = "transi.recordatorios";
+/** El aviso en pantalla dura más que un aviso común: hay que poder leerlo. */
+const DURACION_AVISO_MS = 10_000;
 
 export interface Aviso {
   /** Identifica la toma de hoy: `AAAA-MM-DD|medicamento|horario`. */
@@ -121,6 +123,28 @@ export function avisosPendientes(
   }
 
   return pendientes.sort((a, b) => (a.horario < b.horario ? -1 : a.horario > b.horario ? 1 : 0));
+}
+
+/**
+ * Texto de un aviso: uno solo o, si varias tomas comparten hora, un único
+ * aviso con todos los medicamentos. (En la app nativa el sistema programa
+ * cada recordatorio por separado; esto aplica al aviso del navegador.)
+ */
+export function mensajeGrupo(avisos: Aviso[]): { titulo: string; cuerpo: string } {
+  const horario = avisos[0]?.horario ?? "";
+
+  if (avisos.length === 1) {
+    const medicamento = avisos[0]?.medicamento;
+    return {
+      titulo: `Toma de ${medicamento?.nombre ?? ""}`,
+      cuerpo: [medicamento?.dosis, `a las ${horario}`].filter(Boolean).join(" · "),
+    };
+  }
+
+  const nombres = avisos.map((aviso) =>
+    aviso.medicamento.dosis ? `${aviso.medicamento.nombre} · ${aviso.medicamento.dosis}` : aviso.medicamento.nombre,
+  );
+  return { titulo: `${avisos.length} tomas a las ${horario}`, cuerpo: nombres.join(" + ") };
 }
 
 /**
@@ -408,13 +432,13 @@ function marcarAvisada(clave: string): void {
 /* Publicar (fallback web)                                             */
 /* ------------------------------------------------------------------ */
 
-function publicar(aviso: Aviso): void {
-  const titulo = `Toma de ${aviso.medicamento.nombre}`;
-  const detalle = [aviso.medicamento.dosis, `a las ${aviso.horario}`].filter(Boolean).join(" · ");
+function publicar(mensaje: { titulo: string; cuerpo: string }, tag: string): void {
+  const { titulo, cuerpo } = mensaje;
+  const enPantalla = `${titulo} — ${cuerpo}`;
 
   if (permisoNotificaciones() === "concedido") {
     try {
-      new Notification(titulo, { body: detalle, tag: aviso.clave, icon: "./icono-192.png" });
+      new Notification(titulo, { body: cuerpo, tag, icon: "./icono-192.png" });
       return;
     } catch {
       // Chrome en Android no soporta el constructor: seguimos con el aviso en pantalla.
@@ -424,12 +448,12 @@ function publicar(aviso: Aviso): void {
   // Con permiso pero sin constructor (Android): el service worker puede mostrarla.
   if (permisoNotificaciones() === "concedido" && "serviceWorker" in navigator) {
     navigator.serviceWorker.ready
-      .then((registro) => registro.showNotification(titulo, { body: detalle, tag: aviso.clave }))
-      .catch(() => avisoEnPantalla(`${titulo} — ${detalle}`));
+      .then((registro) => registro.showNotification(titulo, { body: cuerpo, tag }))
+      .catch(() => avisoEnPantalla(enPantalla, false, DURACION_AVISO_MS));
     return;
   }
 
-  avisoEnPantalla(`${titulo} — ${detalle}`);
+  avisoEnPantalla(enPantalla, false, DURACION_AVISO_MS);
 }
 
 /* ------------------------------------------------------------------ */
@@ -440,9 +464,20 @@ let intervalo: number | null = null;
 let reconciliacion: number | null = null;
 
 function revisar(): void {
-  for (const aviso of avisosPendientes(cargar(), new Date(), avisadas())) {
-    marcarAvisada(aviso.clave);
-    publicar(aviso);
+  const pendientes = avisosPendientes(cargar(), new Date(), avisadas());
+  if (pendientes.length === 0) return;
+
+  // Tomas que comparten hora: un solo aviso con todos los medicamentos.
+  const porHora = new Map<string, Aviso[]>();
+  for (const aviso of pendientes) {
+    const grupo = porHora.get(aviso.horario);
+    if (grupo) grupo.push(aviso);
+    else porHora.set(aviso.horario, [aviso]);
+  }
+
+  for (const grupo of porHora.values()) {
+    for (const aviso of grupo) marcarAvisada(aviso.clave);
+    publicar(mensajeGrupo(grupo), grupo[0]?.clave ?? "avisos");
   }
 }
 

@@ -383,6 +383,14 @@ main:focus {
   filter: brightness(1.06);
 }
 
+.entrar-boton {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  background: var(--superficie);
+  border-color: var(--borde);
+}
+
 .insignia-local {
   display: inline-flex;
   align-items: center;
@@ -513,6 +521,29 @@ main:focus {
 .recordatorio-info span {
   font-size: 12.5px;
   color: var(--tinta-3);
+}
+
+.recordatorio-permiso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 10px 13px;
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: 14px;
+  background: var(--azul-suave);
+}
+
+.recordatorio-permiso p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--tinta-3);
+}
+
+.recordatorio-permiso .btn {
+  flex: none;
 }
 
 .carrusel {
@@ -2127,6 +2158,10 @@ audio {
     font-size: 16.5px;
   }
 
+  .insignia-local {
+    display: none;
+  }
+
   .tarjeta.en-curso {
     width: min(238px, 78vw);
   }
@@ -2338,6 +2373,7 @@ audio {
     display: grid;
     grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
     grid-template-areas:
+      "curso recordatorios"
       "curso filtros"
       "curso linea"
       "curso pie";
@@ -2352,6 +2388,10 @@ audio {
     top: 92px;
     align-self: start;
     margin-bottom: 0;
+  }
+
+  .seccion-recordatorios {
+    grid-area: recordatorios;
   }
 
   .filtros {
@@ -2489,6 +2529,61 @@ audio {
   .camara-panel {
     animation: none;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Pantalla de entrada (cuenta opcional)                               */
+/* ------------------------------------------------------------------ */
+
+.pantalla-entrada {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.entrada-contenido {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 18px 44px;
+}
+
+.entrada-tarjeta {
+  width: min(440px, 100%);
+  padding: 34px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.entrada-tarjeta h1 {
+  margin: 0;
+  font-size: 27px;
+  line-height: 1.2;
+}
+
+.entrada-bajada {
+  margin: 0;
+  max-width: 38ch;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--tinta-3);
+}
+
+.entrada-tarjeta .cuenta-contenedor {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.entrada-tarjeta .ayuda {
+  text-align: center;
+}
+
+.entrada-seguir {
+  margin-top: 2px;
 }
 
 /* ------------------------------------------------------------------ */
