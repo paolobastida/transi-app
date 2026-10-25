@@ -6,7 +6,9 @@ export type Pantalla =
   | { nombre: "tratamiento"; id?: string }
   | { nombre: "cambio"; id?: string }
   | { nombre: "detalle"; tipo: "tratamiento" | "cambio"; id: string }
+  | { nombre: "aplicaciones" }
   | { nombre: "ajustes" }
+  | { nombre: "ayuda" }
   | { nombre: "desconocida" };
 
 /** Traduce `/detalle/cambio/123` a una pantalla con sus parámetros. */
@@ -27,8 +29,12 @@ export function analizarRuta(ruta: string): Pantalla {
         return { nombre: "detalle", tipo: primero, id: segundo };
       }
       return { nombre: "desconocida" };
+    case "aplicaciones":
+      return { nombre: "aplicaciones" };
     case "ajustes":
       return { nombre: "ajustes" };
+    case "ayuda":
+      return { nombre: "ayuda" };
     default:
       return { nombre: "desconocida" };
   }

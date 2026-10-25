@@ -7,6 +7,7 @@ describe("rutas", () => {
     expect(analizarRuta("")).toEqual({ nombre: "inicio" });
     expect(analizarRuta("/registrar")).toEqual({ nombre: "registrar" });
     expect(analizarRuta("/ajustes")).toEqual({ nombre: "ajustes" });
+    expect(analizarRuta("/ayuda")).toEqual({ nombre: "ayuda" });
   });
 
   it("distingue crear de editar", () => {

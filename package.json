@@ -1,7 +1,7 @@
 {
   "name": "transi",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.3.0",
   "type": "module",
   "description": "Registro local-first de tratamientos y cambios para personas trans.",
   "scripts": {
@@ -9,7 +9,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "native:build": "./macos/build.sh",
+    "native:build:fast": "SKIP_TYPECHECK=1 ./macos/build.sh",
+    "native:open": "open dist-mac/Transi.app"
   },
   "devDependencies": {
     "typescript": "~6.0.3",

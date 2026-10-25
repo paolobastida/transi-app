@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { hoy } from "../src/formato";
 import {
   agruparPorMes,
   crearCambio,
@@ -56,6 +57,42 @@ describe("tratamientos", () => {
   it("no acepta un fin anterior al inicio", () => {
     expect(validarTratamiento({ ...base, fin: "2025-12-31" })).toMatch(/anterior/i);
     expect(validarTratamiento({ ...base, fin: "2026-02-01" })).toBeNull();
+  });
+
+  it("rechaza fechas con formato correcto pero inexistentes en el calendario", () => {
+    expect(validarTratamiento({ ...base, inicio: "2026-02-31" })).toMatch(/calendario/i);
+    expect(validarTratamiento({ ...base, fin: "2026-13-45" })).toMatch(/calendario/i);
+    expect(validarCambio({ fecha: "2026-04-31", descripcion: "hola", foto: null, audio: null })).toMatch(
+      /calendario/i,
+    );
+    expect(validarCambio({ fecha: hoy(), descripcion: "hola", foto: null, audio: null })).toBeNull();
+  });
+
+  it("conserva los ids de los medicamentos existentes al editar", () => {
+    const primero = crearTratamiento({
+      ...base,
+      medicamentos: [
+        { nombre: "Testosterona", dosis: "50 mg", frecuencia: "cada 7 días" },
+        { nombre: "Espironolactona", dosis: "50 mg", frecuencia: "cada 12 horas" },
+      ],
+    });
+
+    const idsOriginales = primero.medicamentos.map((medicamento) => medicamento.id);
+
+    // Editar cambia dosis y agrega un fármaco: los dos primeros ids tienen que seguir.
+    const editado = crearTratamiento({
+      ...base,
+      medicamentos: [
+        { id: idsOriginales[0], nombre: "Testosterona", dosis: "100 mg", frecuencia: "cada 7 días" },
+        { id: idsOriginales[1], nombre: "Espironolactona", dosis: "50 mg", frecuencia: "cada 12 horas" },
+        { nombre: "Progesterona", dosis: "100 mg", frecuencia: "cada 24 horas" },
+      ],
+    });
+
+    expect(editado.medicamentos.map((medicamento) => medicamento.id).slice(0, 2)).toEqual(idsOriginales);
+    expect(editado.medicamentos[0]?.dosis).toBe("100 mg");
+    expect(editado.medicamentos[2]?.id).not.toBe("");
+    expect(new Set(editado.medicamentos.map((medicamento) => medicamento.id)).size).toBe(3);
   });
 
   it("deriva si está activo a partir de la fecha de fin", () => {

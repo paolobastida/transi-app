@@ -9,3 +9,11 @@ dist/
 # Sistema
 .DS_Store
 *.log
+
+# App nativa de macOS generada localmente
+dist-mac/
+
+# App iOS generada localmente
+ios/Resources/dist/
+ios/Transi.xcodeproj/
+ios/build/

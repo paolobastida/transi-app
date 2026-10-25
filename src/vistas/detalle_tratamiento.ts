@@ -1,8 +1,9 @@
-import { cargar, guardar } from "../almacen";
+import { actualizar, cargar } from "../almacen";
 import { fechaLarga } from "../formato";
-import { descripcionMedicamento, tituloTratamiento, tratamientoActivo } from "../modelo";
+import { descripcionMedicamento, textoHorarios, tituloTratamiento, tratamientoActivo } from "../modelo";
 import { navegar } from "../rutas";
 import { icono } from "../iconos";
+import { sincronizarRecordatorios } from "../recordatorios";
 import { aviso, confirmar, h } from "../ui";
 import { cabeceraVista } from "./comunes";
 
@@ -19,15 +20,16 @@ export function vistaDetalleTratamiento(id: string): HTMLElement {
 
   const eliminar = (): void => {
     if (!confirmar(`¿Borrar "${tituloTratamiento(tratamiento)}"? No se puede deshacer.`)) return;
-    const nuevos = {
-      ...datos,
-      tratamientos: datos.tratamientos.filter((item) => item.id !== tratamiento.id),
-    };
-    if (!guardar(nuevos)) {
+    const guardado = actualizar((actuales) => ({
+      ...actuales,
+      tratamientos: actuales.tratamientos.filter((item) => item.id !== tratamiento.id),
+    }));
+    if (!guardado) {
       aviso("No pudimos borrar el tratamiento.", true);
       return;
     }
     aviso("Tratamiento borrado.");
+    sincronizarRecordatorios();
     navegar("/");
   };
 
@@ -78,6 +80,13 @@ export function vistaDetalleTratamiento(id: string): HTMLElement {
                   { class: "medicamento-item-texto" },
                   h("strong", {}, medicamento.nombre),
                   h("span", {}, descripcionMedicamento(medicamento) || "Sin dosis indicada"),
+                  textoHorarios(medicamento.horarios)
+                    ? h(
+                        "span",
+                        { class: "recordatorio-item" },
+                        `Recordatorio: ${textoHorarios(medicamento.horarios)}`,
+                      )
+                    : null,
                 ),
               ),
             ),
@@ -102,6 +111,11 @@ export function vistaDetalleTratamiento(id: string): HTMLElement {
             onClick: () => navegar(`/tratamiento/${tratamiento.id}`),
           },
           "Editar",
+        ),
+        h(
+          "button",
+          { class: "btn secundario", type: "button", onClick: () => navegar("/aplicaciones") },
+          "Aplicaciones",
         ),
         h("button", { class: "btn peligro", type: "button", onClick: eliminar }, "Borrar"),
       ),

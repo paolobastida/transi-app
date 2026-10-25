@@ -1,4 +1,4 @@
-import { cargar, guardar } from "../almacen";
+import { actualizar, cargar } from "../almacen";
 import { fechaLarga } from "../formato";
 import { navegar } from "../rutas";
 import { icono } from "../iconos";
@@ -16,11 +16,11 @@ export function vistaDetalleCambio(id: string): HTMLElement {
 
   const eliminar = (): void => {
     if (!confirmar("¿Borrar este cambio? No se puede deshacer.")) return;
-    const nuevos = {
-      ...datos,
-      cambios: datos.cambios.filter((item) => item.id !== cambio.id),
-    };
-    if (!guardar(nuevos)) {
+    const guardado = actualizar((actuales) => ({
+      ...actuales,
+      cambios: actuales.cambios.filter((item) => item.id !== cambio.id),
+    }));
+    if (!guardado) {
       aviso("No pudimos borrar el cambio.", true);
       return;
     }

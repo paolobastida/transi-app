@@ -1,12 +1,14 @@
 /** Modelo de datos de Transi. Sin usuarios, sin servidor: todo vive en el dispositivo. */
 
-import { hoy, restarMeses, sumarDias } from "./formato";
+import { esFechaValida, hoy, restarMeses, sumarDias } from "./formato";
 
 export interface Medicamento {
   id: string;
   nombre: string;
   dosis: string;
   frecuencia: string;
+  /** Horas "HH:MM" en las que se avisa la toma. Vacío = sin recordatorio. */
+  horarios: string[];
 }
 
 export interface Tratamiento {
@@ -38,9 +40,12 @@ export type Evento =
   | { tipo: "cambio"; fecha: string; cambio: Cambio };
 
 export interface EntradaMedicamento {
+  /** Id del medicamento que ya existe. Si falta, se genera uno nuevo. */
+  id?: string;
   nombre: string;
   dosis: string;
   frecuencia: string;
+  horarios?: string[];
 }
 
 export interface EntradaTratamiento {
@@ -61,6 +66,21 @@ export const DATOS_VACIOS: Datos = { version: 4, tratamientos: [], cambios: [] }
 
 export function datosVacios(): Datos {
   return { version: 4, tratamientos: [], cambios: [] };
+}
+
+const HORA_VALIDA = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Deja solo horas "HH:MM" válidas, sin repetir y ordenadas. */
+export function normalizarHorarios(horarios: readonly string[] | undefined): string[] {
+  const validos = (horarios ?? []).map((horario) => horario.trim()).filter((horario) => HORA_VALIDA.test(horario));
+  return [...new Set(validos)].sort();
+}
+
+/** "08:00", "08:00 y 20:00" o "07:00, 12:00 y 20:00" para mostrar en pantalla. */
+export function textoHorarios(horarios: readonly string[]): string | null {
+  if (horarios.length === 0) return null;
+  if (horarios.length === 1) return horarios[0] ?? null;
+  return `${horarios.slice(0, -1).join(", ")} y ${horarios[horarios.length - 1]}`;
 }
 
 export function nuevoId(): string {
@@ -111,14 +131,17 @@ export function validarTratamiento(entrada: EntradaTratamiento): string | null {
     return "Cada medicamento necesita un nombre.";
   }
   if (!entrada.inicio) return "Elegí la fecha de inicio.";
-  if (entrada.fin && entrada.fin < entrada.inicio) {
-    return "La fecha de fin no puede ser anterior al inicio.";
+  if (!esFechaValida(entrada.inicio)) return "La fecha de inicio no existe en el calendario.";
+  if (entrada.fin) {
+    if (!esFechaValida(entrada.fin)) return "La fecha de fin no existe en el calendario.";
+    if (entrada.fin < entrada.inicio) return "La fecha de fin no puede ser anterior al inicio.";
   }
   return null;
 }
 
 export function validarCambio(entrada: EntradaCambio): string | null {
   if (!entrada.fecha) return "Elegí la fecha del cambio.";
+  if (!esFechaValida(entrada.fecha)) return "La fecha no existe en el calendario.";
   if (!entrada.descripcion.trim()) return "Contá qué cambió o cómo te sentís.";
   return null;
 }
@@ -131,11 +154,13 @@ function limpiar(valor: string | null): string | null {
 export function crearTratamiento(entrada: EntradaTratamiento): Tratamiento {
   return {
     id: nuevoId(),
+    // Conserva los ids existentes: las claves de los recordatorios dependen de ellos.
     medicamentos: entrada.medicamentos.map((medicamento) => ({
-      id: nuevoId(),
+      id: medicamento.id || nuevoId(),
       nombre: medicamento.nombre.trim(),
       dosis: medicamento.dosis.trim(),
       frecuencia: medicamento.frecuencia.trim(),
+      horarios: normalizarHorarios(medicamento.horarios),
     })),
     inicio: entrada.inicio,
     fin: entrada.fin || null,
@@ -215,7 +240,7 @@ export function tratamientosEnCurso(datos: Datos, referencia = hoy()): Tratamien
 
 /** Datos ficticios, relativos a hoy, para probar la app sin cargar nada. */
 export function datosDemo(referencia = hoy()): Datos {
-  const hace = (meses: number) => restarMeses(referencia, meses);
+  const hace = (meses: number, dias = 0) => sumarDias(restarMeses(referencia, meses), dias);
 
   return {
     version: 4,
@@ -223,36 +248,54 @@ export function datosDemo(referencia = hoy()): Datos {
       {
         id: nuevoId(),
         medicamentos: [
-          { id: nuevoId(), nombre: "Testosterona", dosis: "50 mg", frecuencia: "cada 7 días" },
-          { id: nuevoId(), nombre: "Espironolactona", dosis: "50 mg", frecuencia: "cada 12 horas" },
+          { id: nuevoId(), nombre: "Testosterona", dosis: "50 mg", frecuencia: "cada 7 días", horarios: ["09:00"] },
+          {
+            id: nuevoId(),
+            nombre: "Espironolactona",
+            dosis: "50 mg",
+            frecuencia: "cada 12 horas",
+            horarios: ["08:00", "20:00"],
+          },
         ],
-        inicio: hace(8),
+        inicio: hace(8, -6),
         fin: null,
         profesional: "Dra. Paz Ruiz · Endocrinología",
       },
       {
         id: nuevoId(),
         medicamentos: [
-          { id: nuevoId(), nombre: "Progesterona", dosis: "100 mg", frecuencia: "cada 24 horas" },
+          {
+            id: nuevoId(),
+            nombre: "Progesterona",
+            dosis: "100 mg",
+            frecuencia: "cada 24 horas",
+            horarios: ["22:00"],
+          },
         ],
-        inicio: hace(3),
+        inicio: hace(3, 4),
         fin: null,
         profesional: "Dra. Paz Ruiz · Endocrinología",
       },
       {
         id: nuevoId(),
         medicamentos: [
-          { id: nuevoId(), nombre: "Estradiol", dosis: "1 mg", frecuencia: "cada 24 horas" },
+          {
+            id: nuevoId(),
+            nombre: "Estradiol",
+            dosis: "1 mg",
+            frecuencia: "cada 24 horas",
+            horarios: ["08:00"],
+          },
         ],
-        inicio: hace(11),
-        fin: sumarDias(hace(11), 90),
+        inicio: hace(11, -2),
+        fin: sumarDias(hace(11, -2), 90),
         profesional: null,
       },
     ],
     cambios: [
       {
         id: nuevoId(),
-        fecha: hace(1),
+        fecha: hace(1, 3),
         descripcion:
           "La voz se está asentando. Me costó un toque el cambio, pero escucharme en audios ya me hace sentir más yo.",
         foto: null,
@@ -260,7 +303,7 @@ export function datosDemo(referencia = hoy()): Datos {
       },
       {
         id: nuevoId(),
-        fecha: hace(3),
+        fecha: hace(3, -4),
         descripcion:
           "Primera ronda de análisis con la endocrinóloga. Todo en rango, seguimos con la misma dosis.",
         foto: null,
@@ -268,7 +311,7 @@ export function datosDemo(referencia = hoy()): Datos {
       },
       {
         id: nuevoId(),
-        fecha: hace(5),
+        fecha: hace(5, -1),
         descripcion:
           "Fui a comprar ropa sola por primera vez. Probarme cosas frente al espejo dejó de ser una pelea.",
         foto: null,
@@ -276,7 +319,7 @@ export function datosDemo(referencia = hoy()): Datos {
       },
       {
         id: nuevoId(),
-        fecha: hace(9),
+        fecha: hace(9, 5),
         descripcion:
           "Arranqué el tratamiento. Mucha emoción y un poco de miedo, pero después de años de espera por fin estaba ahí.",
         foto: null,

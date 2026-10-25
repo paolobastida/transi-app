@@ -1,5 +1,6 @@
-import { cargar, guardar } from "../almacen";
+import { actualizar, cargar } from "../almacen";
 import { alSalir } from "../ciclo_vida";
+import { camaraDisponible, Camara, mensajeCamara } from "../camara";
 import { hoy } from "../formato";
 import { audioDisponible, DURACION_MAXIMA, Grabadora, segundosATexto } from "../grabadora";
 import { comprimirImagen } from "../imagen";
@@ -58,23 +59,74 @@ export function vistaFormularioCambio(id?: string): HTMLElement {
 
   /* Foto ------------------------------------------------------------- */
 
+  const camara = new Camara();
+  let canceladaPorUsuario = false;
   const vistaFoto = h("div", { class: "vista-foto" });
+
   const inputFoto = h("input", {
     type: "file",
     accept: "image/*",
     class: "oculto",
     onChange: (evento: Event) => {
       const archivo = (evento.target as HTMLInputElement).files?.[0];
-      if (archivo) void elegirFoto(archivo);
+      // Se limpia el valor para que elegir dos veces el mismo archivo dispare el evento.
+      (evento.target as HTMLInputElement).value = "";
+      if (archivo) void aplicarFoto(archivo);
     },
   });
 
-  const textoFoto = h("span", {}, "Elegir foto");
-  const botonFoto = h(
+  const videoCamara = h("video", {
+    class: "camara-video",
+    "aria-label": "Vista previa de la cámara",
+  });
+  // Son propiedades, no atributos: como atributo `muted` no silencia nada.
+  videoCamara.playsInline = true;
+  videoCamara.muted = true;
+
+  const textoCapturar = h("span", {}, "Tomar foto");
+  const botonCapturar = h(
+    "button",
+    { class: "btn primario", type: "button", onClick: () => void capturar() },
+    textoCapturar,
+  );
+  const botonAlternar = h(
+    "button",
+    { class: "btn secundario oculto", type: "button", onClick: () => void alternarCamara() },
+    "Cambiar cámara",
+  );
+  const botonCancelarCamara = h(
+    "button",
+    {
+      class: "btn enlace",
+      type: "button",
+      onClick: () => {
+        canceladaPorUsuario = true;
+        cerrarCamara();
+      },
+    },
+    "Cancelar",
+  );
+
+  const panelCamara = h(
+    "div",
+    { class: "camara-panel oculto", role: "dialog", "aria-label": "Cámara" },
+    h("div", { class: "camara-marco" }, videoCamara),
+    h("div", { class: "fila-botones" }, botonCapturar, botonAlternar, botonCancelarCamara),
+    h("p", { class: "ayuda" }, "La foto se guarda comprimida, sin salir de este dispositivo."),
+  );
+
+  const botonTomarFoto = h(
+    "button",
+    { class: "btn secundario", type: "button", onClick: () => void abrirCamara() },
+    icono("camara"),
+    "Tomar foto",
+  );
+
+  const botonSubirFoto = h(
     "button",
     { class: "btn secundario", type: "button", onClick: () => inputFoto.click() },
-    icono("camara"),
-    textoFoto,
+    icono("subir"),
+    "Subir foto",
   );
 
   const botonQuitarFoto = h(
@@ -93,20 +145,91 @@ export function vistaFormularioCambio(id?: string): HTMLElement {
   const pintarFoto = (): void => {
     vistaFoto.replaceChildren(foto ? h("img", { class: "foto-previa", src: foto, alt: "Foto elegida" }) : "");
     botonQuitarFoto.classList.toggle("oculto", !foto);
-    textoFoto.textContent = foto ? "Cambiar foto" : "Elegir foto";
   };
 
-  const elegirFoto = async (archivo: File): Promise<void> => {
-    botonFoto.disabled = true;
-    textoFoto.textContent = "Procesando…";
+  function cerrarCamara(devolverFoco = true): void {
+    const estabaAbierto = panelCamara.isConnected;
+    camara.cerrar();
+    panelCamara.classList.add("oculto");
+    panelCamara.remove();
+    textoCapturar.textContent = "Tomar foto";
+    botonCapturar.disabled = false;
+    // El `await` de getUserMedia puede seguir pendiente cuando el usuario
+    // cancela: sin reactivarlos acá, los botones quedan trabados.
+    botonTomarFoto.disabled = false;
+    botonSubirFoto.disabled = false;
+    if (estabaAbierto && devolverFoco) botonTomarFoto.focus();
+  }
+
+  async function abrirCamara(): Promise<void> {
+    if (!camaraDisponible()) {
+      aviso("Tu navegador no permite usar la cámara. Subí un archivo en su lugar.", true);
+      inputFoto.click();
+      return;
+    }
+    botonTomarFoto.disabled = true;
+    botonCapturar.disabled = true;
+    textoCapturar.textContent = "Pidiendo permiso…";
+    canceladaPorUsuario = false;
+    panelCamara.classList.remove("oculto");
+    document.body.append(panelCamara);
     try {
-      foto = await comprimirImagen(archivo);
+      await camara.abrir(videoCamara);
+      botonAlternar.classList.toggle("oculto", !(await camara.puedeAlternar()));
+    } catch (error) {
+      cerrarCamara();
+      // Si el usuario canceló a propósito, no hay nada que avisar.
+      if (!canceladaPorUsuario) aviso(mensajeCamara(error), true);
+      return;
+    } finally {
+      botonTomarFoto.disabled = false;
+    }
+    botonCapturar.disabled = false;
+    textoCapturar.textContent = "Tomar foto";
+    botonCapturar.focus();
+  }
+
+  async function capturar(): Promise<void> {
+    botonCapturar.disabled = true;
+    try {
+      const blob = await camara.tomarFoto(videoCamara);
+      cerrarCamara();
+      await aplicarFoto(blob);
+    } catch (error) {
+      aviso(error instanceof Error ? error.message : "No pudimos tomar la foto.", true);
+      botonCapturar.disabled = false;
+    }
+  }
+
+  async function alternarCamara(): Promise<void> {
+    botonAlternar.disabled = true;
+    try {
+      await camara.alternar(videoCamara);
+    } catch (error) {
+      cerrarCamara();
+      aviso(mensajeCamara(error), true);
+      return;
+    } finally {
+      botonAlternar.disabled = false;
+    }
+  }
+
+  /** Un solo camino de compresión para la foto de cámara y la del archivo. */
+  const aplicarFoto = async (blob: Blob): Promise<void> => {
+    botonTomarFoto.disabled = true;
+    botonSubirFoto.disabled = true;
+    const textoPrevio = botonSubirFoto.textContent;
+    botonSubirFoto.textContent = "Procesando…";
+    try {
+      foto = await comprimirImagen(blob);
       pintarFoto();
     } catch (error) {
       aviso(error instanceof Error ? error.message : "No pudimos procesar la imagen.", true);
       pintarFoto();
     } finally {
-      botonFoto.disabled = false;
+      botonTomarFoto.disabled = false;
+      botonSubirFoto.disabled = false;
+      botonSubirFoto.textContent = textoPrevio;
     }
   };
 
@@ -218,9 +341,20 @@ export function vistaFormularioCambio(id?: string): HTMLElement {
     pintarAudio();
   };
 
+  panelCamara.addEventListener("keydown", (evento) => {
+    if (evento.key === "Escape") {
+      evento.preventDefault();
+      canceladaPorUsuario = true;
+      cerrarCamara();
+    }
+  });
+
   alSalir(() => {
     vivo = false;
     grabadora.cancelar();
+    // Va en el MISMO alSalir: `alSalir` es un slot único, y registrar otro
+    // pisaría la limpieza del micrófono.
+    cerrarCamara(false);
   });
 
   /* Guardar ---------------------------------------------------------- */
@@ -252,9 +386,12 @@ export function vistaFormularioCambio(id?: string): HTMLElement {
 
     const limpio = crearCambio(entrada);
     const cambio: Cambio = existente ? { ...limpio, id: existente.id } : limpio;
-    const nuevos = { ...datos, cambios: guardarEnLista(datos.cambios, cambio) };
+    const guardado = actualizar((actuales) => ({
+      ...actuales,
+      cambios: guardarEnLista(actuales.cambios, cambio),
+    }));
 
-    if (!guardar(nuevos)) {
+    if (!guardado) {
       aviso("No hay espacio para guardar. Probá con una foto o nota más chica, o borrá algún registro.", true);
       return;
     }
@@ -277,7 +414,7 @@ export function vistaFormularioCambio(id?: string): HTMLElement {
         "section",
         { class: "panel" },
         h("h2", { class: "panel-titulo" }, "El momento"),
-        campo("Fecha", fecha),
+        campo("Fecha del cambio", fecha),
         campo("¿Qué cambió?", descripcion, "Escribí lo que quieras recordar de este momento."),
       ),
       h(
@@ -288,16 +425,26 @@ export function vistaFormularioCambio(id?: string): HTMLElement {
         h(
           "div",
           { class: "campo" },
-          h("span", {}, "Foto"),
+          h(
+            "span",
+            { class: "campo-etiqueta" },
+            "Foto",
+            h("em", { class: "campo-opcional" }, "Opcional"),
+          ),
           vistaFoto,
           inputFoto,
-          h("div", { class: "fila-botones" }, botonFoto, botonQuitarFoto),
+          h("div", { class: "fila-botones" }, botonTomarFoto, botonSubirFoto, botonQuitarFoto),
           h("p", { class: "ayuda" }, "Se guarda una versión comprimida."),
         ),
         h(
           "div",
           { class: "campo" },
-          h("span", {}, "Nota de voz"),
+          h(
+            "span",
+            { class: "campo-etiqueta" },
+            "Nota de voz",
+            h("em", { class: "campo-opcional" }, "Opcional"),
+          ),
           h("div", { class: "grabadora" }, panelGrabando, panelAudio),
           h("div", { class: "fila-botones" }, botonGrabar),
           h(

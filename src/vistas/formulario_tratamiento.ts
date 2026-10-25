@@ -1,4 +1,4 @@
-import { cargar, guardar } from "../almacen";
+import { actualizar, cargar } from "../almacen";
 import { hoy } from "../formato";
 import {
   crearTratamiento,
@@ -10,15 +10,24 @@ import {
 } from "../modelo";
 import { navegar } from "../rutas";
 import { icono } from "../iconos";
+import {
+  sincronizarRecordatorios,
+  solicitarPermiso,
+  soportaRecordatoriosNativos,
+} from "../recordatorios";
 import { aviso, h } from "../ui";
 import { barraGuardar, cabeceraFormulario, campo } from "./comunes";
 
 interface FilaMedicamento {
   nodo: HTMLElement;
   titulo: HTMLElement;
+  /** Id del medicamento que ya existía; se conserva al editar. */
+  id?: string;
   nombre: HTMLInputElement;
   dosis: HTMLInputElement;
   frecuencia: HTMLInputElement;
+  /** Referencia viva a los inputs de horario de esta fila. */
+  horarios: HTMLInputElement[];
   quitar: HTMLButtonElement;
 }
 
@@ -78,25 +87,73 @@ export function vistaFormularioTratamiento(id?: string): HTMLElement {
       "Quitar",
     );
 
+    const horariosLista = h("div", { class: "horarios-lista" });
+    const horarios: HTMLInputElement[] = [];
+
+    const agregarHorario = (valor = ""): void => {
+      const entrada = h("input", { type: "time", value: valor });
+      const quitarHorario = h(
+        "button",
+        {
+          class: "btn enlace chico",
+          type: "button",
+          "aria-label": "Quitar este horario",
+          onClick: () => {
+            const indice = horarios.indexOf(entrada);
+            if (indice !== -1) horarios.splice(indice, 1);
+            filaHorario.remove();
+          },
+        },
+        "Quitar",
+      );
+      const filaHorario = h("div", { class: "horario" }, entrada, quitarHorario);
+      horarios.push(entrada);
+      horariosLista.append(filaHorario);
+    };
+
+    for (const horario of medicamento?.horarios ?? []) agregarHorario(horario);
+
     const nodo = h(
       "section",
       { class: "medicamento" },
       h("div", { class: "medicamento-cabecera" }, titulo, quitar),
-      campo("Nombre", nombre),
+      campo("Nombre del medicamento", nombre),
       h(
         "div",
         { class: "fila-campos" },
-        campo("Dosis", dosis),
-        campo("Frecuencia", frecuencia),
+        campo("Dosis", dosis, "Por ejemplo: 50 mg.", true),
+        campo("Frecuencia", frecuencia, "Por ejemplo: cada 7 días.", true),
+      ),
+      h(
+        "div",
+        { class: "campo" },
+        h(
+          "span",
+          { class: "campo-etiqueta" },
+          "Recordatorio",
+          h("em", { class: "campo-opcional" }, "Opcional"),
+        ),
+        horariosLista,
+        h(
+          "button",
+          { class: "btn secundario chico agregar-horario", type: "button", onClick: () => agregarHorario() },
+          icono("mas"),
+          "Agregar horario",
+        ),
+        h("p", { class: "ayuda" }, soportaRecordatoriosNativos()
+          ? "Te avisamos a estas horas, aunque la app esté cerrada."
+          : "Te avisamos a estas horas mientras la app esté abierta."),
       ),
     );
 
     const fila: FilaMedicamento = {
       nodo,
       titulo,
+      id: medicamento?.id,
       nombre,
       dosis,
       frecuencia,
+      horarios,
       quitar,
     };
 
@@ -140,11 +197,22 @@ export function vistaFormularioTratamiento(id?: string): HTMLElement {
   const alGuardar = (evento: SubmitEvent): void => {
     evento.preventDefault();
 
+    // Un horario a medias se descartaría en silencio y el recordatorio no existiría.
+    const horarioIncompleto = filas.flatMap((fila) => fila.horarios).find((campo) => !campo.value);
+    if (horarioIncompleto) {
+      horarioIncompleto.focus();
+      horarioIncompleto.scrollIntoView({ block: "center", behavior: "smooth" });
+      aviso("Completá la hora del recordatorio o quitá esa fila.", true);
+      return;
+    }
+
     const entrada: EntradaTratamiento = {
       medicamentos: filas.map((fila) => ({
+        id: fila.id,
         nombre: fila.nombre.value,
         dosis: fila.dosis.value,
         frecuencia: fila.frecuencia.value,
+        horarios: fila.horarios.map((entradaHorario) => entradaHorario.value),
       })),
       inicio: inicio.value,
       fin: fin.value || null,
@@ -159,17 +227,25 @@ export function vistaFormularioTratamiento(id?: string): HTMLElement {
 
     const limpio = crearTratamiento(entrada);
     const tratamiento: Tratamiento = existente ? { ...limpio, id: existente.id } : limpio;
-    const nuevos = {
-      ...datos,
-      tratamientos: guardarEnLista(datos.tratamientos, tratamiento),
-    };
+    const guardado = actualizar((actuales) => ({
+      ...actuales,
+      tratamientos: guardarEnLista(actuales.tratamientos, tratamiento),
+    }));
 
-    if (!guardar(nuevos)) {
-      aviso("No hay espacio para guardar. Probá borrar alguna foto desde Ajustes.", true);
+    if (!guardado) {
+      aviso(
+        "No hay espacio en este navegador. Exportá tus datos desde Ajustes y borrá registros que no necesites.",
+        true,
+      );
       return;
     }
 
     aviso(existente ? "Tratamiento actualizado." : "Tratamiento guardado.");
+    sincronizarRecordatorios();
+    if (tratamiento.medicamentos.some((medicamento) => medicamento.horarios.length > 0)) {
+      // Si el sistema pide permiso recién ahora, reprogramamos al concederlo.
+      void solicitarPermiso().then(() => sincronizarRecordatorios());
+    }
     navegar(`/detalle/tratamiento/${tratamiento.id}`);
   };
 
@@ -208,10 +284,10 @@ export function vistaFormularioTratamiento(id?: string): HTMLElement {
         h(
           "div",
           { class: "fila-campos" },
-          campo("Inicio", inicio),
-          campo("Fin", fin, "Dejala vacía si seguís con el tratamiento."),
+          campo("Fecha de inicio", inicio),
+          campo("Fecha de fin", fin, "Dejala vacía si seguís con el tratamiento.", true),
         ),
-        campo("Profesional", profesional, "Opcional. Podés incluir la especialidad."),
+        campo("Profesional", profesional, "Podés incluir la especialidad.", true),
       ),
       h(
         "p",

@@ -35,26 +35,79 @@ const raiz = () => document.querySelector<HTMLDivElement>("#app");
 
 export function montar(vista: HTMLElement): void {
   raiz()?.replaceChildren(vista);
+
+  // Al cambiar de pantalla, llevamos el foco al contenido: lectores de pantalla
+  // y teclado no tienen que recorrer toda la cabecera otra vez.
+  const principal = vista.querySelector<HTMLElement>("main");
+  if (principal) {
+    principal.id = "contenido";
+    principal.tabIndex = -1;
+    principal.focus({ preventScroll: true });
+  }
+
   window.scrollTo({ top: 0 });
 }
 
 export function aviso(mensaje: string, esError = false): void {
   const contenedor = document.querySelector<HTMLDivElement>("#avisos");
   if (!contenedor) return;
-  const nodo = h("div", { class: `aviso ${esError ? "error" : ""}`, role: "status" }, mensaje);
+
+  const texto = h("span", { class: "aviso-texto" }, mensaje);
+  const nodo = h(
+    "div",
+    {
+      class: `aviso ${esError ? "error" : ""}`,
+      role: esError ? "alert" : "status",
+      "aria-atomic": "true",
+    },
+    texto,
+  );
+  const cerrar = h(
+    "button",
+    {
+      class: "aviso-cerrar",
+      type: "button",
+      "aria-label": "Cerrar aviso",
+      onClick: () => nodo.remove(),
+    },
+    "×",
+  );
+  nodo.append(cerrar);
   contenedor.append(nodo);
-  setTimeout(() => nodo.remove(), 4600);
+
+  // Los errores necesitan más tiempo para poder leerse con calma.
+  setTimeout(() => nodo.remove(), esError ? 8000 : 4600);
 }
 
 export function confirmar(mensaje: string): boolean {
   return window.confirm(mensaje);
 }
 
-export function vacio(nombre: NombreIcono, mensaje: string): HTMLElement {
+/**
+ * Baja un archivo al dispositivo. El ancla va al DOM y se retira: Safari (y
+ * sobre todo la versión instalada como app) ignora las que nunca se insertaron.
+ */
+export function descargar(nombre: string, contenido: string, tipo: string): void {
+  const url = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+  const enlace = h("a", { href: url, download: nombre });
+  document.body.append(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export function vacio(
+  nombre: NombreIcono,
+  mensaje: string,
+  acciones: HTMLElement[] = [],
+): HTMLElement {
   return h(
     "div",
     { class: "vacio" },
     h("div", { class: "vacio-icono" }, icono(nombre)),
     h("p", {}, mensaje),
+    acciones.length
+      ? h("div", { class: "fila-botones vacio-acciones" }, ...acciones)
+      : null,
   );
 }

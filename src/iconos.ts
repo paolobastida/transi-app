@@ -2,7 +2,7 @@
 
 const TRAZOS = {
   pildora:
-    '<path d="m10.5 20.5-7-7a4.95 4.95 0 1 1 7-7l7 7a4.95 4.95 0 1 1-7 7Z"/><path d="m8.5 8.5 7 7"/>',
+    '<path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7Z" fill="currentColor" fill-opacity="0.14"/><path d="m8.5 8.5 7 7"/>',
   lapiz:
     '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   ajustes:
@@ -27,6 +27,8 @@ const TRAZOS = {
     '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/>',
   chispa: '<path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/>',
   check: '<path d="m20 6-11 11-5-5"/>',
+  ayuda:
+    '<circle cx="12" cy="12" r="9"/><path d="M9.2 9a2.9 2.9 0 1 1 5.2 1.8c-.8.7-1.4 1.2-1.4 2.2"/><path d="M12 17h.01"/>',
 } as const;
 
 export type NombreIcono = keyof typeof TRAZOS;

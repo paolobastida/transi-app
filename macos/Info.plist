@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>Transi</string>
+  <key>CFBundleDisplayName</key>
+  <string>Transi</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.transi.app</string>
+  <key>CFBundleVersion</key>
+  <string>2.2.0</string>
+  <key>CFBundleShortVersionString</key>
+  <string>2.2.0</string>
+  <key>CFBundleExecutable</key>
+  <string>Transi</string>
+  <key>CFBundleIconFile</key>
+  <string>Transi</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>13.0</string>
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.healthcare-fitness</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSPrincipalClass</key>
+  <string>NSApplication</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Transi usa el micrófono solo cuando grabás una nota de voz.</string>
+  <key>NSCameraUsageDescription</key>
+  <string>Transi usa la cámara solo cuando elegís tomar una foto.</string>
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsLocalNetworking</key>
+    <true/>
+  </dict>
+</dict>
+</plist>

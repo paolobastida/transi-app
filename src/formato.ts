@@ -37,6 +37,18 @@ export function aFecha(iso: string): Date {
   return new Date(anio ?? 1970, (mes ?? 1) - 1, dia ?? 1);
 }
 
+/**
+ * `true` solo si el texto es `AAAA-MM-DD` **y** existe en el calendario.
+ * `2026-02-31` y `2026-13-45` tienen el formato correcto pero no son fechas.
+ */
+export function esFechaValida(iso: unknown): iso is string {
+  if (typeof iso !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  const [anio, mes, dia] = iso.split("-").map(Number);
+  if (!anio || !mes || !dia || mes > 12 || dia > 31) return false;
+  const fecha = new Date(anio, mes - 1, dia);
+  return fecha.getFullYear() === anio && fecha.getMonth() === mes - 1 && fecha.getDate() === dia;
+}
+
 export function aISO(fecha: Date): string {
   return `${fecha.getFullYear()}-${dos(fecha.getMonth() + 1)}-${dos(fecha.getDate())}`;
 }

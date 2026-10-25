@@ -1,0 +1,62 @@
+{
+  "id": "./",
+  "name": "Transi — tu transición, a tu ritmo",
+  "short_name": "Transi",
+  "description": "Registrá tus tratamientos y cambios. Simple, privado y sin cuentas. Tus datos quedan en tu dispositivo.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f7fbfd",
+  "theme_color": "#f7fbfd",
+  "categories": ["health", "lifestyle", "medical"],
+  "icons": [
+    {
+      "src": "./icono-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icono-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icono-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icono.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Registrar tratamiento",
+      "short_name": "Tratamiento",
+      "url": "./#/tratamiento",
+      "icons": [{ "src": "./icono-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Registrar cambio",
+      "short_name": "Cambio",
+      "url": "./#/cambio",
+      "icons": [{ "src": "./icono-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ajustes",
+      "short_name": "Ajustes",
+      "url": "./#/ajustes",
+      "icons": [{ "src": "./icono-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

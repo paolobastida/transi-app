@@ -29,7 +29,7 @@ export function vistaRegistrar(): HTMLElement {
       h(
         "p",
         { class: "intro" },
-        "Elegí una opción. Podés editarla o borrarla cuando quieras.",
+        "Elegí qué querés anotar. Después podés editarlo o borrarlo cuando quieras.",
       ),
       opcion(
         "pildora",
@@ -44,6 +44,11 @@ export function vistaRegistrar(): HTMLElement {
         "Un cambio",
         "Una fecha, un texto y, si querés, una foto o una nota de voz.",
         () => navegar("/cambio"),
+      ),
+      h(
+        "button",
+        { class: "btn enlace", type: "button", onClick: () => navegar("/ayuda") },
+        "¿No sabés cuál elegir? Mirá la ayuda",
       ),
       h(
         "p",

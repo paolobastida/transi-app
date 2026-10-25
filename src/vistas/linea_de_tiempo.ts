@@ -17,13 +17,47 @@ export function vistaLineaDeTiempo(datos: Datos, filtro: Filtro): HTMLElement {
   const eventos = lineaDeTiempo(datos, filtro);
 
   if (eventos.length === 0) {
-    const mensaje =
-      filtro === "tratamientos"
-        ? "Todavía no registraste tratamientos."
+    const hayDatos = datos.tratamientos.length + datos.cambios.length > 0;
+    const mensaje = hayDatos
+      ? filtro === "tratamientos"
+        ? "No hay tratamientos con este filtro."
         : filtro === "cambios"
-          ? "Todavía no registraste cambios."
-          : "Tu historia empieza con el primer registro.";
-    return vacio("chispa", mensaje);
+          ? "No hay cambios con este filtro."
+          : "Todavía no hay registros para mostrar."
+      : "Tu historia empieza con el primer registro. ¿Qué querés anotar?";
+
+    const acciones: HTMLElement[] = [];
+    if (hayDatos) {
+      acciones.push(
+        h(
+          "button",
+          { class: "btn secundario", type: "button", onClick: () => navegar("/") },
+          "Ver todo",
+        ),
+      );
+    }
+    if (filtro !== "cambios") {
+      acciones.push(
+        h(
+          "button",
+          { class: "btn secundario", type: "button", onClick: () => navegar("/tratamiento") },
+          icono("pildora"),
+          "Anotar tratamiento",
+        ),
+      );
+    }
+    if (filtro !== "tratamientos") {
+      acciones.push(
+        h(
+          "button",
+          { class: "btn secundario", type: "button", onClick: () => navegar("/cambio") },
+          icono("lapiz"),
+          "Anotar cambio",
+        ),
+      );
+    }
+
+    return vacio("chispa", mensaje, acciones);
   }
 
   const contenedor = h("div", { class: "linea-tiempo" });
@@ -36,6 +70,11 @@ export function vistaLineaDeTiempo(datos: Datos, filtro: Filtro): HTMLElement {
   return contenedor;
 }
 
+/** Día del mes (1–31) de una fecha `AAAA-MM-DD`, como ancla visual del riel. */
+function diaDelMes(iso: string): string {
+  return String(Number(iso.slice(8, 10)));
+}
+
 function filaEvento(evento: Evento): HTMLElement {
   if (evento.tipo === "tratamiento") {
     const tratamiento = evento.tratamiento;
@@ -43,6 +82,7 @@ function filaEvento(evento: Evento): HTMLElement {
     return fila({
       clase: "tratamiento",
       iconoEvento: "pildora",
+      dia: diaDelMes(tratamiento.inicio),
       titulo: tituloTratamiento(tratamiento),
       detalle: `${resumenTratamiento(tratamiento) || "Tratamiento"} · desde ${fechaCorta(tratamiento.inicio)}`,
       etiqueta: activo ? { texto: "En curso", clase: "activo" } : { texto: "Finalizado", clase: "cerrado" },
@@ -54,6 +94,7 @@ function filaEvento(evento: Evento): HTMLElement {
   return fila({
     clase: "cambio",
     iconoEvento: "lapiz",
+    dia: diaDelMes(cambio.fecha),
     titulo: cambio.descripcion,
     detalle: fechaCorta(cambio.fecha),
     foto: cambio.foto,
@@ -65,6 +106,7 @@ function filaEvento(evento: Evento): HTMLElement {
 function fila(opciones: {
   clase: string;
   iconoEvento: "pildora" | "lapiz";
+  dia: string;
   titulo: string;
   detalle: string;
   etiqueta?: { texto: string; clase: string };
@@ -79,23 +121,14 @@ function fila(opciones: {
     h(
       "div",
       { class: "riel", "aria-hidden": "true" },
-      h("span", { class: `punto ${opciones.clase}` }),
-      h("span", { class: "linea" }),
+      h("span", { class: `dia ${opciones.clase}` }, opciones.dia),
     ),
     h(
-      "article",
+      "button",
       {
         class: "tarjeta evento",
-        role: "button",
-        tabindex: "0",
+        type: "button",
         onClick: abrir,
-        onKeyDown: (evento: Event) => {
-          const tecla = (evento as KeyboardEvent).key;
-          if (tecla === "Enter" || tecla === " ") {
-            evento.preventDefault();
-            abrir();
-          }
-        },
       },
       h(
         "div",

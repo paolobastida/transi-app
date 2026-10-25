@@ -12,8 +12,10 @@ function cargarImagen(url: string): Promise<HTMLImageElement> {
   });
 }
 
-export async function comprimirImagen(archivo: File): Promise<string> {
-  const url = URL.createObjectURL(archivo);
+/** Acepta un File elegido desde disco o un Blob capturado por la cámara:
+ *  un solo camino de compresión para las dos formas de conseguir una foto. */
+export async function comprimirImagen(imagen: Blob): Promise<string> {
+  const url = URL.createObjectURL(imagen);
   try {
     const imagen = await cargarImagen(url);
     const escala = Math.min(1, LADO_MAXIMO / Math.max(imagen.width, imagen.height));

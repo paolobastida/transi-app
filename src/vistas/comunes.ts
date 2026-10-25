@@ -27,13 +27,31 @@ export function cabeceraVista(titulo: string, alVolver: () => void, accion?: HTM
   );
 }
 
-export function campo(etiqueta: string, control: HTMLElement, ayuda?: string): HTMLElement {
+let secuenciaCampo = 0;
+
+export function campo(
+  etiqueta: string,
+  control: HTMLElement,
+  ayuda?: string,
+  opcional = false,
+): HTMLElement {
+  const idAyuda = `campo-ayuda-${++secuenciaCampo}`;
+  if (ayuda) {
+    const previo = control.getAttribute("aria-describedby");
+    control.setAttribute("aria-describedby", previo ? `${previo} ${idAyuda}` : idAyuda);
+  }
+
   return h(
     "label",
     { class: "campo" },
-    h("span", {}, etiqueta),
+    h(
+      "span",
+      { class: "campo-etiqueta" },
+      etiqueta,
+      opcional ? h("em", { class: "campo-opcional" }, "Opcional") : null,
+    ),
     control,
-    ayuda ? h("p", { class: "ayuda" }, ayuda) : null,
+    ayuda ? h("p", { class: "ayuda", id: idAyuda }, ayuda) : null,
   );
 }
 
