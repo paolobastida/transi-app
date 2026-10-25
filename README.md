@@ -8,8 +8,8 @@ un proyecto real y quedó como pieza de portafolio: una app chica, terminada y
 con una decisión de producto clara — **tus datos son tuyos y no salen de tu
 dispositivo**.
 
-> **Demo:** `https://TU-USUARIO.github.io/transi/`
-> _(reemplazá el link cuando actives GitHub Pages; el workflow ya está incluido)_
+> **Demo:** `https://paolobastida.github.io/transi-app/`
+> _(GitHub Pages se actualiza automáticamente al hacer push a `main`)_
 
 [![Pantalla de inicio de Transi](docs/capturas/inicio-desktop.jpg)](docs/capturas/inicio-desktop.jpg)
 
@@ -142,7 +142,7 @@ Guía paso a paso, con los permisos y dominios de cada proveedor:
 | `VITE_FACEBOOK_APP_ID` | Facebook | developers.facebook.com → Mi app → Configuración → Básica |
 
 En todos los casos hay que declarar los orígenes autorizados:
-`http://localhost:5173` en desarrollo y `https://TU-USUARIO.github.io` para la
+`http://localhost:5173` en desarrollo y `https://paolobastida.github.io` para la
 demo. Reiniciá `pnpm dev` después: Vite lee las variables `VITE_*` al arrancar.
 
 > Tanto la pantalla de consentimiento de Google como la revisión de Facebook
@@ -318,6 +318,20 @@ El repositorio incluye `.github/workflows/paginas.yml`. En GitHub:
    `VITE_APPLE_REDIRECT_URI` y `VITE_FACEBOOK_APP_ID`.
 3. Hacé push a `main`.
 4. Copiá la URL publicada en la primera línea de este README.
+
+### Instalarla en iPhone
+
+1. Abrí **Safari** y entrá a `https://paolobastida.github.io/transi-app/`.
+2. Tocá **Compartir** → **Añadir a pantalla de inicio**.
+3. Abrilá desde el ícono de Transi: se abre sin la barra del navegador.
+4. Para empezar de cero con datos reales, **no toques “Probar con datos de
+   ejemplo”**: elegí **“Anotar mi primer registro”**.
+
+Los datos quedan guardados en el almacenamiento de Safari en tu iPhone. Para no
+perderlos, exportá un respaldo desde **Ajustes → Llevarte tus datos**. La cámara
+y el micrófono piden permiso la primera vez. Los recordatorios del navegador
+suenan mientras Transi esté abierta; para avisos con la app cerrada hay que usar
+la app nativa de iOS o macOS.
 
 ## Capturas
 
