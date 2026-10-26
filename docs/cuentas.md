@@ -17,7 +17,8 @@ dispositivo.
 
 - No hay contraseña, verificación por correo ni servidor.
 - El email solo separa los datos por perfil en este dispositivo.
-- Si ya usaste el mismo email acá, volvés a tus registros.
+- Si ya usaste el mismo email acá, volvés a tus registros. Si escribís uno
+  nuevo, se crea un espacio vacío (tus otros perfiles siguen guardados).
 - No es un control de seguridad: alguien con tu dispositivo desbloqueado puede
   abrir la app. Para protegerte, usá el bloqueo del teléfono y exportá respaldos.
 

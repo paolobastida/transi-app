@@ -90,7 +90,7 @@ export function montarAccesoEmail(
     h(
       "p",
       { class: "ayuda" },
-      "Si ya usaste este email en este dispositivo, volvés a tus datos. " +
+      "Si ya usaste este email acá, volvés a tus datos. Si es nuevo, se crea un espacio vacío. " +
         "No hay contraseña ni servidor: la cuenta vive solo acá.",
     ),
   );
