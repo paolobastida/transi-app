@@ -1,5 +1,6 @@
-/** Botones de identidad: Google, Apple y Facebook, todos opcionales. */
+/** Acceso con email y, si están configurados, Google, Apple y Facebook. */
 
+import { montarAccesoEmail } from "./acceso_email";
 import { appleConfigurado, cargarApple, entrarConApple } from "./apple";
 import { facebookConfigurado, cargarFacebook, entrarConFacebook } from "./facebook";
 import { googleConfigurado, montarBotonGoogle } from "./google";
@@ -11,81 +12,63 @@ export interface OpcionesProveedores {
   alError: (mensaje: string) => void;
 }
 
-const AVISO_CONFIG: Record<Proveedor, string> = import.meta.env.DEV
-  ? {
-      google: "Google no está configurado. Agregá VITE_GOOGLE_CLIENT_ID (ver README).",
-      apple:
-        "Apple no está configurado. Agregá VITE_APPLE_CLIENT_ID y VITE_APPLE_REDIRECT_URI (ver README).",
-      facebook: "Facebook no está configurado. Agregá VITE_FACEBOOK_APP_ID (ver README).",
-    }
-  : {
-      google: "El ingreso con Google no está disponible en esta versión. Podés seguir sin cuenta.",
-      apple: "El ingreso con Apple no está disponible en esta versión. Podés seguir sin cuenta.",
-      facebook:
-        "El ingreso con Facebook no está disponible en esta versión. Podés seguir sin cuenta.",
-    };
+type ProveedorSocial = Exclude<Proveedor, "email">;
 
 export function montarProveedores(
   contenedor: HTMLElement,
   opciones: OpcionesProveedores,
 ): void {
-  const google = h("div", { class: "google-boton" });
+  const email = h("div", { class: "acceso-email-contenedor" });
+  montarAccesoEmail(email, { alEntrar: opciones.alEntrar });
+
+  const sociales: HTMLElement[] = [];
 
   if (googleConfigurado()) {
+    const google = h("div", { class: "google-boton" });
     montarBotonGoogle(google, opciones);
-  } else {
-    google.append(
-      botonProveedor(
-        "google",
-        "Continuar con Google",
-        async () => {
-          throw new Error(AVISO_CONFIG.google);
-        },
-        opciones,
+    sociales.push(google);
+  }
+
+  if (appleConfigurado()) {
+    sociales.push(
+      botonProveedor("apple", "Continuar con Apple", () => entrarConApple(), opciones),
+    );
+  }
+
+  if (facebookConfigurado()) {
+    sociales.push(
+      botonProveedor("facebook", "Continuar con Facebook", () => entrarConFacebook(), opciones),
+    );
+  }
+
+  const nodos: Node[] = [email];
+
+  if (sociales.length > 0) {
+    nodos.push(h("div", { class: "separador-cuentas" }, h("span", {}, "o continuá con")));
+    nodos.push(...sociales);
+  }
+
+  nodos.push(
+    h(
+      "p",
+      { class: "ayuda" },
+      "Las cuentas son opcionales. Guardamos tu nombre y email solo en este dispositivo; " +
+        "tus registros de salud no se envían.",
+    ),
+  );
+
+  if (import.meta.env.DEV && sociales.length === 0) {
+    nodos.push(
+      h(
+        "p",
+        { class: "ayuda" },
+        "Para probar Google o Apple, configurá tus credenciales en .env. " +
+          "La guía está en docs/cuentas.md.",
       ),
     );
   }
 
-  const apple = botonProveedor(
-    "apple",
-    "Continuar con Apple",
-    async () => {
-      if (!appleConfigurado()) throw new Error(AVISO_CONFIG.apple);
-      return entrarConApple();
-    },
-    opciones,
-  );
-
-  const facebook = botonProveedor(
-    "facebook",
-    "Continuar con Facebook",
-    async () => {
-      if (!facebookConfigurado()) throw new Error(AVISO_CONFIG.facebook);
-      return entrarConFacebook();
-    },
-    opciones,
-  );
-
-  const nodos: Array<Node | null> = [
-    google,
-    apple,
-    facebook,
-    h(
-      "p",
-      { class: "ayuda" },
-      "Opcional. Solo guardamos tu nombre y email en este dispositivo; tus registros no se envían.",
-    ),
-    !googleConfigurado() && !appleConfigurado() && !facebookConfigurado()
-      ? h(
-          "p",
-          { class: "ayuda" },
-          "Los proveedores todavía no están configurados. Podés seguir sin cuenta; " +
-            "la guía para activarlos está en docs/cuentas.md.",
-        )
-      : null,
-  ];
-
-  contenedor.replaceChildren(...nodos.filter((nodo): nodo is Node => nodo !== null));
+  contenedor.replaceChildren(...nodos);
 
   // Deja los SDK listos para que el clic abra la ventana sin perder el gesto del usuario.
   if (appleConfigurado()) void cargarApple().catch(() => {});
@@ -93,7 +76,7 @@ export function montarProveedores(
 }
 
 function botonProveedor(
-  proveedor: Proveedor,
+  proveedor: ProveedorSocial,
   texto: string,
   accion: () => Promise<Perfil>,
   opciones: OpcionesProveedores,
@@ -141,7 +124,7 @@ function mensajeError(error: unknown): string {
   return error instanceof Error ? error.message : "No pudimos completar el ingreso.";
 }
 
-function logo(proveedor: Proveedor): SVGSVGElement {
+function logo(proveedor: ProveedorSocial): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("aria-hidden", "true");

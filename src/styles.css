@@ -2583,7 +2583,58 @@ audio {
 }
 
 .entrada-seguir {
+  width: 100%;
   margin-top: 2px;
+}
+
+.entrada-seguir .btn {
+  width: 100%;
+}
+
+.acceso-email-contenedor {
+  width: 100%;
+}
+
+.acceso-email {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.acceso-email .btn {
+  width: 100%;
+}
+
+.acceso-email .ayuda {
+  text-align: left;
+}
+
+.error-campo {
+  margin-top: -4px;
+  color: var(--peligro);
+  font-weight: 600;
+}
+
+.separador-cuentas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+  color: var(--tinta-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.separador-cuentas::before,
+.separador-cuentas::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
 }
 
 /* ------------------------------------------------------------------ */

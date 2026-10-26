@@ -1,8 +1,8 @@
 /** Identidad de la persona: un perfil local, opcionalmente asociado a un proveedor. */
 
-export type Proveedor = "google" | "apple" | "facebook";
+export type Proveedor = "google" | "apple" | "facebook" | "email";
 
-export const PROVEEDORES: Proveedor[] = ["google", "apple", "facebook"];
+export const PROVEEDORES: Proveedor[] = ["email", "google", "apple", "facebook"];
 
 export interface Perfil {
   proveedor: Proveedor;
@@ -12,7 +12,7 @@ export interface Perfil {
 }
 
 export function esProveedor(valor: unknown): valor is Proveedor {
-  return valor === "google" || valor === "apple" || valor === "facebook";
+  return valor === "google" || valor === "apple" || valor === "facebook" || valor === "email";
 }
 
 /** Clave estable para separar los datos de cada cuenta en este dispositivo. */
@@ -35,5 +35,5 @@ export function iniciales(perfil: Perfil): string {
 }
 
 export function etiquetaProveedor(proveedor: Proveedor): string {
-  return { google: "Google", apple: "Apple", facebook: "Facebook" }[proveedor];
+  return { email: "Email", google: "Google", apple: "Apple", facebook: "Facebook" }[proveedor];
 }

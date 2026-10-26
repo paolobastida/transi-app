@@ -1,13 +1,27 @@
-# Activar Google, Apple y Facebook
+# Cuentas: email, Google, Apple y Facebook
 
 La cuenta en Transi es **opcional**: sin ninguna credencial la app funciona
-igual, con los datos en el dispositivo. Esta guía es para que los tres botones
-de **Ajustes → Tu cuenta** (y de la pantalla de entrada) abran de verdad.
+igual, con los datos en el dispositivo.
+
+El acceso con **email funciona sin configurar nada**. Google, Apple y Facebook
+son opcionales y necesitan credenciales propias para que sus botones aparezcan.
 
 No hay backend: la identidad se resuelve en el navegador y **nunca** se envían
 tratamientos, cambios, fotos ni notas de voz a los proveedores.
 
-## Antes de empezar
+## Email (funciona sin configurar nada)
+
+En la pantalla de entrada, completá **Email** y, si querés, tu **Nombre**.
+Transi crea un perfil local con ese email o recupera el que ya existe en este
+dispositivo.
+
+- No hay contraseña, verificación por correo ni servidor.
+- El email solo separa los datos por perfil en este dispositivo.
+- Si ya usaste el mismo email acá, volvés a tus registros.
+- No es un control de seguridad: alguien con tu dispositivo desbloqueado puede
+  abrir la app. Para protegerte, usá el bloqueo del teléfono y exportá respaldos.
+
+## Antes de configurar Google, Apple o Facebook
 
 1. Copiá el archivo de ejemplo:
 
@@ -41,7 +55,7 @@ tratamientos, cambios, fotos ni notas de voz a los proveedores.
    - Tipo: **Aplicación web**.
    - **Orígenes de JavaScript autorizados**:
      - `http://localhost:5173`
-     - `https://TU-USUARIO.github.io`
+     - `https://paolobastida.github.io`
 4. Copiá el **Client ID** (termina en `.apps.googleusercontent.com`) en `.env`:
 
    ```sh
@@ -90,9 +104,9 @@ un dominio HTTPS y verificar ese dominio.
 
 > **Apple no funciona en `localhost`.** Necesitás un dominio HTTPS real (o un
 > túnel HTTPS) y que el archivo `.well-known` esté en la raíz de ese dominio.
-> Si usás GitHub Pages con `https://TU-USUARIO.github.io/transi/`, el dominio es
-> `TU-USUARIO.github.io` y el archivo tiene que estar en el repo
-> `TU-USUARIO.github.io`, no en el subdirectorio `/transi/`. Para evitar líos,
+> Si usás GitHub Pages con `https://paolobastida.github.io/transi-app/`, el dominio es
+> `paolobastida.github.io` y el archivo tiene que estar en el repo
+> `paolobastida.github.io`, no en el subdirectorio `/transi-app/`. Para evitar líos,
 > usá un dominio propio.
 
 ---
@@ -104,12 +118,12 @@ un dominio HTTPS y verificar ese dominio.
 2. Agregá el producto **Facebook Login → Web**.
 3. En **Configuración → Básica**:
    - Copiá el **ID de la app**.
-   - **Dominios de la app**: `localhost` y `TU-USUARIO.github.io`.
-   - **URL del sitio**: `https://TU-USUARIO.github.io/transi/`.
+   - **Dominios de la app**: `localhost` y `paolobastida.github.io`.
+   - **URL del sitio**: `https://paolobastida.github.io/transi-app/`.
 4. En **Facebook Login → Configuración**:
    - **URI de redireccionamiento de OAuth válidos**:
      - `http://localhost:5173/`
-     - `https://TU-USUARIO.github.io/transi/`
+     - `https://paolobastida.github.io/transi-app/`
 5. Completá `.env`:
 
    ```sh
@@ -128,18 +142,20 @@ un dominio HTTPS y verificar ese dominio.
 ## Probar que quedó bien
 
 1. Abrí `http://localhost:5173` en una ventana privada. Debería aparecer la
-   pantalla **“Entrá a Transi”**.
-2. Probá cada proveedor configurado:
+   pantalla **“Entrá o creá tu espacio”**.
+2. Probá el acceso con **email**: completá un email y, si querés, tu nombre.
+   Debería entrar sin pedir contraseña y crear el perfil local.
+3. Si configuraste proveedores, probalos:
    - **Google**: abre el selector de cuentas.
    - **Apple**: abre el popup de Apple; la primera vez comparte nombre y email.
    - **Facebook**: abre el popup de permisos y pide `public_profile` y `email`.
-3. Al entrar:
+4. Al entrar:
    - Aparece el avatar con tus iniciales en la cabecera.
    - Los contadores de datos quedan en cero (es otro perfil).
    - Si había registros sin cuenta, Transi ofrece **llevarlos a la cuenta**.
-4. Cerrá sesión desde **Ajustes → Tu cuenta**. Volvés al perfil anónimo y tus
+5. Cerrá sesión desde **Ajustes → Tu cuenta**. Volvés al perfil anónimo y tus
    registros de antes siguen ahí.
-5. Recargá: la sesión se mantiene guardada en el `localStorage`.
+6. Recargá: la sesión se mantiene guardada en el `localStorage`.
 
 ## Si algo falla
 
@@ -153,6 +169,9 @@ un dominio HTTPS y verificar ese dominio.
 
 ## Seguridad
 
+- El acceso con **email es local y sin contraseña**. No verifica que el email
+  sea tuyo ni protege los datos frente a otra persona con el dispositivo.
+  Sirve para separar perfiles, no como control de acceso.
 - Google y Apple entregan un **ID token**; la app valida `aud`, `iss` y `exp`
   en el navegador.
 - **No se verifica la firma** del token: no hay backend que lo haga. Es una

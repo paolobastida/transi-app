@@ -386,8 +386,8 @@ function seccionCuenta(opciones: { hayDatosAnonimos: boolean; cuentaVacia: boole
       h(
         "p",
         { class: "sub" },
-        "Opcional y sin servidor: entrá con Google, Apple o Facebook solo para separar tus datos " +
-          "por perfil en este dispositivo. Seguí sin cuenta y no se pierde nada.",
+        "Opcional y sin servidor: entrá con tu email o una cuenta de Google o Apple solo para " +
+          "separar tus datos por perfil en este dispositivo. Seguí sin cuenta y no se pierde nada.",
       ),
       contenedor,
     );

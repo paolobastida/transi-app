@@ -91,9 +91,9 @@ La versión completa sigue disponible en el tag
 ## La cuenta es opcional (y no manda sobre el producto)
 
 Podés usar Transi **sin cuenta**, como siempre. Pero si querés, podés entrar
-con **Google, Apple o Facebook** desde **Ajustes → Tu cuenta**. Los tres botones
-están siempre; si falta el Client ID de uno, el botón explica qué variable
-configurar y la app sigue funcionando sin cuentas.
+con **email** (funciona sin configurar nada), o con **Google, Apple o Facebook**
+si configurás sus credenciales. Los botones sociales aparecen solo cuando están
+listos: si falta un Client ID no se muestra un botón que no funciona.
 
 Lo que hace y lo que **no** hace:
 
@@ -278,12 +278,13 @@ pnpm dev
 ```
 
 Abrí `http://localhost:5173`. La primera vez vas a ver la **pantalla de
-entrada**: podés probar Google, Apple o Facebook, o tocar **“Seguir sin
-cuenta”** y usar la app como siempre. Después, en el inicio, elegí **“Probar con
-datos de ejemplo”** si querés recorrerla con contenido.
+entrada**: podés crear tu espacio con **email** o tocar **“Seguir sin cuenta”**
+y usar la app como siempre. Si configuraste Google, Apple o Facebook, también
+aparecen sus botones. Después, en el inicio, elegí **“Probar con datos de
+ejemplo”** si querés recorrerla con contenido.
 
 ```sh
-pnpm test     # 125 pruebas
+pnpm test     # 129 pruebas
 pnpm build    # dist/ listo para publicar
 pnpm preview  # servir dist/ en local
 ```
@@ -364,9 +365,10 @@ propias, analytics ni fuentes externas. Todo lo que cargás se guarda en el
 `localStorage` de tu navegador y podés borrar los datos del perfil activo desde
 **Ajustes → Empezar de cero**.
 
-Si entrás con Google, Apple o Facebook, el SDK del proveedor se carga desde su
-dominio y recibe solo lo necesario para identificarte; **nunca** tus
-tratamientos, cambios, fotos ni notas de voz. Sin cuenta no se carga ninguno.
+El acceso con **email no carga ningún servicio externo**: el perfil se guarda
+solo en este dispositivo. Si entrás con Google, Apple o Facebook, el SDK del
+proveedor se carga desde su dominio y recibe solo lo necesario para identificarte;
+**nunca** tus tratamientos, cambios, fotos ni notas de voz.
 
 El micrófono solo se activa cuando tocás **Grabar nota** y se apaga al detener
 la grabación o salir de la pantalla. Grabar audio requiere HTTPS (o

@@ -1,5 +1,6 @@
 import { importarDatosAnonimos, entrarConPerfil, omitirAcceso, perfilActual } from "../auth";
 import { montarProveedores } from "../botones_cuenta";
+import { icono } from "../iconos";
 import { nombreVisible, type Perfil } from "../perfil";
 import { sincronizarRecordatorios } from "../recordatorios";
 import { navegar } from "../rutas";
@@ -61,8 +62,14 @@ export function vistaEntrada(): HTMLElement {
         { class: "cabecera-acciones" },
         h(
           "button",
-          { class: "btn enlace", type: "button", onClick: seguirSinCuenta },
-          "Seguir sin cuenta",
+          {
+            class: "btn icono",
+            type: "button",
+            title: "Ayuda",
+            "aria-label": "Ayuda",
+            onClick: () => navegar("/ayuda"),
+          },
+          icono("ayuda"),
         ),
       ),
     ),
@@ -73,13 +80,13 @@ export function vistaEntrada(): HTMLElement {
         "section",
         { class: "tarjeta entrada-tarjeta" },
         h("span", { class: "logo grande", "aria-hidden": "true" }),
-        h("span", { class: "eyebrow" }, "Cuenta opcional"),
-        h("h1", {}, "Entrá a Transi"),
+        h("span", { class: "eyebrow" }, "Tu espacio privado"),
+        h("h1", {}, "Entrá o creá tu espacio"),
         h(
           "p",
           { class: "entrada-bajada" },
-          "Usá tu cuenta para separar tus datos en este dispositivo. " +
-            "Si preferís, seguí sin cuenta y no se pierde nada.",
+          "Entrá con tu email o con una cuenta de Google o Apple, si están disponibles. " +
+            "La cuenta solo separa tus datos en este dispositivo: tus registros no se envían a ningún servidor.",
         ),
         proveedores,
         h(
@@ -87,14 +94,14 @@ export function vistaEntrada(): HTMLElement {
           { class: "entrada-seguir" },
           h(
             "button",
-            { class: "btn enlace", type: "button", onClick: seguirSinCuenta },
+            { class: "btn secundario", type: "button", onClick: seguirSinCuenta },
             "Seguir sin cuenta",
           ),
         ),
         h(
           "p",
           { class: "nota-local" },
-          "Sin cuenta, Transi funciona igual. Tus registros no se envían a ningún servidor.",
+          "Sin cuenta también funciona: tus registros quedan solo en este dispositivo.",
         ),
       ),
     ),
